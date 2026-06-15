@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三元 AIOS · 交互终端</title>
 <script src="aios-data.js"></script>
-<script src="https://lf-coze-web-sdk.coze.cn/obj/coze-web-sdk/1.2.0-beta.20/ChatSDK.js"></script>
 <style>
 :root {
   --bg-primary: #0a0c0f;
@@ -40,6 +39,7 @@ body {
 .top-left { display: flex; align-items: center; gap: 16px; }
 .top-title { font-size: 16px; font-weight: 600; }
 .top-title span { color: var(--accent-cyan); }
+.top-actions { display: flex; align-items: center; gap: 8px; }
 .pills { display: flex; gap: 8px; }
 .pill {
   display: flex; align-items: center; gap: 4px;
@@ -55,6 +55,12 @@ body {
   background: rgba(88,180,255,0.1); border: 1px solid rgba(88,180,255,0.3);
   font-size: 12px; font-weight: 600;
 }
+.btn-icon {
+  padding: 4px 10px; background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text-secondary); font-size: 12px;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.btn-icon:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
 
 /* Tab Bar */
 .tab-bar {
@@ -74,17 +80,90 @@ body {
 .panel { display: none; flex: 1; overflow: hidden; }
 .panel.active { display: flex; }
 
-/* Chat Panel — Chat SDK */
+/* Chat Panel — Coze API */
 .chat-panel { flex-direction: column; background: var(--bg-primary); }
-#chatContainer {
-  flex: 1; width: 100%; overflow: hidden;
-  position: relative;
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
 }
+.chat-msg { display: flex; gap: 10px; max-width: 85%; }
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg .avatar {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+}
+.chat-msg.user .avatar { background: var(--accent-cyan); color: #000; }
+.chat-msg.bot .avatar { background: rgba(88,180,255,0.15); border: 1px solid var(--border); color: var(--accent-cyan); }
+.chat-msg .bubble {
+  padding: 10px 14px; border-radius: 10px; font-size: 13px; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+}
+.chat-msg.user .bubble { background: rgba(88,180,255,0.15); border: 1px solid rgba(88,180,255,0.3); }
+.chat-msg.bot .bubble { background: var(--bg-card); border: 1px solid var(--border); }
+.chat-msg.bot .bubble code {
+  background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 3px;
+  font-size: 12px; font-family: 'JetBrains Mono', monospace;
+}
+.chat-msg.bot .bubble pre {
+  background: #0d1117; padding: 12px; border-radius: 6px; overflow-x: auto;
+  margin: 8px 0; border: 1px solid var(--border);
+}
+.chat-msg.bot .bubble pre code { background: none; padding: 0; }
+.chat-input-row {
+  display: flex; padding: 12px 16px; border-top: 1px solid var(--border);
+  background: var(--bg-secondary); align-items: center; gap: 8px;
+}
+.chat-input {
+  flex: 1; padding: 10px 14px; background: var(--bg-primary);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text-primary); font-family: inherit; font-size: 13px;
+  outline: none; resize: none;
+}
+.chat-input:focus { border-color: var(--accent-cyan); }
+.chat-send {
+  padding: 10px 20px; background: var(--accent-cyan);
+  border: none; border-radius: 8px; color: #000; font-weight: 600;
+  cursor: pointer; font-family: inherit; font-size: 13px;
+  transition: opacity 0.15s; flex-shrink: 0;
+}
+.chat-send:hover { opacity: 0.85; }
+.chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Token Modal */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7); z-index: 999; align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px; max-width: 480px; width: 90%;
+}
+.modal h2 { font-size: 16px; margin-bottom: 6px; }
+.modal p { color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
+.modal input {
+  width: 100%; padding: 10px 14px; background: var(--bg-primary);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text-primary); font-family: inherit; font-size: 13px;
+  outline: none; margin-bottom: 12px;
+}
+.modal input:focus { border-color: var(--accent-cyan); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-btn {
+  padding: 8px 20px; border-radius: 6px; font-family: inherit;
+  font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+}
+.modal-btn.primary { background: var(--accent-cyan); color: #000; }
+.modal-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+.token-status { font-size: 12px; margin-top: 8px; }
+.token-status.ok { color: var(--accent-green); }
+.token-status.err { color: var(--accent-red); }
 
 /* Command Panel */
 .cmd-panel { flex-direction: column; }
 .cmd-sidebar {
-  width: 220px; border-right: 1px solid var(--border);
+  width: 200px; border-right: 1px solid var(--border);
   padding: 16px; overflow-y: auto; flex-shrink: 0;
   background: var(--bg-secondary);
 }
@@ -154,10 +233,13 @@ body {
 <body>
 <div class="top-bar">
   <div class="top-left">
-    <div class="top-title"><span>三元</span> AIOS · 交互终端 v3</div>
+    <div class="top-title"><span>三元</span> AIOS · 交互终端 v4</div>
     <div class="pills" id="topPills"></div>
   </div>
-  <div class="health-badge" id="healthBadge">健康分: --</div>
+  <div class="top-actions">
+    <button class="btn-icon" id="tokenBtn" onclick="showTokenModal()">🔑 Token</button>
+    <div class="health-badge" id="healthBadge">健康分: --</div>
+  </div>
 </div>
 
 <div class="tab-bar">
@@ -167,9 +249,18 @@ body {
 </div>
 
 <div class="content">
-  <!-- 对话Tab — Chat SDK -->
+  <!-- 对话Tab — Coze API -->
   <div class="panel chat-panel active" id="panelChat">
-    <div id="chatContainer"></div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-msg bot">
+        <div class="avatar">三</div>
+        <div class="bubble">🟢 三元 AIOS 交互终端 v4\n\n直接输入文字与三元对话。\n点击右上角 🔑 Token 配置访问凭证。</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chatInput" rows="1" placeholder="输入消息..." oninput="autoResize(this)"></textarea>
+      <button class="chat-send" id="chatSend" onclick="sendChat()">发送</button>
+    </div>
   </div>
 
   <!-- 命令Tab -->
@@ -206,44 +297,202 @@ body {
   </div>
 </div>
 
+<!-- Token 配置弹窗 -->
+<div class="modal-overlay" id="tokenModal">
+  <div class="modal">
+    <h2>🔑 配置访问凭证</h2>
+    <p>输入你的 Coze PAT (Personal Access Token) 来授权对话。<br>可在 扣子平台 → 设置 → API Token 生成。</p>
+    <input type="password" id="tokenInput" placeholder="输入 pat_xxx..." />
+    <div class="token-status" id="tokenStatus"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="hideTokenModal()">取消</button>
+      <button class="modal-btn primary" onclick="saveToken()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script>
+// ========== Coze API Config ==========
+const BOT_ID = '7599196382645813282';
+const COZE_API = 'https://api.coze.cn';
+
+function getToken() { return localStorage.getItem('coze_pat') || ''; }
+
+function showTokenModal() {
+  document.getElementById('tokenInput').value = getToken();
+  document.getElementById('tokenStatus').textContent = '';
+  document.getElementById('tokenModal').classList.add('show');
+}
+function hideTokenModal() { document.getElementById('tokenModal').classList.remove('show'); }
+function saveToken() {
+  const token = document.getElementById('tokenInput').value.trim();
+  if (!token) { document.getElementById('tokenStatus').textContent = '❌ 请输入 Token'; document.getElementById('tokenStatus').className = 'token-status err'; return; }
+  localStorage.setItem('coze_pat', token);
+  document.getElementById('tokenStatus').textContent = '✅ Token 已保存';
+  document.getElementById('tokenStatus').className = 'token-status ok';
+  setTimeout(hideTokenModal, 800);
+  updateTokenIndicator();
+}
+function updateTokenIndicator() {
+  const t = getToken();
+  document.getElementById('tokenBtn').textContent = t ? '🔑 ✓' : '🔑 Token';
+}
+
+// ========== Chat - Coze API ==========
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+let conversationId = localStorage.getItem('coze_conversation_id') || '';
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function addChatMsg(role, content) {
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  const avatar = role === 'user' ? '我' : '三';
+  div.innerHTML = `<div class="avatar">${avatar}</div><div class="bubble">${content.replace(/\n/g, '<br>').replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')}</div>`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addLoadingMsg() {
+  const div = document.createElement('div');
+  div.className = 'chat-msg bot';
+  div.id = 'chatLoading';
+  div.innerHTML = '<div class="avatar">三</div><div class="bubble"><span class="loading-dots">思考中</span></div>';
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+function removeLoadingMsg() {
+  const el = document.getElementById('chatLoading');
+  if (el) el.remove();
+}
+
+function setLoadingText(text) {
+  const el = document.getElementById('chatLoading');
+  if (el) {
+    const bubble = el.querySelector('.bubble');
+    if (bubble) bubble.innerHTML = text;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+}
+
+async function pollChatStatus(chatId, convId, maxWait) {
+  const token = getToken();
+  const start = Date.now();
+  while (Date.now() - start < maxWait * 1000) {
+    const resp = await fetch(`${COZE_API}/v3/chat/retrieve?chat_id=${chatId}&conversation_id=${convId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await resp.json();
+    if (data.code !== 0) throw new Error(data.msg || 'Poll failed');
+    const status = data.data.status;
+    if (status === 'completed' || status === 'failed') return status;
+    setLoadingText(`⏳ ${status === 'in_progress' ? '三元思考中...' : '等待响应...'}`);
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  throw new Error('超时');
+}
+
+async function sendChat() {
+  const text = chatInput.value.trim();
+  if (!text || chatSend.disabled) return;
+  
+  const token = getToken();
+  if (!token) {
+    showTokenModal();
+    return;
+  }
+
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  chatSend.disabled = true;
+  chatSend.textContent = '...';
+
+  addChatMsg('user', text);
+  addLoadingMsg();
+
+  try {
+    // Step 1: Create chat
+    const body = {
+      bot_id: BOT_ID,
+      user_id: 'terminal_user',
+      additional_messages: [{ role: 'user', content: text, content_type: 'text' }],
+      stream: false,
+      auto_check: true,
+    };
+    if (conversationId) body.conversation_id = conversationId;
+
+    const resp = await fetch(`${COZE_API}/v3/chat`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (data.code !== 0) throw new Error(data.msg || 'API Error');
+
+    const chatId = data.data.id;
+    const convId = data.data.conversation_id;
+    if (!conversationId) {
+      conversationId = convId;
+      localStorage.setItem('coze_conversation_id', convId);
+    }
+
+    // Step 2: Poll until completed
+    if (data.data.status === 'in_progress') {
+      const status = await pollChatStatus(chatId, convId, 60);
+      if (status === 'failed') throw new Error('三元回复失败');
+    }
+
+    setLoadingText('📥 获取回复...');
+
+    // Step 3: Get messages
+    const msgResp = await fetch(`${COZE_API}/v3/chat/message/list?chat_id=${chatId}&conversation_id=${convId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const msgData = await msgResp.json();
+    if (msgData.code !== 0) throw new Error(msgData.msg || 'Msg list error');
+
+    removeLoadingMsg();
+
+    const msgs = msgData.data || [];
+    const botMsg = msgs.filter(m => m.role === 'assistant').pop();
+    if (botMsg) {
+      addChatMsg('bot', botMsg.content);
+    } else {
+      addChatMsg('bot', '（三元未返回内容）');
+    }
+
+  } catch(e) {
+    removeLoadingMsg();
+    addChatMsg('bot', `❌ 错误: ${e.message}`);
+    if (e.message.includes('401') || e.message.includes('unauthorized') || e.message.includes('鉴权')) {
+      localStorage.removeItem('coze_pat');
+      updateTokenIndicator();
+    }
+  }
+
+  chatSend.disabled = false;
+  chatSend.textContent = '发送';
+}
+
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+
 // ========== Tab Switching ==========
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
-    document.getElementById('panel' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
+    const name = tab.dataset.tab;
+    document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
   });
 });
-
-// ========== Chat SDK Init ==========
-(function initChatSDK() {
-  if (typeof CozeWebSDK === 'undefined') {
-    console.error('Chat SDK not loaded');
-    return;
-  }
-  try {
-    const client = new CozeWebSDK.WebChatClient({
-      config: {
-        bot_id: '7599196382645813282',
-      },
-      ui: {
-        asstBtn: { isNeed: false },
-        header: { isShow: false },
-        footer: { isShow: false, text: '' },
-        chatBot: {
-          el: document.getElementById('chatContainer'),
-          title: '三元终端',
-        },
-      },
-    });
-    client.showChatBot && client.showChatBot();
-    console.log('Chat SDK initialized');
-  } catch(e) {
-    console.error('Chat SDK init error:', e);
-  }
-})();
 
 // ========== Live Data ==========
 let liveData = {};
@@ -256,7 +505,6 @@ async function loadLiveData() {
 function updateTopBar() {
   const sys = liveData.sys;
   if (!sys) return;
-  
   const mods = sys.modules || {};
   const pillsHtml = [
     { name: 'Ω_loop', s: mods.omega_loop?.status },
@@ -268,38 +516,31 @@ function updateTopBar() {
     return `<div class="pill"><span class="pill-dot ${c}"></span>${p.name}</div>`;
   }).join('');
   document.getElementById('topPills').innerHTML = pillsHtml;
-  
   const badge = document.getElementById('healthBadge');
   badge.textContent = '健康分: ' + (sys.health_score || '--');
   badge.style.color = sys.health_score > 70 ? 'var(--accent-green)' : 'var(--accent-red)';
 }
 
-// ========== Status Panel ==========
 function updateStatusPanel() {
   const sys = liveData.sys;
   const aether = liveData.aether;
   const token = liveData.token;
   if (!sys) return;
-  
   const mods = sys.modules || {};
   const channels = sys.channels || {};
-  
   let html = '';
-  
   html += '<div class="status-card"><h3>🔧 核心模块</h3>';
   Object.entries(mods).forEach(([k, v]) => {
     const s = v.status === 'online' ? 'ok' : v.status === 'offline' ? 'err' : 'warn';
     html += `<div class="status-row"><span>${k}</span><span class="status-val ${s}">${v.status}${v.reason ? ' · ' + v.reason : ''}</span></div>`;
   });
   html += '</div>';
-  
   html += '<div class="status-card"><h3>📢 发布渠道</h3>';
   Object.entries(channels).forEach(([k, v]) => {
     const s = v.status === 'online' ? 'ok' : v.status === 'banned' ? 'err' : 'warn';
     html += `<div class="status-row"><span>${k}</span><span class="status-val ${s}">${v.status}${v.until ? ' → ' + v.until : ''}</span></div>`;
   });
   html += '</div>';
-  
   if (aether) {
     html += `<div class="status-card"><h3>📡 Aether感知层</h3>
       <div class="status-row"><span>轮次</span><span class="status-val ok">C${aether.cycle || '?'}</span></div>
@@ -308,7 +549,6 @@ function updateStatusPanel() {
       <div class="status-row"><span>数据源</span><span class="status-val ok">${aether.sources_total || 0}</span></div>
     </div>`;
   }
-  
   if (token) {
     const d = token.daily || {};
     html += `<div class="status-card"><h3>💰 Token消耗</h3>
@@ -317,7 +557,6 @@ function updateStatusPanel() {
       <div class="status-row"><span>今日任务</span><span class="status-val">${d.tasks_count || 0}</span></div>
     </div>`;
   }
-  
   document.getElementById('statusGrid').innerHTML = html;
 }
 
@@ -330,15 +569,14 @@ const commands = {
     const sys = liveData.sys;
     if (!sys) return '⏳ 数据加载中...';
     const m = sys.modules || {}; const ch = sys.channels || {};
-    const rows = [
+    return '📊 <b>系统状态</b>\n' + [
       ['Ω_loop', m.omega_loop?.status === 'online' ? '✅ 在线' : '❌ 离线'],
       ['AIOS', m.aios?.status === 'online' ? '✅ 在线' : '❌ 离线'],
       ['Aether', `✅ C${m.aether?.cycle || '?'} · ${Math.round((liveData.aether?.online_rate || 0) * 100)}%`],
-      ['星光', m.starlight?.status === 'online' ? '✅ 在线' : '❌ 离线'],
+      ['星光', m.starlight?.status === 'online' ? '✅ 在线' : '❌ 离线' + (m.starlight?.reason ? ' · ' + m.starlight.reason : '')],
       ['小红书', ch.xiaohongshu?.status === 'online' ? '✅' : '⚠ ' + ch.xiaohongshu?.status],
       ['微博', ch.weibo?.status === 'online' ? '✅' : '🔒 ' + (ch.weibo?.until || '禁言中')],
-    ];
-    return '📊 <b>系统状态</b>\n' + rows.map(r => `${r[0]}：${r[1]}`).join('\n');
+    ].map(r => `${r[0]}：${r[1]}`).join('\n');
   },
   '/health': () => {
     const score = liveData.sys?.health_score || 0;
@@ -356,7 +594,7 @@ const commands = {
   '/hot': () => {
     const h = liveData.aether?.weibo_hot;
     if (!h) return '⏳ 暂无热搜数据';
-    return '🔥 <b>微博热搜</b>\n' + h.slice(0, 5).map(w => `#${w.rank + 1} ${w.title}`).join('\n');
+    return '🔥 <b>微博热搜</b>\n' + h.slice(0, 5).map(w => `#${w.rank+1} ${w.title}`).join('\n');
   },
   '/channels': () => {
     const ch = liveData.sys?.channels || {};
@@ -387,9 +625,10 @@ document.querySelectorAll('.cmd-btn').forEach(btn => {
   btn.addEventListener('click', () => { cmdInput.value = btn.textContent.trim(); handleCmd(); });
 });
 
-addCmdMsg('🟢 三元 AIOS 交互终端 v3.0\n<b>对话Tab</b>：Chat SDK嵌入，可以直接跟三元对话\n<b>命令Tab</b>：快捷查看系统状态\n<b>状态Tab</b>：完整状态面板');
+addCmdMsg('🟢 三元 AIOS 交互终端 v4\n<b>对话Tab</b>：通过 Coze API 直接与三元对话\n<b>命令Tab</b>：快捷查看系统状态\n<b>状态Tab</b>：完整状态面板\n\n⚠ 首次使用对话需先配置 🔑 Token');
 
-// Init
+// ========== Init ==========
+updateTokenIndicator();
 autoRefresh(loadLiveData, 60000);
 loadLiveData();
 </script>
