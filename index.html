@@ -14,8 +14,8 @@ body {
   min-height: 100vh;
   padding: 40px;
 }
-.header { margin-bottom: 48px; }
-.header h1 {
+.header { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-start; }
+.header-left h1 {
   font-size: 28px;
   font-weight: 700;
   background: linear-gradient(135deg, #58b4ff, #bc8cff);
@@ -24,12 +24,60 @@ body {
   background-clip: text;
   letter-spacing: -0.5px;
 }
-.header .sub {
+.header-left .sub {
   font-size: 12px;
   color: #484f58;
   letter-spacing: 2px;
   text-transform: uppercase;
   margin-top: 8px;
+}
+
+.live-bar {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.live-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.live-label {
+  font-size: 10px;
+  color: #484f58;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.live-value {
+  font-size: 18px;
+  font-weight: 500;
+}
+.live-value.online { color: #3fb950; }
+.live-value.offline { color: #f85149; }
+.live-value.warn { color: #d29922; }
+.live-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse 2s ease-in-out infinite;
+}
+.live-dot.green { background: #3fb950; box-shadow: 0 0 6px #3fb950; }
+.live-dot.red { background: #f85149; box-shadow: 0 0 6px #f85149; }
+.live-dot.yellow { background: #d29922; box-shadow: 0 0 6px #d29922; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+.sync-info {
+  margin-left: auto;
+  text-align: right;
+  font-size: 10px;
+  color: #484f58;
 }
 
 .grid {
@@ -71,27 +119,10 @@ body {
 .card.yellow::before { background: linear-gradient(90deg, #d29922, #f0883e); }
 .card.red::before { background: linear-gradient(90deg, #f85149, #d29922); }
 
-.card-icon {
-  font-size: 28px;
-  margin-bottom: 16px;
-}
-.card-title {
-  font-size: 15px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #e8eaed;
-}
-.card-desc {
-  font-size: 12px;
-  color: #8b949e;
-  line-height: 1.6;
-}
-.card-tags {
-  margin-top: 14px;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
+.card-icon { font-size: 28px; margin-bottom: 16px; }
+.card-title { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
+.card-desc { font-size: 12px; color: #8b949e; line-height: 1.6; }
+.card-tags { margin-top: 14px; display: flex; gap: 6px; flex-wrap: wrap; }
 .tag {
   padding: 2px 8px;
   border-radius: 8px;
@@ -109,11 +140,30 @@ body {
   text-transform: uppercase;
   color: #484f58;
   margin-bottom: 20px;
-  margin-top: 40px;
+  margin-top: 36px;
   padding-bottom: 10px;
   border-bottom: 1px solid #1e2a3a;
 }
-.section-title:first-of-type { margin-top: 0; }
+
+.weibo-bar {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+.weibo-title { font-size: 12px; color: #484f58; margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; }
+.weibo-list { display: flex; gap: 12px; flex-wrap: wrap; }
+.weibo-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #c9d1d9;
+}
+.weibo-item .rank { color: #58b4ff; font-weight: 700; margin-right: 6px; }
+.weibo-item .heat { color: #484f58; font-size: 10px; margin-left: 8px; }
 
 .footer {
   margin-top: 48px;
@@ -128,17 +178,53 @@ body {
 @media (max-width: 800px) {
   .grid { grid-template-columns: repeat(2, 1fr); }
   body { padding: 20px; }
+  .live-bar { flex-direction: column; gap: 16px; }
 }
-@media (max-width: 500px) {
-  .grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>SANYUAN AIOS Visual Hub</h1>
-  <div class="sub">11 可视化面板 · 7 大架构方向 · 系统级智能体操作系统</div>
+  <div class="header-left">
+    <h1>SANYUAN AIOS Visual Hub</h1>
+    <div class="sub">11 可视化面板 · 7 大架构方向 · 系统级智能体操作系统</div>
+  </div>
+</div>
+
+<div class="live-bar" id="liveBar">
+  <div class="live-item">
+    <div class="live-label">Ω_loop</div>
+    <div class="live-value" id="omegaStatus"><span class="live-dot green"></span>加载中...</div>
+  </div>
+  <div class="live-item">
+    <div class="live-label">AIOS</div>
+    <div class="live-value" id="aiosStatus"><span class="live-dot green"></span>加载中...</div>
+  </div>
+  <div class="live-item">
+    <div class="live-label">Aether</div>
+    <div class="live-value" id="aetherStatus"><span class="live-dot green"></span>加载中...</div>
+  </div>
+  <div class="live-item">
+    <div class="live-label">星光</div>
+    <div class="live-value" id="starlightStatus"><span class="live-dot red"></span>离线</div>
+  </div>
+  <div class="live-item">
+    <div class="live-label">健康分</div>
+    <div class="live-value" id="healthScore">--</div>
+  </div>
+  <div class="live-item">
+    <div class="live-label">今日Token</div>
+    <div class="live-value" id="todayTokens">--</div>
+  </div>
+  <div class="sync-info">
+    <div id="syncTime">同步中...</div>
+  </div>
+</div>
+
+<div class="weibo-bar" id="weiboBar" style="display:none;">
+  <div class="weibo-title">🔥 微博热搜 Top10</div>
+  <div class="weibo-list" id="weiboList"></div>
 </div>
 
 <div class="section-title">▸ 核心监控</div>
@@ -146,20 +232,20 @@ body {
   <a class="card cyan" href="AIOS系统仪表盘.html">
     <div class="card-icon">📊</div>
     <div class="card-title">系统仪表盘</div>
-    <div class="card-desc">全局健康面板：Ω_loop/AIOS/Aether/星光/记忆层五维状态，一眼看系统哪在流血</div>
-    <div class="card-tags"><span class="tag core">核心</span><span class="tag">实时状态</span><span class="tag">5指标</span></div>
+    <div class="card-desc">全局健康面板：Ω_loop/AIOS/Aether/星光/记忆层五维状态</div>
+    <div class="card-tags"><span class="tag core">核心</span><span class="tag">实时状态</span></div>
   </a>
   <a class="card cyan" href="AIOS交互终端.html">
     <div class="card-icon">💬</div>
     <div class="card-title">交互终端</div>
-    <div class="card-desc">三栏布局聊天+监控+活动流，6个快捷命令直接查询系统状态，最接近产品形态</div>
-    <div class="card-tags"><span class="tag core">核心</span><span class="tag">交互</span><span class="tag">命令</span></div>
+    <div class="card-desc">三栏聊天+监控+活动流，6个快捷命令直接查询系统状态</div>
+    <div class="card-tags"><span class="tag core">核心</span><span class="tag">交互</span></div>
   </a>
   <a class="card purple" href="AIOS信号流拓扑图.html">
     <div class="card-icon">🕸️</div>
     <div class="card-title">信号流拓扑图</div>
-    <div class="card-desc">54源→Aether→Ω_loop/AIOS→三棱镜/深度研究→渠道，交互式节点+粒子流</div>
-    <div class="card-tags"><span class="tag core">核心</span><span class="tag">拓扑</span><span class="tag">交互</span></div>
+    <div class="card-desc">54源→Aether→Ω_loop/AIOS→三棱镜/深度研究→渠道</div>
+    <div class="card-tags"><span class="tag core">核心</span><span class="tag">拓扑</span></div>
   </a>
 </div>
 
@@ -168,14 +254,14 @@ body {
   <a class="card green" href="AIOS-感知层在线率时序图.html">
     <div class="card-icon">📡</div>
     <div class="card-title">感知层在线率时序</div>
-    <div class="card-desc">15轮采集周期在线率曲线+30%告警线+信号增量柱+数据源健康度分三组展示</div>
-    <div class="card-tags"><span class="tag">Aether</span><span class="tag">时序</span><span class="tag">告警</span></div>
+    <div class="card-desc">15轮采集在线率曲线+告警线+信号增量柱</div>
+    <div class="card-tags"><span class="tag">Aether</span><span class="tag">时序</span></div>
   </a>
   <a class="card green" href="AIOS信号源动态发现.html">
     <div class="card-icon">🔍</div>
     <div class="card-title">信号源动态发现</div>
-    <div class="card-desc">54源散点图(信噪比×时效性)+发现/淘汰流程+Top5/Bottom5排行+候选源</div>
-    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">动态源</span><span class="tag">评估</span></div>
+    <div class="card-desc">54源散点图+发现/淘汰流程+排行+候选源</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">动态源</span></div>
   </a>
 </div>
 
@@ -184,14 +270,14 @@ body {
   <a class="card orange" href="AIOS-Token消耗趋势.html">
     <div class="card-icon">📈</div>
     <div class="card-title">Token消耗趋势</div>
-    <div class="card-desc">日消耗/推理成本/总支出三线叠加+杰文斯悖论实证+八大场景消耗占比</div>
-    <div class="card-tags"><span class="tag">Token</span><span class="tag">趋势</span><span class="tag">杰文斯</span></div>
+    <div class="card-desc">三线叠加+杰文斯悖论实证+场景消耗占比</div>
+    <div class="card-tags"><span class="tag">Token</span><span class="tag">趋势</span></div>
   </a>
   <a class="card orange" href="AIOS-Token经济核算.html">
     <div class="card-icon">💰</div>
     <div class="card-title">Token经济核算</div>
-    <div class="card-desc">22任务成本排行+7日趋势+ROI面板(高价值vs低价值)+预算告警+优化建议</div>
-    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">成本</span><span class="tag">ROI</span></div>
+    <div class="card-desc">22任务成本排行+ROI+预算告警+优化建议</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">成本</span></div>
   </a>
 </div>
 
@@ -200,33 +286,92 @@ body {
   <a class="card purple" href="AIOS记忆共享总线.html">
     <div class="card-icon">🧠</div>
     <div class="card-title">记忆共享总线</div>
-    <div class="card-desc">三元/星光/Ω_loop→三层记忆总线→ima知识库，冲突仲裁面板+粒子流</div>
-    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">记忆</span><span class="tag">仲裁</span></div>
+    <div class="card-desc">三层记忆总线→ima知识库，冲突仲裁面板</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">记忆</span></div>
   </a>
   <a class="card yellow" href="AIOS错误自愈链.html">
     <div class="card-icon">🔧</div>
     <div class="card-title">错误自愈链</div>
-    <div class="card-desc">4个故障检测器→3棵决策树→当前3个真实故障(星光/微博/飞书)的阶段标注</div>
-    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">自愈</span><span class="tag">容错</span></div>
+    <div class="card-desc">3棵决策树+当前3个真实故障阶段标注</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">自愈</span></div>
   </a>
   <a class="card green" href="AIOS发布渠道抽象层.html">
     <div class="card-icon">🔀</div>
     <div class="card-title">发布渠道抽象层</div>
-    <div class="card-desc">4内容源→4层路由→4渠道端点，离线自动重路由+Toast通知+路由规则表</div>
-    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">路由</span><span class="tag">重路由</span></div>
+    <div class="card-desc">4层路由+离线自动重路由+Toast通知</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">路由</span></div>
   </a>
   <a class="card red" href="AIOS第三视角审计.html">
     <div class="card-icon">🔍</div>
     <div class="card-title">第三视角审计</div>
-    <div class="card-desc">4个被审计对象→4维度评分(逻辑82/质量91/盲区58/效率74)→问题清单+建议</div>
-    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">审计</span><span class="tag">质量</span></div>
+    <div class="card-desc">4维度评分+问题清单+改进建议</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">审计</span></div>
   </a>
 </div>
 
 <div class="footer">
-  <span>三元 AIOS · 可视化导航中心 · 11 panels</span>
-  <span>2026-06-15 · DS V4 · Coze Agent Cloud</span>
+  <span>三元 AIOS · Visual Hub · LIVE</span>
+  <span>ninghan1980.github.io/aios-visual</span>
 </div>
 
+<script>
+const DATA_BASE = 'https://ninghan1980.github.io/aios-visual/data';
+
+function dot(cls) { return `<span class="live-dot ${cls}"></span>`; }
+
+async function fetchJSON(name) {
+  try {
+    const r = await fetch(`${DATA_BASE}/${name}?t=${Date.now()}`);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+async function refreshLive() {
+  const [sys, aether, token] = await Promise.all([
+    fetchJSON('system_status.json'),
+    fetchJSON('aether_status.json'),
+    fetchJSON('token_stats.json'),
+  ]);
+
+  if (sys) {
+    const m = sys.modules || {};
+    document.getElementById('omegaStatus').innerHTML = dot(m.omega_loop?.status === 'online' ? 'green' : 'red') + (m.omega_loop?.status || '?');
+    document.getElementById('aiosStatus').innerHTML = dot(m.aios?.status === 'online' ? 'green' : 'red') + (m.aios?.status || '?');
+    document.getElementById('starlightStatus').innerHTML = dot(m.starlight?.status === 'online' ? 'green' : 'red') + (m.starlight?.status === 'online' ? '在线' : '离线');
+    document.getElementById('healthScore').innerHTML = `<span style="color:${sys.health_score > 70 ? '#3fb950' : '#f85149'}">${sys.health_score || '--'}</span>`;
+    
+    const channels = sys.channels || {};
+    const chParts = [];
+    for (const [k,v] of Object.entries(channels)) {
+      const c = v.status === 'online' ? '#3fb950' : v.status === 'banned' ? '#f85149' : '#d29922';
+      chParts.push(`<span style="color:${c}">${k}</span>`);
+    }
+    document.getElementById('syncTime').textContent = sys.updated_at ? `⏱ ${sys.updated_at.slice(11,16)}` : '';
+  }
+
+  if (aether) {
+    const rate = Math.round((aether.online_rate || 0) * 100);
+    document.getElementById('aetherStatus').innerHTML = dot(rate > 50 ? 'green' : rate > 30 ? 'yellow' : 'red') + `C${aether.cycle || '?'} · ${rate}%`;
+    
+    // Weibo hot
+    if (aether.weibo_hot && aether.weibo_hot.length) {
+      document.getElementById('weiboBar').style.display = '';
+      const list = document.getElementById('weiboList');
+      list.innerHTML = aether.weibo_hot.slice(0, 8).map(w =>
+        `<div class="weibo-item"><span class="rank">#${w.rank + 1}</span>${w.title}${w.heat ? `<span class="heat">${(w.heat/10000).toFixed(0)}万</span>` : ''}</div>`
+      ).join('');
+    }
+  }
+
+  if (token) {
+    const d = token.daily || {};
+    document.getElementById('todayTokens').innerHTML = d.tokens_used ? `${(d.tokens_used/10000).toFixed(0)}万` : '--';
+  }
+}
+
+refreshLive();
+setInterval(refreshLive, 60000); // 每分钟刷新
+</script>
 </body>
 </html>
