@@ -440,7 +440,7 @@ body {
   justify-content: space-between;
 }
 </style>
-</head>
+<script src="aios-data.js"></script></head>
 <body>
 
 <div class="scanline"></div>
@@ -611,292 +611,41 @@ body {
 </div>
 
 <script>
-// === CLOCK ===
-function updateClock() {
-  const now = new Date();
-  const str = now.toLocaleString('zh-CN', { hour12: false });
-  document.getElementById('clock').textContent = str;
-  document.getElementById('footerTime').textContent = str;
+// ========== Token经济核算 — 实时数据 ==========
+let liveData = {};
+
+async function loadLiveData() {
+  liveData = await AIOSData.all();
+  updateDashboard();
 }
-setInterval(updateClock, 1000);
-updateClock();
 
-// === TASK DATA ===
-const tasks = [
-  { name: '三棱镜决策情报', tokens: 85, cost: 2.55, grade: 'A', color: '#58b4ff' },
-  { name: 'Aether感知层采集', tokens: 72, cost: 2.16, grade: 'A', color: '#3fb950' },
-  { name: '深度研究', tokens: 68, cost: 2.04, grade: 'A', color: '#bc8cff' },
-  { name: '断层线每日快报', tokens: 55, cost: 1.65, grade: 'A', color: '#58b4ff' },
-  { name: '微博热搜采集', tokens: 48, cost: 1.44, grade: 'B', color: '#f0883e' },
-  { name: '社媒内容发布', tokens: 42, cost: 1.26, grade: 'B', color: '#f0883e' },
-  { name: 'RSI续训/进化', tokens: 38, cost: 1.14, grade: 'B', color: '#3fb950' },
-  { name: '小红书爆款查询', tokens: 35, cost: 1.05, grade: 'B', color: '#f0883e' },
-  { name: '公众号文章生成', tokens: 32, cost: 0.96, grade: 'B', color: '#bc8cff' },
-  { name: '心跳日志记录', tokens: 28, cost: 0.84, grade: 'C', color: '#d29922' },
-  { name: '美伊冲突追踪', tokens: 25, cost: 0.75, grade: 'A', color: '#58b4ff' },
-  { name: 'Omega Loop守护', tokens: 22, cost: 0.66, grade: 'B', color: '#3fb950' },
-  { name: '调度器任务派发', tokens: 20, cost: 0.60, grade: 'B', color: '#bc8cff' },
-  { name: 'NSP世界模型', tokens: 18, cost: 0.54, grade: 'B', color: '#3fb950' },
-  { name: 'ima知识库同步', tokens: 16, cost: 0.48, grade: 'B', color: '#bc8cff' },
-  { name: '失败重试(平均3次)', tokens: 30, cost: 0.90, grade: 'C', color: '#f85149' },
-  { name: 'RSI空转/跳过', tokens: 24, cost: 0.72, grade: 'C', color: '#f85149' },
-  { name: '重复感知采集', tokens: 15, cost: 0.45, grade: 'C', color: '#f85149' },
-  { name: '闲置状态轮询', tokens: 12, cost: 0.36, grade: 'C', color: '#f85149' },
-  { name: '星光系统调度', tokens: 14, cost: 0.42, grade: 'B', color: '#f0883e' },
-  { name: '链路B社媒创作', tokens: 26, cost: 0.78, grade: 'B', color: '#f0883e' },
-  { name: 'Token核算自监控', tokens: 8, cost: 0.24, grade: 'C', color: '#d29922' },
-];
+function updateDashboard() {
+  const t = liveData.token;
+  const sys = liveData.sys;
+  if (!t) return;
 
-// Sort by tokens desc
-tasks.sort((a, b) => b.tokens - a.tokens);
-const maxTokens = tasks[0].tokens;
+  const daily = t.daily || {};
+  const budget = t.budget || {};
 
-// === RENDER TASK RANKING ===
-function renderTaskRanking() {
-  const container = document.getElementById('taskRanking');
-  container.innerHTML = '';
+  // Update stat values
+  document.querySelectorAll('.stat-value, .cost-num, .metric-val').forEach(el => {
+    const label = el.closest('.stat-card, .metric-card')?.querySelector('.stat-label, .metric-label')?.textContent || '';
+    if (label.includes('Token') || label.includes('消耗')) el.textContent = AIOSData.fmtNum(daily.tokens_used || 0);
+    else if (label.includes('成本') || label.includes('费用')) el.textContent = '¥' + (daily.cost_cny || 0);
+    else if (label.includes('任务')) el.textContent = daily.tasks_count || 0;
+    else if (label.includes('预算') || label.includes('剩余')) el.textContent = '¥' + (budget.remaining_cny || '--');
+    else if (label.includes('率') || label.includes('效率')) el.textContent = (daily.efficiency || '--');
+  });
 
-  tasks.forEach((t, i) => {
-    const pct = (t.tokens / maxTokens * 100).toFixed(1);
-    const gradeClass = t.grade === 'A' ? 'grade-a' : t.grade === 'B' ? 'grade-b' : 'grade-c';
-
-    const row = document.createElement('div');
-    row.className = 'task-bar-row';
-    row.innerHTML = `
-      <span class="tbr-rank">${i + 1}</span>
-      <span class="tbr-name" title="${t.name}">${t.name}</span>
-      <span class="tbr-bar-bg">
-        <span class="tbr-bar-fill" style="width:${pct}%;background:${t.color}20;">
-          <span style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${t.color};border-radius:3px;opacity:0.7;"></span>
-        </span>
-      </span>
-      <span class="tbr-tokens">${t.tokens}K</span>
-      <span class="tbr-cost">$${t.cost.toFixed(2)}</span>
-      <span class="tbr-grade ${gradeClass}">${t.grade}</span>
-    `;
-    container.appendChild(row);
+  // Update chart bars if they exist
+  const bars = document.querySelectorAll('.bar-fill, .usage-bar');
+  bars.forEach((bar, i) => {
+    const pct = Math.min(100, ((daily.tokens_used || 0) / (budget.daily_limit || 800000)) * 100);
+    bar.style.width = pct + '%';
+    bar.style.background = pct > 80 ? 'var(--accent-red)' : pct > 50 ? 'var(--accent-yellow)' : 'var(--accent-cyan)';
   });
 }
 
-// === SUMMARY ANIMATION ===
-function animateSummary() {
-  const totalTokens = tasks.reduce((s, t) => s + t.tokens, 0);
-  const totalCost = tasks.reduce((s, t) => s + t.cost, 0);
-  const avgCost = totalCost / tasks.length;
-  const maxTask = tasks[0];
-
-  // Animate numbers
-  animateValue('totalTokens', 0, totalTokens, 1500, v => v.toFixed(0) + '<span class="sc-unit">K tokens</span>');
-  animateValue('totalCost', 0, totalCost, 1500, v => '$' + v.toFixed(2));
-  animateValue('avgCost', 0, avgCost, 1500, v => '$' + v.toFixed(2));
-
-  setTimeout(() => {
-    document.getElementById('maxTask').textContent = maxTask.name;
-    document.getElementById('maxToken').textContent = maxTask.tokens;
-  }, 800);
-
-  // Budget
-  const budgetTotal = 50;
-  const budgetUsed = totalCost * 30 / 100 * 15; // simulate monthly
-  const budgetPct = Math.min(budgetUsed / budgetTotal * 100, 95);
-  const usedVal = budgetUsed.toFixed(2);
-
-  setTimeout(() => {
-    document.getElementById('budgetUsed').textContent = '$' + usedVal;
-    const bar = document.getElementById('budgetBar');
-    bar.style.width = budgetPct + '%';
-
-    if (budgetPct > 85) {
-      bar.style.background = 'var(--red)';
-    } else if (budgetPct > 60) {
-      bar.style.background = 'var(--yellow)';
-    } else {
-      bar.style.background = 'var(--cyan)';
-    }
-
-    document.getElementById('budgetPct').textContent = budgetPct.toFixed(1) + '%';
-  }, 300);
-}
-
-function animateValue(elementId, start, end, duration, formatter) {
-  const el = document.getElementById(elementId);
-  const startTime = performance.now();
-
-  function update(currentTime) {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const current = start + (end - start) * eased;
-    el.innerHTML = formatter(current);
-    if (progress < 1) requestAnimationFrame(update);
-  }
-  requestAnimationFrame(update);
-}
-
-// === TREND CHART ===
-function drawTrendChart() {
-  const canvas = document.getElementById('trendChart');
-  const rect = canvas.parentElement.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  const W = rect.width;
-  const H = rect.height;
-  const pad = { top: 30, right: 20, bottom: 30, left: 50 };
-
-  // Data
-  const days = ['06-09', '06-10', '06-11', '06-12', '06-13', '06-14', '06-15'];
-  const tokenData = [580, 620, 710, 650, 690, 720, 750];
-  const costData = [17.4, 18.6, 21.3, 19.5, 20.7, 21.6, 22.5];
-
-  const chartW = W - pad.left - pad.right;
-  const chartH = H - pad.top - pad.bottom;
-
-  const maxToken = 900;
-  const maxCost = 30;
-
-  // Grid lines
-  ctx.strokeStyle = '#21262d';
-  ctx.lineWidth = 0.5;
-  for (let i = 0; i <= 5; i++) {
-    const y = pad.top + (chartH / 5) * i;
-    ctx.beginPath();
-    ctx.moveTo(pad.left, y);
-    ctx.lineTo(W - pad.right, y);
-    ctx.stroke();
-
-    // Y labels (tokens)
-    ctx.font = '9px JetBrains Mono';
-    ctx.fillStyle = '#6e7681';
-    ctx.textAlign = 'right';
-    ctx.fillText((maxToken - (maxToken / 5) * i).toFixed(0) + 'K', pad.left - 6, y + 3);
-  }
-
-  // X labels
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#6e7681';
-  days.forEach((d, i) => {
-    const x = pad.left + (chartW / (days.length - 1)) * i;
-    ctx.fillText(d, x, H - 8);
-  });
-
-  // Cost line (behind)
-  ctx.beginPath();
-  costData.forEach((v, i) => {
-    const x = pad.left + (chartW / (days.length - 1)) * i;
-    const y = pad.top + chartH - (v / maxCost * chartH);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  ctx.strokeStyle = '#f0883e';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Cost area
-  const costPath = new Path2D();
-  costData.forEach((v, i) => {
-    const x = pad.left + (chartW / (days.length - 1)) * i;
-    const y = pad.top + chartH - (v / maxCost * chartH);
-    if (i === 0) costPath.moveTo(x, y); else costPath.lineTo(x, y);
-  });
-  costPath.lineTo(pad.left + chartW, pad.top + chartH);
-  costPath.lineTo(pad.left, pad.top + chartH);
-  costPath.closePath();
-  ctx.fillStyle = 'rgba(240,136,62,0.08)';
-  ctx.fill(costPath);
-
-  // Token line
-  ctx.beginPath();
-  tokenData.forEach((v, i) => {
-    const x = pad.left + (chartW / (days.length - 1)) * i;
-    const y = pad.top + chartH - (v / maxToken * chartH);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  });
-  ctx.strokeStyle = '#58b4ff';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Token area
-  const tokenPath = new Path2D();
-  tokenData.forEach((v, i) => {
-    const x = pad.left + (chartW / (days.length - 1)) * i;
-    const y = pad.top + chartH - (v / maxToken * chartH);
-    if (i === 0) tokenPath.moveTo(x, y); else tokenPath.lineTo(x, y);
-  });
-  tokenPath.lineTo(pad.left + chartW, pad.top + chartH);
-  tokenPath.lineTo(pad.left, pad.top + chartH);
-  tokenPath.closePath();
-  ctx.fillStyle = 'rgba(88,180,255,0.1)';
-  ctx.fill(tokenPath);
-
-  // Data points - tokens
-  tokenData.forEach((v, i) => {
-    const x = pad.left + (chartW / (days.length - 1)) * i;
-    const y = pad.top + chartH - (v / maxToken * chartH);
-
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#58b4ff';
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(x, y, 7, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(88,180,255,0.2)';
-    ctx.fill();
-  });
-
-  // Data points - cost
-  costData.forEach((v, i) => {
-    const x = pad.left + (chartW / (days.length - 1)) * i;
-    const y = pad.top + chartH - (v / maxCost * chartH);
-
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#f0883e';
-    ctx.fill();
-  });
-
-  // Legend
-  ctx.font = '10px JetBrains Mono';
-  const legY = 14;
-
-  ctx.fillStyle = '#58b4ff';
-  ctx.fillRect(pad.left, legY - 4, 12, 3);
-  ctx.fillStyle = '#c9d1d9';
-  ctx.textAlign = 'left';
-  ctx.fillText('Token消耗', pad.left + 16, legY);
-
-  ctx.fillStyle = '#f0883e';
-  ctx.fillRect(pad.left + 110, legY - 4, 12, 3);
-  ctx.fillStyle = '#c9d1d9';
-  ctx.fillText('成本($)', pad.left + 126, legY);
-
-  // Right Y axis for cost
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#6e7681';
-  for (let i = 0; i <= 5; i++) {
-    const y = pad.top + (chartH / 5) * i;
-    const val = maxCost - (maxCost / 5) * i;
-    ctx.fillText('$' + val.toFixed(0), W - pad.right + 4, y + 3);
-  }
-}
-
-// === INIT ===
-renderTaskRanking();
-animateSummary();
-
-// Delayed chart draw for font loading
-setTimeout(() => {
-  drawTrendChart();
-}, 500);
-
-window.addEventListener('resize', () => {
-  drawTrendChart();
-});
+autoRefresh(loadLiveData, 60000);
+loadLiveData();
 </script>
-</body>
-</html>
