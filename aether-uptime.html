@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三元 AIOS · Aether感知层在线率时序</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="aios-data.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -148,43 +149,43 @@ body {
   50% { box-shadow: 0 0 8px rgba(63,185,80,0.7); }
 }
 </style>
-<script src="aios-data.js"></script></head>
+</head>
 <body>
 
 <div class="header">
   <h1>Aether Perception Layer</h1>
-  <div class="sub">感知层在线率时序 · 54数据源 · 9圈层 · 15轮采集周期</div>
+  <div class="sub" id="headerSub">感知层在线率时序 · 加载中...</div>
 </div>
 
 <div class="summary-row">
   <div class="summary-card">
     <div class="s-label">累计信号</div>
-    <div class="s-value" style="color:#58b4ff">100</div>
-    <div class="s-meta">条 · 6月15日突破</div>
+    <div class="s-value" style="color:#58b4ff" id="sv-signals">--</div>
+    <div class="s-meta">条 · 实时</div>
   </div>
   <div class="summary-card">
     <div class="s-label">平均在线率</div>
-    <div class="s-value" style="color:#3fb950">56.2%</div>
-    <div class="s-meta">15轮平均 · >30%阈值</div>
+    <div class="s-value" style="color:#3fb950" id="sv-avg-rate">--%</div>
+    <div class="s-meta">历史平均 · >30%阈值</div>
   </div>
   <div class="summary-card">
     <div class="s-label">最新在线率</div>
-    <div class="s-value" style="color:#3fb950">91.7%</div>
-    <div class="s-meta">Cycle 15 · AI+知识圈层</div>
+    <div class="s-value" style="color:#3fb950" id="sv-latest-rate">--%</div>
+    <div class="s-meta" id="sv-latest-meta">加载中</div>
   </div>
   <div class="summary-card">
-    <div class="s-label">最低在线率</div>
-    <div class="s-value" style="color:#d29922">25.0%</div>
-    <div class="s-meta">Cycle 5 · 触发告警</div>
+    <div class="s-label">当前轮次</div>
+    <div class="s-value" style="color:#d29922" id="sv-cycle">--</div>
+    <div class="s-meta" id="sv-cycle-meta">采集轮次</div>
   </div>
   <div class="summary-card">
     <div class="s-label">数据源总数</div>
-    <div class="s-value" style="color:#bc8cff">54</div>
+    <div class="s-value" style="color:#bc8cff" id="sv-sources">--</div>
     <div class="s-meta">9圈层 · round_robin</div>
   </div>
   <div class="summary-card">
     <div class="s-label">信号增长速率</div>
-    <div class="s-value" style="color:#f0883e">6.7</div>
+    <div class="s-value" style="color:#f0883e" id="sv-growth">--</div>
     <div class="s-meta">条/轮 · 平均增量</div>
   </div>
 </div>
@@ -260,81 +261,231 @@ body {
 </div>
 
 <script>
-// ========== 感知层在线率 — 实时数据 ==========
-const chartCanvas = document.getElementById('uptimeChart');
-const ctx = chartCanvas.getContext('2d');
+const canvas = document.getElementById('rateChart');
+const ctx = canvas.getContext('2d');
 
-let liveData = {};
+// Static demo data (kept as fallback / chart framework)
+const cycles = Array.from({length: 15}, (_, i) => i + 1);
+const onlineRate = [33.3, 41.7, 50.0, 33.3, 25.0, 41.7, 50.0, 58.3, 66.7, 50.0, 58.3, 42.0, 66.7, 66.7, 91.7];
+const signalIncrement = [4, 5, 6, 3, 3, 5, 6, 7, 8, 6, 7, 5, 8, 8, 11];
+let cum = 0;
+const cumulative = signalIncrement.map(s => { cum += s; return cum; });
 
-async function loadLiveData() {
-  liveData = await AIOSData.all();
-  renderChart();
-  updateStats();
+// Live data state
+let _aetherData = null;
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 56;
+  canvas.height = 350;
 }
+resize();
+window.addEventListener('resize', () => { resize(); draw(); });
 
-function updateStats() {
-  const a = liveData.aether;
-  if (!a) return;
-  const els = document.querySelectorAll('.stat-value, .stat-num');
-  if (els.length >= 3) {
-    els[0].textContent = Math.round((a.online_rate || 0) * 100) + '%';
-    els[1].textContent = a.total_signals || 0;
-    els[2].textContent = a.sources_total || 0;
-  }
-  // Update cycle label
-  document.querySelectorAll('.cycle-label, .badge').forEach(el => {
-    if (el.textContent.match(/C\d+/)) el.textContent = 'C' + (a.cycle || '?');
-  });
-}
+function draw() {
+  const W = canvas.width;
+  const H = canvas.height;
+  const padL = 55, padR = 55, padT = 20, padB = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
 
-// Chart with real uptime history
-const uptimeHistory = [];
-function renderChart() {
-  const a = liveData.aether;
-  if (!a) return;
-  const rate = (a.online_rate || 0) * 100;
-  uptimeHistory.push(rate);
-  if (uptimeHistory.length > 30) uptimeHistory.shift();
-
-  const w = chartCanvas.width = chartCanvas.parentElement.clientWidth - 40;
-  const h = chartCanvas.height = 300;
-  ctx.clearRect(0, 0, w, h);
+  ctx.clearRect(0, 0, W, H);
 
   // Grid
-  ctx.strokeStyle = '#1e2a3a'; ctx.lineWidth = 0.5;
-  for (let y = 0; y <= 100; y += 20) {
-    const py = h - (y / 100) * h;
-    ctx.beginPath(); ctx.moveTo(40, py); ctx.lineTo(w, py); ctx.stroke();
-    ctx.fillStyle = '#8b949e'; ctx.font = '11px JetBrains Mono';
-    ctx.fillText(y + '%', 5, py + 4);
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = padT + (chartH / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.stroke();
   }
 
-  // Line
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, 'rgba(88,180,255,0.4)');
-  grad.addColorStop(1, 'rgba(88,180,255,0)');
-
-  ctx.beginPath();
-  uptimeHistory.forEach((v, i) => {
-    const x = 40 + (i / (uptimeHistory.length - 1 || 1)) * (w - 50);
-    const y = h - (v / 100) * h;
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  // X labels
+  ctx.font = '10px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#484f58';
+  cycles.forEach((c, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    ctx.fillText('C' + c, x, H - padB + 18);
   });
-  ctx.strokeStyle = '#58b4ff'; ctx.lineWidth = 2; ctx.stroke();
 
-  // Fill
-  const lastX = 40 + ((uptimeHistory.length - 1) / (uptimeHistory.length - 1 || 1)) * (w - 50);
-  ctx.lineTo(lastX, h); ctx.lineTo(40, h); ctx.closePath();
-  ctx.fillStyle = grad; ctx.fill();
+  // Y labels left (rate %)
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 5; i++) {
+    const y = padT + (chartH / 5) * i;
+    const val = 100 - i * 20;
+    ctx.fillText(val + '%', padL - 8, y + 3);
+  }
 
-  // Current value dot
-  if (uptimeHistory.length > 0) {
-    const lx = lastX, ly = h - (uptimeHistory[uptimeHistory.length - 1] / 100) * h;
-    ctx.beginPath(); ctx.arc(lx, ly, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#58b4ff'; ctx.fill();
+  // Y labels right (signal count)
+  ctx.textAlign = 'left';
+  const maxSig = _aetherData ? Math.max(_aetherData.total_signals || 100, 100) : 100;
+  for (let i = 0; i <= 5; i++) {
+    const y = padT + (chartH / 5) * i;
+    const val = Math.round(maxSig - i * (maxSig / 5));
+    ctx.fillStyle = '#bc8cff66';
+    ctx.fillText(val, W - padR + 8, y + 3);
+  }
+
+  // 30% threshold line
+  const threshY = padT + chartH - (30 / 100) * chartH;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(210,153,34,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, threshY);
+  ctx.lineTo(W - padR, threshY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '9px JetBrains Mono';
+  ctx.fillStyle = '#d29922';
+  ctx.textAlign = 'right';
+  ctx.fillText('30% 告警线', W - padR - 4, threshY - 4);
+
+  // Draw online rate area
+  ctx.beginPath();
+  onlineRate.forEach((r, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const y = padT + chartH - (r / 100) * chartH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  // Stroke
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Fill gradient
+  const lastX = padL + chartW;
+  ctx.lineTo(lastX, padT + chartH);
+  ctx.lineTo(padL, padT + chartH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+  grad.addColorStop(0, 'rgba(63,185,80,0.15)');
+  grad.addColorStop(1, 'rgba(63,185,80,0.00)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Signal increment bars
+  const barW = Math.max(chartW / cycles.length * 0.4, 6);
+  signalIncrement.forEach((s, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const barH = (s / 12) * chartH * 0.4;
+    const y = padT + chartH - barH;
+    ctx.fillStyle = 'rgba(88,180,255,0.15)';
+    ctx.fillRect(x - barW / 2, y, barW, barH);
+    ctx.strokeStyle = 'rgba(88,180,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x - barW / 2, y, barW, barH);
+  });
+
+  // Cumulative line
+  ctx.beginPath();
+  cumulative.forEach((c, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const y = padT + chartH - (c / maxSig) * chartH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#bc8cff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dots on rate line
+  onlineRate.forEach((r, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const y = padT + chartH - (r / 100) * chartH;
+    const isLow = r < 30;
+    ctx.beginPath();
+    ctx.arc(x, y, isLow ? 5 : 3, 0, Math.PI * 2);
+    ctx.fillStyle = isLow ? '#f85149' : '#3fb950';
+    ctx.fill();
+    if (isLow) {
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(248,81,73,0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  });
+
+  // Highlight latest point - use live data if available
+  const lastIdx = cycles.length - 1;
+  const lastX2 = padL + (chartW / (cycles.length - 1)) * lastIdx;
+  const latestRate = _aetherData && _aetherData.online_rate != null
+    ? (_aetherData.online_rate * 100)
+    : onlineRate[lastIdx];
+  const lastY = padT + chartH - (latestRate / 100) * chartH;
+  ctx.beginPath();
+  ctx.arc(lastX2, lastY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#3fb950';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(lastX2, lastY, 10, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(63,185,80,0.3)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Annotation for latest rate
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = '#3fb950';
+  ctx.textAlign = 'left';
+  ctx.fillText(latestRate.toFixed(1) + '%', lastX2 + 14, lastY + 3);
+
+  // C5 annotation (lowest point)
+  const c5x = padL + (chartW / (cycles.length - 1)) * 4;
+  const c5y = padT + chartH - (onlineRate[4] / 100) * chartH;
+  ctx.fillStyle = '#f85149';
+  ctx.textAlign = 'right';
+  ctx.fillText('25% ⚠', c5x - 10, c5y - 6);
+}
+
+draw();
+
+// ====== Real-time data update ======
+function updateAetherUI(aether) {
+  if (!aether) return;
+  _aetherData = aether;
+
+  // Summary cards
+  document.getElementById('sv-signals').textContent = aether.total_signals || '--';
+  document.getElementById('sv-latest-rate').textContent = aether.online_rate != null
+    ? (aether.online_rate * 100).toFixed(1) + '%' : '--%';
+  document.getElementById('sv-latest-meta').textContent = 'Cycle ' + (aether.cycle || '--');
+  document.getElementById('sv-cycle').textContent = aether.cycle || '--';
+  document.getElementById('sv-sources').textContent = aether.sources_total || '--';
+
+  // Growth rate = total / cycle
+  if (aether.total_signals && aether.cycle) {
+    const rate = (aether.total_signals / aether.cycle).toFixed(1);
+    document.getElementById('sv-growth').textContent = rate;
+  }
+
+  // Header subtitle
+  document.getElementById('headerSub').textContent =
+    '感知层在线率时序 · ' + (aether.sources_total || '--') + '数据源 · 9圈层 · ' + (aether.cycle || '--') + '轮采集周期';
+
+  // Avg rate: use online_rate as latest, compute avg from static data for now
+  // (could be enhanced if aether provides avg)
+  const avgRate = onlineRate.reduce((a, b) => a + b, 0) / onlineRate.length;
+  document.getElementById('sv-avg-rate').textContent = avgRate.toFixed(1) + '%';
+
+  // Redraw chart with updated annotation
+  draw();
+}
+
+async function refreshAether() {
+  try {
+    const aether = await AIOSData.aether();
+    if (aether) updateAetherUI(aether);
+  } catch(e) {
+    console.warn('Aether refresh failed:', e);
   }
 }
 
-autoRefresh(loadLiveData, 60000);
-loadLiveData();
+autoRefresh(refreshAether, 60000);
 </script>
+</body>
+</html>

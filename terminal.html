@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三元 AIOS · 交互终端</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="aios-data.js"></script>
 <style>
 :root {
   --bg-primary: #0a0c0f;
@@ -426,18 +427,18 @@ body {
   .right-panel { display: none; }
 }
 </style>
-<script src="aios-data.js"></script></head>
+</head>
 <body>
 
 <!-- Top Bar -->
 <div class="top-bar">
   <div class="top-left">
     <div class="logo">SANYUAN AIOS <span class="logo-ver">v2.0</span></div>
-    <div class="status-pills">
-      <div class="pill"><span class="pill-dot green"></span>Ω_loop</div>
-      <div class="pill"><span class="pill-dot green"></span>AIOS</div>
-      <div class="pill"><span class="pill-dot yellow"></span>星光</div>
-      <div class="pill"><span class="pill-dot green"></span>Aether</div>
+    <div class="status-pills" id="topPills">
+      <div class="pill"><span class="pill-dot green" id="pill-omega-dot"></span>Ω_loop</div>
+      <div class="pill"><span class="pill-dot green" id="pill-aios-dot"></span>AIOS</div>
+      <div class="pill"><span class="pill-dot yellow" id="pill-starlight-dot"></span>星光</div>
+      <div class="pill"><span class="pill-dot green" id="pill-aether-dot"></span>Aether</div>
     </div>
   </div>
   <div class="top-right">
@@ -453,66 +454,70 @@ body {
   <div class="left-panel">
     <div class="panel-section">
       <div class="panel-title">核心模块</div>
-      <div class="module-row">
-        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>Ω_loop</span>
-        <span class="val" style="color:var(--accent-green)">运行中</span>
-      </div>
-      <div class="module-row">
-        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>AIOS</span>
-        <span class="val" style="color:var(--accent-green)">25m/17t</span>
-      </div>
-      <div class="module-row">
-        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>三元引擎</span>
-        <span class="val" style="color:var(--accent-green)">DS V4</span>
-      </div>
-      <div class="module-row">
-        <span class="name"><span class="dot" style="background:var(--accent-yellow)"></span>RSI</span>
-        <span class="val" style="color:var(--accent-yellow)">待信号</span>
-      </div>
-      <div class="module-row">
-        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>ima</span>
-        <span class="val" style="color:var(--accent-green)">在线</span>
+      <div id="leftModules">
+        <div class="module-row">
+          <span class="name"><span class="dot" style="background:var(--accent-green)"></span>Ω_loop</span>
+          <span class="val" style="color:var(--accent-green)">加载中</span>
+        </div>
+        <div class="module-row">
+          <span class="name"><span class="dot" style="background:var(--accent-green)"></span>AIOS</span>
+          <span class="val" style="color:var(--accent-green)">加载中</span>
+        </div>
+        <div class="module-row">
+          <span class="name"><span class="dot" style="background:var(--accent-green)"></span>Aether</span>
+          <span class="val" style="color:var(--accent-green)">加载中</span>
+        </div>
+        <div class="module-row">
+          <span class="name"><span class="dot" style="background:var(--accent-yellow)"></span>星光</span>
+          <span class="val" style="color:var(--accent-yellow)">加载中</span>
+        </div>
+        <div class="module-row">
+          <span class="name"><span class="dot" style="background:var(--accent-yellow)"></span>RSI</span>
+          <span class="val" style="color:var(--accent-yellow)">加载中</span>
+        </div>
       </div>
     </div>
 
     <div class="panel-section">
       <div class="panel-title">资源</div>
       <div class="metric-bar">
-        <div class="label"><span>记忆层</span><span>74%</span></div>
-        <div class="track"><div class="fill" style="width:74%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div></div>
+        <div class="label"><span>记忆层</span><span id="res-memory-pct">--%</span></div>
+        <div class="track"><div class="fill" id="res-memory-bar" style="width:74%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div></div>
       </div>
       <div class="metric-bar">
         <div class="label"><span>磁盘</span><span>1%</span></div>
         <div class="track"><div class="fill" style="width:1%;background:var(--accent-green)"></div></div>
       </div>
       <div class="metric-bar">
-        <div class="label"><span>Aether信号库</span><span>100条</span></div>
-        <div class="track"><div class="fill" style="width:20%;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple))"></div></div>
+        <div class="label"><span>Aether信号库</span><span id="res-signal-count">--条</span></div>
+        <div class="track"><div class="fill" id="res-signal-bar" style="width:20%;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple))"></div></div>
       </div>
     </div>
 
     <div class="panel-section">
       <div class="panel-title">发布渠道</div>
-      <div class="channel-item">
-        <span>小红书·雪崩星河</span>
-        <span class="channel-badge on">在线</span>
-      </div>
-      <div class="channel-item">
-        <span>微博·地缘通</span>
-        <span class="channel-badge off">禁言</span>
-      </div>
-      <div class="channel-item">
-        <span>公众号</span>
-        <span class="channel-badge warn">待开通</span>
-      </div>
-      <div class="channel-item">
-        <span>飞书</span>
-        <span class="channel-badge off">失联</span>
+      <div id="leftChannels">
+        <div class="channel-item">
+          <span>小红书·雪崩星河</span>
+          <span class="channel-badge on">加载中</span>
+        </div>
+        <div class="channel-item">
+          <span>微博·地缘通</span>
+          <span class="channel-badge off">加载中</span>
+        </div>
+        <div class="channel-item">
+          <span>公众号</span>
+          <span class="channel-badge warn">加载中</span>
+        </div>
+        <div class="channel-item">
+          <span>飞书</span>
+          <span class="channel-badge off">加载中</span>
+        </div>
       </div>
     </div>
 
     <div class="panel-section">
-      <div class="panel-title">信号流 (C15)</div>
+      <div class="panel-title">信号流 (C--)</div>
       <div class="signal-mini" id="signalViz"></div>
     </div>
   </div>
@@ -526,11 +531,10 @@ body {
         <div class="msg-body">
           <div class="msg-header">
             <span class="msg-name system">AIOS System</span>
-            <span class="msg-time">13:28</span>
+            <span class="msg-time">--:--</span>
           </div>
           <div class="msg-content">
-            系统初始化完成。25 modules / 17 tools / 22 tasks 已就绪。<br>
-            Ω_loop daemon PID 1988 正常运行。Aether感知层累计100条信号。
+            系统初始化完成。数据加载中...
           </div>
         </div>
       </div>
@@ -540,95 +544,12 @@ body {
         <div class="msg-body">
           <div class="msg-header">
             <span class="msg-name ternary">三元</span>
-            <span class="msg-time">13:28</span>
+            <span class="msg-time">--:--</span>
           </div>
           <div class="msg-content">
-            教授，AIOS交互终端上线了。左边看系统状态，右边看实时活动，中间聊。<br><br>
+            教授，AIOS交互终端已接入实时数据。左边看系统状态，右边看实时活动，中间聊。<br><br>
             你可以直接对话，也可以用快捷命令：<br>
             <code>/status</code> 系统概览 · <code>/signal</code> 感知层信号 · <code>/task</code> 任务列表 · <code>/prism</code> 三棱镜分析
-          </div>
-        </div>
-      </div>
-
-      <div class="msg">
-        <div class="msg-avatar user">教授</div>
-        <div class="msg-body">
-          <div class="msg-header">
-            <span class="msg-name user">教授</span>
-            <span class="msg-time">13:29</span>
-          </div>
-          <div class="msg-content">
-            系统状态怎么样
-          </div>
-        </div>
-      </div>
-
-      <div class="msg">
-        <div class="msg-avatar ternary">三</div>
-        <div class="msg-body">
-          <div class="msg-header">
-            <span class="msg-name ternary">三元</span>
-            <span class="msg-time">13:29</span>
-          </div>
-          <div class="msg-content">
-            核心系统正常运行，但发布通道<strong>跛行</strong>状态：
-            <div class="card-inline">
-              <div class="ci-title">▸ 系统健康检查</div>
-              <table>
-                <tr><td>Ω_loop</td><td style="color:var(--accent-green)">✅ 运行中 · PID 1988</td></tr>
-                <tr><td>AIOS</td><td style="color:var(--accent-green)">✅ 25 modules · 17 tools</td></tr>
-                <tr><td>Aether</td><td style="color:var(--accent-green)">✅ 100信号 · 在线率91.7%</td></tr>
-                <tr><td>星光·发布</td><td style="color:var(--accent-yellow)">⚠ 瘫痪第11天</td></tr>
-                <tr><td>微博</td><td style="color:var(--accent-red)">✗ 禁言至06-22</td></tr>
-                <tr><td>飞书</td><td style="color:var(--accent-red)">✗ 失联第11天</td></tr>
-                <tr><td>记忆层</td><td style="color:var(--accent-orange)">74% 渐进压缩中</td></tr>
-              </table>
-            </div>
-            4个渠道只有小红书勉强可用，还是手动的。三棱镜决策情报明天09:00首次执行，届时产出第一份情报。
-          </div>
-        </div>
-      </div>
-
-      <div class="msg">
-        <div class="msg-avatar user">教授</div>
-        <div class="msg-body">
-          <div class="msg-header">
-            <span class="msg-name user">教授</span>
-            <span class="msg-time">13:30</span>
-          </div>
-          <div class="msg-content">
-            /prism 今日信号
-          </div>
-        </div>
-      </div>
-
-      <div class="msg">
-        <div class="msg-avatar ternary">三</div>
-        <div class="msg-body">
-          <div class="msg-header">
-            <span class="msg-name ternary">三元</span>
-            <span class="msg-time">13:30</span>
-          </div>
-          <div class="msg-content">
-            三棱镜预分析 — 基于Aether最新8条信号：
-            <div class="card-inline">
-              <div class="ci-title">▸ 断层线扫描 (L0→L4)</div>
-              <table>
-                <tr><td>L1 经济</td><td>GDELT全球事件流持续活跃，东南亚航运异常增加12%</td></tr>
-                <tr><td>L1 AI</td><td>蚂蚁集团测试"阿宝"超级Agent，入口吞并策略加速</td></tr>
-                <tr><td>L2 地缘</td><td>Anthropic出口管制扩至软件层，BIS新规7月生效</td></tr>
-                <tr><td>L3 芯片</td><td>MLCC产能紧缩信号，PCB订单周期延长</td></tr>
-              </table>
-            </div>
-            <div class="card-inline" style="margin-top:8px">
-              <div class="ci-title">▸ 涌现树 · 相变检测</div>
-              <table>
-                <tr><td>Agent入口</td><td style="color:var(--accent-yellow)">⚠ 相变前期 — 超级App抢入口阶段</td></tr>
-                <tr><td>AI管制</td><td style="color:var(--accent-red)">▲ 升温 — 出口管制从硬件扩至软件</td></tr>
-                <tr><td>Token经济</td><td style="color:var(--accent-green)">→ 稳态增长 — 成本下行+消耗指数增长</td></tr>
-              </table>
-            </div>
-            完整三棱镜分析明日09:00自动执行，首份决策情报入ima"断层线"知识库。
           </div>
         </div>
       </div>
@@ -667,186 +588,355 @@ body {
     </div>
     <div id="activityFeed">
       <div class="activity-entry">
-        <div class="a-time">13:30</div>
-        <div class="a-text"><span class="hl">交互终端</span> 上线 · 可视化聊天界面</div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">13:11</div>
-        <div class="a-text"><span class="hl">Aether</span> C15完成 · <span class="ok">+11信号</span> · 累计100</div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">12:48</div>
-        <div class="a-text"><span class="hl">雪崩星河</span> 发布成功 · <span class="ok">系统级AI</span></div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">12:33</div>
-        <div class="a-text"><span class="hl">深度研究</span> Token消费报告 · <span class="ok">完成</span></div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">12:11</div>
-        <div class="a-text"><span class="hl">AIOS</span> 健康检查 · <span class="ok">All OK</span></div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">12:06</div>
-        <div class="a-text"><span class="hl">三棱镜</span> 决策情报日程 · <span class="ok">创建</span></div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">11:52</div>
-        <div class="a-text"><span class="hl">Aether</span> C13 · <span class="w">在线率42%</span></div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">11:35</div>
-        <div class="a-text"><span class="hl">AICEO</span> 技能发布 · <span class="ok">skill_id:7651</span></div>
-      </div>
-      <div class="activity-entry">
-        <div class="a-time">09:26</div>
-        <div class="a-text"><span class="hl">深度研究</span> 每日日程 · <span class="ok">UID:5426</span></div>
+        <div class="a-time">--:--</div>
+        <div class="a-text">加载中...</div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ========== AIOS 交互终端 — 实时数据版 ==========
+// ====== Real-time data state ======
+let _sys = null, _aether = null, _token = null, _activities = null;
 
-const chatMessages = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const activityFeed = document.getElementById('activityFeed');
+// ====== Clock ======
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' });
+}
+updateClock();
+setInterval(updateClock, 1000);
 
-// 实时数据
-let liveData = { sys: null, aether: null, token: null, act: null };
-
-async function loadLiveData() {
-  liveData = await AIOSData.all();
-  updateStatusPanel();
-  updateActivityFeed();
+// ====== Helper ======
+function dotColor(status) {
+  if (status === 'online') return 'var(--accent-green)';
+  if (status === 'offline' || status === 'banned') return 'var(--accent-red)';
+  return 'var(--accent-yellow)';
+}
+function valColor(status) {
+  if (status === 'online') return 'var(--accent-green)';
+  if (status === 'offline' || status === 'banned') return 'var(--accent-red)';
+  return 'var(--accent-yellow)';
+}
+function statusLabel(status) {
+  const m = { online: '运行中', offline: '离线', banned: '封禁', idle: '待信号', degraded: '降级' };
+  return m[status] || status;
+}
+function pillDotClass(status) {
+  if (status === 'online') return 'green';
+  if (status === 'offline' || status === 'banned') return 'red';
+  return 'yellow';
+}
+function channelBadgeClass(status) {
+  if (status === 'online') return 'on';
+  if (status === 'offline' || status === 'banned') return 'off';
+  return 'warn';
+}
+function channelLabel(ch) {
+  if (ch.status === 'online' && ch.account) return ch.account;
+  if (ch.status === 'banned') return '禁言';
+  if (ch.status === 'offline') return '失联';
+  return '待开通';
+}
+function channelName(key) {
+  const m = { xiaohongshu: '小红书', weibo: '微博', feishu: '飞书', gzh: '公众号' };
+  return m[key] || key;
 }
 
-function updateStatusPanel() {
-  const sys = liveData.sys;
-  if (!sys) return;
-
-  // 模块状态pills
-  const mods = sys.modules || {};
-  const pillsHtml = [
-    { name: 'Ω_loop', s: mods.omega_loop?.status },
-    { name: 'AIOS', s: mods.aios?.status },
-    { name: 'Aether', s: mods.aether?.status },
-    { name: '星光', s: mods.starlight?.status },
-    { name: 'RSI', s: mods.rsi?.status },
-  ].map(p => {
-    const c = p.s === 'online' ? 'green' : p.s === 'offline' ? 'red' : 'yellow';
-    return `<div class="pill"><span class="pill-dot ${c}"></span>${p.name}</div>`;
+// ====== Left panel: modules ======
+function renderLeftModules() {
+  const el = document.getElementById('leftModules');
+  if (!_sys || !_sys.modules) return;
+  const mods = _sys.modules;
+  const defs = [
+    { key: 'omega_loop', label: 'Ω_loop', valFn: m => m.runs ? m.runs + ' runs' : '' },
+    { key: 'aios', label: 'AIOS', valFn: () => '在线' },
+    { key: 'aether', label: 'Aether', valFn: m => m.cycle ? 'C' + m.cycle : '' },
+    { key: 'starlight', label: '星光', valFn: m => m.reason ? '⚠' : '' },
+    { key: 'rsi', label: 'RSI', valFn: m => m.samples != null ? 's=' + m.samples : '' },
+  ];
+  el.innerHTML = defs.map(d => {
+    const m = mods[d.key] || { status: 'offline' };
+    return `<div class="module-row">
+      <span class="name"><span class="dot" style="background:${dotColor(m.status)}"></span>${d.label}</span>
+      <span class="val" style="color:${valColor(m.status)}">${statusLabel(m.status)} ${d.valFn(m)}</span>
+    </div>`;
   }).join('');
-  const pillsContainer = document.querySelector('.pills');
-  if (pillsContainer) pillsContainer.innerHTML = pillsHtml;
 
-  // 健康分
-  const healthEl = document.querySelector('.health-val');
-  if (healthEl) {
-    const score = sys.health_score || 0;
-    healthEl.textContent = score;
-    healthEl.style.color = score > 70 ? 'var(--accent-green)' : 'var(--accent-red)';
-  }
-
-  // 左侧状态列表
-  const statusItems = document.querySelectorAll('.s-item .name .dot');
-  const statusLabels = ['Ω_loop', 'AIOS', 'Aether', '星光', 'RSI'];
-  const statusKeys = ['omega_loop', 'aios', 'aether', 'starlight', 'rsi'];
-  statusItems.forEach((dot, i) => {
-    const s = mods[statusKeys[i]]?.status || 'unknown';
-    dot.style.background = AIOSData.statusColor(s);
+  // Update top pills
+  const pillDefs = [
+    { id: 'pill-omega-dot', key: 'omega_loop' },
+    { id: 'pill-aios-dot', key: 'aios' },
+    { id: 'pill-starlight-dot', key: 'starlight' },
+    { id: 'pill-aether-dot', key: 'aether' },
+  ];
+  pillDefs.forEach(p => {
+    const m = mods[p.key] || { status: 'offline' };
+    const dot = document.getElementById(p.id);
+    if (dot) dot.className = 'pill-dot ' + pillDotClass(m.status);
   });
 }
 
-function updateActivityFeed() {
-  const act = liveData.act;
-  if (!act || !act.activities) return;
-  const feed = document.getElementById('activityFeed');
-  if (!feed) return;
-  
-  feed.innerHTML = act.activities.slice(0, 10).map(a => `
-    <div class="a-item">
-      <div class="a-time">${(a.time || '').slice(11, 16)}</div>
-      <div class="a-text"><span class="hl">${a.task || '?'}</span> · <span class="${a.status === 'ok' ? 'ok' : 'warn'}">${a.status || '?'}</span></div>
-    </div>
-  `).join('');
+// ====== Left panel: resources ======
+function renderLeftResources() {
+  if (_aether) {
+    const sig = _aether.total_signals || 0;
+    document.getElementById('res-signal-count').textContent = sig + '条';
+    document.getElementById('res-signal-bar').style.width = Math.min(sig / 500 * 100, 100) + '%';
+  }
 }
 
-// 快捷命令
-const commands = {
-  '/status': () => {
-    const sys = liveData.sys;
-    if (!sys) return '⏳ 数据加载中...';
-    const m = sys.modules || {};
-    const ch = sys.channels || {};
-    const rows = [
-      ['Ω_loop', m.omega_loop?.status === 'online' ? '✅ 在线' : '❌ 离线'],
-      ['AIOS', m.aios?.status === 'online' ? '✅ 在线' : '❌ 离线'],
-      ['Aether', `✅ C${m.aether?.cycle || '?'} · ${Math.round((liveData.aether?.online_rate || 0) * 100)}%`],
-      ['星光', m.starlight?.status === 'online' ? '✅ 在线' : '❌ 离线 · ' + (m.starlight?.reason || '')],
-      ['小红书·雪崩星河', ch.xiaohongshu?.status === 'online' ? '✅ 可用' : '⚠ ' + ch.xiaohongshu?.status],
-      ['微博·地缘通', ch.weibo?.status === 'online' ? '✅ 可用' : '🔒 ' + (ch.weibo?.until || '禁言中')],
-      ['健康分', `${sys.health_score || '--'}`],
-    ];
-    return '📊 <b>系统状态</b>\n' + rows.map(r => `${r[0]}：${r[1]}`).join('\n');
+// ====== Left panel: channels ======
+function renderLeftChannels() {
+  const el = document.getElementById('leftChannels');
+  if (!_sys || !_sys.channels) return;
+  el.innerHTML = Object.entries(_sys.channels).map(([k, ch]) => {
+    const acct = ch.account || '';
+    const display = channelName(k) + (acct ? '·' + acct : '');
+    return `<div class="channel-item">
+      <span>${display}</span>
+      <span class="channel-badge ${channelBadgeClass(ch.status)}">${channelLabel(ch)}</span>
+    </div>`;
+  }).join('');
+}
+
+// ====== Signal viz ======
+function renderSignalViz() {
+  const el = document.getElementById('signalViz');
+  const total = _aether ? (_aether.total_signals || 0) : 0;
+  el.innerHTML = '';
+  for (let i = 0; i < Math.min(total, 100); i++) {
+    const dot = document.createElement('span');
+    dot.className = 'sig-dot ' + (i >= total - 11 ? 'new' : i < 4 ? 'fail' : 'old');
+    el.appendChild(dot);
+  }
+  // Update section title
+  const section = el.closest('.panel-section');
+  if (section && _aether) {
+    section.querySelector('.panel-title').textContent = '信号流 (C' + (_aether.cycle || '--') + ')';
+  }
+}
+
+// ====== Right panel: activities ======
+function renderActivityFeed() {
+  const el = document.getElementById('activityFeed');
+  if (!_activities || !_activities.activities || _activities.activities.length === 0) {
+    el.innerHTML = '<div class="activity-entry"><div class="a-time">--:--</div><div class="a-text">暂无活动</div></div>';
+    return;
+  }
+  el.innerHTML = _activities.activities.slice(0, 20).map(a => {
+    const time = a.time || '--:--';
+    const text = (a.content || a.text || a.message || '')
+      .replace(/\[([^\]]+)\]/g, '<span class="hl">$1</span>');
+    return `<div class="activity-entry">
+      <div class="a-time">${time}</div>
+      <div class="a-text">${text}</div>
+    </div>`;
+  }).join('');
+}
+
+// ====== /status command with live data ======
+function buildStatusResponse() {
+  if (!_sys) return '系统数据加载中，请稍候...';
+  const m = _sys.modules || {};
+  const ch = _sys.channels || {};
+  const getRow = (label, obj, okText, errText) => {
+    const color = obj.status === 'online' ? 'var(--accent-green)' : obj.status === 'offline' || obj.status === 'banned' ? 'var(--accent-red)' : 'var(--accent-yellow)';
+    const icon = obj.status === 'online' ? '✅' : obj.status === 'offline' || obj.status === 'banned' ? '✗' : '⚠';
+    const detail = okText || errText;
+    return `<tr><td>${label}</td><td style="color:${color}">${icon} ${detail}</td></tr>`;
+  };
+
+  const omega = m.omega_loop || {};
+  const aios = m.aios || {};
+  const aether = m.aether || {};
+  const star = m.starlight || {};
+  const rsi = m.rsi || {};
+
+  const rows = [
+    getRow('Ω_loop', omega, '运行中' + (omega.runs ? ' · ' + omega.runs + ' runs' : ''), '离线'),
+    getRow('AIOS', aios, '在线', '离线'),
+    getRow('Aether', aether, aether.cycle ? (aether.total_signals || '--') + '信号 · C' + aether.cycle : '在线', '离线'),
+    getRow('星光', star, '正常', star.reason || '瘫痪'),
+    getRow('RSI', rsi, rsi.samples != null ? 'samples=' + rsi.samples : '待信号', '离线'),
+  ];
+
+  // Channel rows
+  Object.entries(ch).forEach(([k, c]) => {
+    const label = channelName(k);
+    if (c.status === 'online') rows.push(getRow(label, c, c.account || '在线', '离线'));
+    else if (c.status === 'banned') rows.push(getRow(label, c, '', '禁言至' + (c.until || '')));
+    else rows.push(getRow(label, c, '', '失联'));
+  });
+
+  // Health score
+  if (_sys.health_score != null) {
+    const hsColor = _sys.health_score >= 80 ? 'var(--accent-green)' : _sys.health_score >= 50 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+    rows.push(`<tr><td>健康分</td><td style="color:${hsColor}">${_sys.health_score.toFixed(1)}</td></tr>`);
+  }
+
+  return `系统概览（实时数据）：<div class="card-inline"><div class="ci-title">▸ 系统健康检查</div><table>${rows.join('')}</table></div>`;
+}
+
+function buildSignalResponse() {
+  if (!_aether) return 'Aether数据加载中，请稍候...';
+  const rate = _aether.online_rate != null ? (_aether.online_rate * 100).toFixed(1) + '%' : '--%';
+  return `Aether感知层状态（实时）：<div class="card-inline"><table>
+    <tr><td>累计信号</td><td style="color:var(--accent-cyan)">${_aether.total_signals || '--'}条</td></tr>
+    <tr><td>最新在线率</td><td style="color:var(--accent-green)">${rate} (C${_aether.cycle || '--'})</td></tr>
+    <tr><td>数据源</td><td>${_aether.sources_total || '--'}源</td></tr>
+    <tr><td>采集轮次</td><td>${_aether.cycle || '--'}轮</td></tr>
+  </table></div>`;
+}
+
+// ====== Chat logic ======
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const chatMessages = document.getElementById('chatMessages');
+const typingIndicator = document.getElementById('typingIndicator');
+
+const staticResponses = {
+  '/task': {
+    name: '三元',
+    content: `AIOS 任务列表（静态演示）：<div class="card-inline"><table>
+      <tr><td>Aether感知层</td><td style="color:var(--accent-green)">40min/cycle</td></tr>
+      <tr><td>微博热搜+链路B</td><td style="color:var(--accent-yellow)">30min · 发布阻塞</td></tr>
+      <tr><td>RSI自优化</td><td style="color:var(--accent-yellow)">30min · 待信号</td></tr>
+      <tr><td>小红书·雪崩星河</td><td style="color:var(--accent-green)">4h/cycle</td></tr>
+      <tr><td>三棱镜决策情报</td><td style="color:var(--accent-cyan)">每日09:00</td></tr>
+    </table></div>`
   },
-  '/health': () => {
-    const sys = liveData.sys;
-    const score = sys?.health_score || 0;
-    return `❤️ <b>健康评分</b>：${score}/100\n${'█'.repeat(Math.round(score / 5))}${'░'.repeat(20 - Math.round(score / 5))}`;
+  '/prism': {
+    name: '三元',
+    content: `三棱镜决策情报系统：<div class="card-inline"><div class="ci-title">▸ 框架</div><table>
+      <tr><td>断层线</td><td>信息不对称溶解追踪 L0→L4</td></tr>
+      <tr><td>涌现树</td><td>系统相变拐点检测</td></tr>
+      <tr><td>δ算子</td><td>区分论概念拆解</td></tr>
+    </table></div><div class="card-inline" style="margin-top:8px"><div class="ci-title">▸ 运行状态</div><table>
+      <tr><td>日程</td><td style="color:var(--accent-cyan)">每日09:00 · UID:3f12</td></tr>
+      <tr><td>入库</td><td>ima"断层线"知识库</td></tr>
+    </table></div>`
   },
-  '/token': () => {
-    const t = liveData.token;
-    if (!t) return '⏳ 数据加载中...';
-    const d = t.daily || {};
-    return `💰 <b>Token消耗</b>\n今日：${AIOSData.fmtNum(d.tokens_used || 0)} tokens\n成本：¥${d.cost_cny || 0}\n任务：${d.tasks_count || 0}`;
+  '/token': {
+    name: '三元',
+    content: `Token经济概览：<div class="card-inline"><table>
+      <tr><td>推理模型</td><td style="color:var(--accent-cyan)">DS V4</td></tr>
+      <tr><td>单价</td><td>~33元/亿Token</td></tr>
+      <tr><td>全球日消耗</td><td style="color:var(--accent-cyan)">140万亿/天</td></tr>
+      <tr><td>成本趋势</td><td style="color:var(--accent-red)">280×降幅</td></tr>
+    </table></div>`
   },
-  '/aether': () => {
-    const a = liveData.aether;
-    if (!a) return '⏳ 数据加载中...';
-    return `📡 <b>Aether感知层</b>\n轮次：C${a.cycle || '?'}\n在线率：${Math.round((a.online_rate || 0) * 100)}%\n信号总数：${a.total_signals || 0}\n数据源：${a.sources_total || 0}`;
-  },
-  '/hot': () => {
-    const a = liveData.aether;
-    if (!a || !a.weibo_hot) return '⏳ 数据加载中...';
-    return '🔥 <b>微博热搜</b>\n' + a.weibo_hot.slice(0, 5).map(w => `#${w.rank + 1} ${w.title}${w.heat ? ' · ' + AIOSData.fmtNum(w.heat) : ''}`).join('\n');
-  },
-  '/help': () => '📋 <b>可用命令</b>\n/status — 系统状态\n/health — 健康评分\n/token — Token消耗\n/aether — 感知层\n/hot — 微博热搜\n/help — 帮助',
+  '/memory': {
+    name: '三元',
+    content: `记忆层状态：<div class="card-inline"><table>
+      <tr><td>即时层</td><td style="color:var(--accent-orange)">渐进压缩中</td></tr>
+      <tr><td>近中期层</td><td style="color:var(--accent-green)">recent_memory/ · 索引+文件</td></tr>
+      <tr><td>语义检索</td><td style="color:var(--accent-green)">memory_search · 深层召回</td></tr>
+      <tr><td>压缩策略</td><td>渐进压缩 · urgency≥0.7保留</td></tr>
+    </table></div>`
+  }
 };
 
-function addMessage(text, isUser = false) {
-  const div = document.createElement('div');
-  div.className = `msg ${isUser ? 'user' : 'bot'}`;
-  div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g, '<br>')}</div>`;
-  chatMessages.appendChild(div);
+function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+
+  // User message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg';
+  const now = new Date();
+  const time = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
+  userMsg.innerHTML = `
+    <div class="msg-avatar user">教授</div>
+    <div class="msg-body">
+      <div class="msg-header">
+        <span class="msg-name user">教授</span>
+        <span class="msg-time">${time}</span>
+      </div>
+      <div class="msg-content">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`;
+  chatMessages.insertBefore(userMsg, typingIndicator);
+  scrollToBottom();
+
+  // Show typing
+  typingIndicator.style.display = 'block';
+  scrollToBottom();
+
+  // Response
+  const cmd = text.toLowerCase().split(' ')[0];
+
+  setTimeout(() => {
+    typingIndicator.style.display = 'none';
+    const botMsg = document.createElement('div');
+    botMsg.className = 'msg';
+
+    let content;
+    if (cmd === '/status') {
+      content = buildStatusResponse();
+    } else if (cmd === '/signal') {
+      content = buildSignalResponse();
+    } else if (staticResponses[cmd]) {
+      content = staticResponses[cmd].content;
+    } else {
+      content = `收到。试试快捷命令：<code>/status</code> <code>/signal</code> <code>/prism</code> <code>/task</code> <code>/token</code> <code>/memory</code>`;
+    }
+
+    const rTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
+    botMsg.innerHTML = `
+      <div class="msg-avatar ternary">三</div>
+      <div class="msg-body">
+        <div class="msg-header">
+          <span class="msg-name ternary">三元</span>
+          <span class="msg-time">${rTime}</span>
+        </div>
+        <div class="msg-content">${content}</div>
+      </div>`;
+    chatMessages.insertBefore(botMsg, typingIndicator);
+    scrollToBottom();
+  }, 800 + Math.random() * 600);
+}
+
+function scrollToBottom() {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function handleInput() {
-  const text = chatInput.value.trim();
-  if (!text) return;
-  addMessage(text, true);
-  chatInput.value = '';
-
-  const cmd = text.startsWith('/') ? text.split(' ')[0] : null;
-  if (cmd && commands[cmd]) {
-    setTimeout(() => addMessage(commands[cmd]()), 300);
-  } else {
-    setTimeout(() => addMessage('收到。输入 /help 查看可用命令。'), 500);
+sendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
   }
-}
+});
 
-chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleInput(); });
-document.querySelectorAll('.cmd-btn').forEach(btn => {
+// Quick commands
+document.querySelectorAll('.qcmd').forEach(btn => {
   btn.addEventListener('click', () => {
-    chatInput.value = btn.textContent.trim();
-    handleInput();
+    chatInput.value = btn.dataset.cmd;
+    sendMessage();
   });
 });
 
-// 初始化
-addMessage('🟢 三元 AIOS 交互终端已连接实时数据\n输入命令或点击快捷按钮开始');
-autoRefresh(loadLiveData, 60000);
-loadLiveData();
+chatInput.focus();
+
+// ====== Auto-refresh data ======
+async function refreshTerminal() {
+  try {
+    const [sys, aether, token, activities] = await Promise.all([
+      AIOSData.system(),
+      AIOSData.aether(),
+      AIOSData.token(),
+      AIOSData.activities()
+    ]);
+    if (sys) { _sys = sys; renderLeftModules(); renderLeftChannels(); }
+    if (aether) { _aether = aether; renderLeftResources(); renderSignalViz(); }
+    if (token) { _token = token; }
+    if (activities) { _activities = activities; renderActivityFeed(); }
+  } catch(e) {
+    console.warn('Terminal refresh failed:', e);
+  }
+}
+
+autoRefresh(refreshTerminal, 60000);
 </script>
+</body>
+</html>
