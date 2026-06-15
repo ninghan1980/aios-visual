@@ -426,7 +426,7 @@ body {
   .right-panel { display: none; }
 }
 </style>
-</head>
+<script src="aios-data.js"></script></head>
 <body>
 
 <!-- Top Bar -->
@@ -707,177 +707,146 @@ body {
 </div>
 
 <script>
-// Clock
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' });
-}
-updateClock();
-setInterval(updateClock, 1000);
+// ========== AIOS 交互终端 — 实时数据版 ==========
 
-// Signal viz
-const signalViz = document.getElementById('signalViz');
-for (let i = 0; i < 100; i++) {
-  const dot = document.createElement('span');
-  dot.className = 'sig-dot ' + (i >= 89 ? 'new' : i < 4 ? 'fail' : 'old');
-  signalViz.appendChild(dot);
-}
-
-// Chat input
-const chatInput = document.getElementById('chatInput');
-const sendBtn = document.getElementById('sendBtn');
 const chatMessages = document.getElementById('chatMessages');
-const typingIndicator = document.getElementById('typingIndicator');
+const chatInput = document.getElementById('chatInput');
+const activityFeed = document.getElementById('activityFeed');
 
-const responses = {
-  '/status': {
-    name: '三元',
-    content: `系统概览：<div class="card-inline"><table>
-      <tr><td>Ω_loop</td><td style="color:var(--accent-green)">✅ PID 1988 · 180s/cycle</td></tr>
-      <tr><td>AIOS</td><td style="color:var(--accent-green)">✅ 25 modules · 22 tasks</td></tr>
-      <tr><td>Aether</td><td style="color:var(--accent-green)">✅ 100信号 · 54源</td></tr>
-      <tr><td>星光</td><td style="color:var(--accent-yellow)">⚠ 瘫痪第11天</td></tr>
-      <tr><td>微博</td><td style="color:var(--accent-red)">✗ 禁言至06-22</td></tr>
-      <tr><td>飞书</td><td style="color:var(--accent-red)">✗ 失联第11天</td></tr>
-    </table></div>`
-  },
-  '/signal': {
-    name: '三元',
-    content: `Aether感知层状态：<div class="card-inline"><table>
-      <tr><td>累计信号</td><td style="color:var(--accent-cyan)">100条</td></tr>
-      <tr><td>最新在线率</td><td style="color:var(--accent-green)">91.7% (C15)</td></tr>
-      <tr><td>数据源</td><td>54源 · 9圈层</td></tr>
-      <tr><td>采集轮次</td><td>15轮</td></tr>
-      <tr><td>故障源</td><td style="color:var(--accent-red)">深圳开放数据(404) · UPI LNG(404)</td></tr>
-    </table></div>下一轮采集约40分钟后触发。`
-  },
-  '/task': {
-    name: '三元',
-    content: `AIOS 22个已注册任务（活跃Top 10）：<div class="card-inline"><table>
-      <tr><td>Aether感知层</td><td style="color:var(--accent-green)">40min/cycle</td></tr>
-      <tr><td>微博热搜+链路B</td><td style="color:var(--accent-yellow)">30min · 发布阻塞</td></tr>
-      <tr><td>RSI自优化</td><td style="color:var(--accent-yellow)">30min · 待信号</td></tr>
-      <tr><td>小红书·雪崩星河</td><td style="color:var(--accent-green)">4h/cycle</td></tr>
-      <tr><td>三棱镜决策情报</td><td style="color:var(--accent-cyan)">每日09:00 · 明日首执行</td></tr>
-      <tr><td>每日深度研究</td><td style="color:var(--accent-cyan)">每日10:00 · 明日首执行</td></tr>
-      <tr><td>AIOS健康检查</td><td style="color:var(--accent-green)">2h/cycle</td></tr>
-      <tr><td>ima知识库同步</td><td style="color:var(--accent-green)">每日09:00-09:30</td></tr>
-    </table></div>`
-  },
-  '/prism': {
-    name: '三元',
-    content: `三棱镜决策情报系统：<div class="card-inline"><div class="ci-title">▸ 框架</div><table>
-      <tr><td>断层线</td><td>信息不对称溶解追踪 L0→L4</td></tr>
-      <tr><td>涌现树</td><td>系统相变拐点检测</td></tr>
-      <tr><td>δ算子</td><td>区分论概念拆解</td></tr>
-    </table></div><div class="card-inline" style="margin-top:8px"><div class="ci-title">▸ 运行状态</div><table>
-      <tr><td>日程</td><td style="color:var(--accent-cyan)">每日09:00 · UID:3f12</td></tr>
-      <tr><td>入库</td><td>ima"断层线"知识库</td></tr>
-      <tr><td>首次执行</td><td style="color:var(--accent-yellow)">2026-06-16 09:00</td></tr>
-      <tr><td>信号源</td><td>Aether 100条信号库</td></tr>
-    </table></div>`
-  },
-  '/token': {
-    name: '三元',
-    content: `Token经济概览：<div class="card-inline"><table>
-      <tr><td>推理模型</td><td style="color:var(--accent-cyan)">DS V4</td></tr>
-      <tr><td>单价</td><td>~33元/亿Token</td></tr>
-      <tr><td>全球日消耗</td><td style="color:var(--accent-cyan)">140万亿/天</td></tr>
-      <tr><td>2030预测</td><td style="color:var(--accent-green)">120千万亿/月</td></tr>
-      <tr><td>成本趋势</td><td style="color:var(--accent-red)">280×降幅</td></tr>
-      <tr><td>杰文斯悖论</td><td style="color:var(--accent-purple)">320%支出增幅</td></tr>
-    </table></div>`
-  },
-  '/memory': {
-    name: '三元',
-    content: `记忆层状态：<div class="card-inline"><table>
-      <tr><td>即时层</td><td style="color:var(--accent-orange)">5.1K / 7.2K (74%)</td></tr>
-      <tr><td>近中期层</td><td style="color:var(--accent-green)">recent_memory/ · 索引+文件</td></tr>
-      <tr><td>语义检索</td><td style="color:var(--accent-green)">memory_search · 深层召回</td></tr>
-      <tr><td>压缩策略</td><td>渐进压缩 · urgency≥0.7保留</td></tr>
-      <tr><td>ima知识库</td><td>断层线(0) + 三元智能(27)</td></tr>
-    </table></div>`
+// 实时数据
+let liveData = { sys: null, aether: null, token: null, act: null };
+
+async function loadLiveData() {
+  liveData = await AIOSData.all();
+  updateStatusPanel();
+  updateActivityFeed();
+}
+
+function updateStatusPanel() {
+  const sys = liveData.sys;
+  if (!sys) return;
+
+  // 模块状态pills
+  const mods = sys.modules || {};
+  const pillsHtml = [
+    { name: 'Ω_loop', s: mods.omega_loop?.status },
+    { name: 'AIOS', s: mods.aios?.status },
+    { name: 'Aether', s: mods.aether?.status },
+    { name: '星光', s: mods.starlight?.status },
+    { name: 'RSI', s: mods.rsi?.status },
+  ].map(p => {
+    const c = p.s === 'online' ? 'green' : p.s === 'offline' ? 'red' : 'yellow';
+    return `<div class="pill"><span class="pill-dot ${c}"></span>${p.name}</div>`;
+  }).join('');
+  const pillsContainer = document.querySelector('.pills');
+  if (pillsContainer) pillsContainer.innerHTML = pillsHtml;
+
+  // 健康分
+  const healthEl = document.querySelector('.health-val');
+  if (healthEl) {
+    const score = sys.health_score || 0;
+    healthEl.textContent = score;
+    healthEl.style.color = score > 70 ? 'var(--accent-green)' : 'var(--accent-red)';
   }
+
+  // 左侧状态列表
+  const statusItems = document.querySelectorAll('.s-item .name .dot');
+  const statusLabels = ['Ω_loop', 'AIOS', 'Aether', '星光', 'RSI'];
+  const statusKeys = ['omega_loop', 'aios', 'aether', 'starlight', 'rsi'];
+  statusItems.forEach((dot, i) => {
+    const s = mods[statusKeys[i]]?.status || 'unknown';
+    dot.style.background = AIOSData.statusColor(s);
+  });
+}
+
+function updateActivityFeed() {
+  const act = liveData.act;
+  if (!act || !act.activities) return;
+  const feed = document.getElementById('activityFeed');
+  if (!feed) return;
+  
+  feed.innerHTML = act.activities.slice(0, 10).map(a => `
+    <div class="a-item">
+      <div class="a-time">${(a.time || '').slice(11, 16)}</div>
+      <div class="a-text"><span class="hl">${a.task || '?'}</span> · <span class="${a.status === 'ok' ? 'ok' : 'warn'}">${a.status || '?'}</span></div>
+    </div>
+  `).join('');
+}
+
+// 快捷命令
+const commands = {
+  '/status': () => {
+    const sys = liveData.sys;
+    if (!sys) return '⏳ 数据加载中...';
+    const m = sys.modules || {};
+    const ch = sys.channels || {};
+    const rows = [
+      ['Ω_loop', m.omega_loop?.status === 'online' ? '✅ 在线' : '❌ 离线'],
+      ['AIOS', m.aios?.status === 'online' ? '✅ 在线' : '❌ 离线'],
+      ['Aether', `✅ C${m.aether?.cycle || '?'} · ${Math.round((liveData.aether?.online_rate || 0) * 100)}%`],
+      ['星光', m.starlight?.status === 'online' ? '✅ 在线' : '❌ 离线 · ' + (m.starlight?.reason || '')],
+      ['小红书·雪崩星河', ch.xiaohongshu?.status === 'online' ? '✅ 可用' : '⚠ ' + ch.xiaohongshu?.status],
+      ['微博·地缘通', ch.weibo?.status === 'online' ? '✅ 可用' : '🔒 ' + (ch.weibo?.until || '禁言中')],
+      ['健康分', `${sys.health_score || '--'}`],
+    ];
+    return '📊 <b>系统状态</b>\n' + rows.map(r => `${r[0]}：${r[1]}`).join('\n');
+  },
+  '/health': () => {
+    const sys = liveData.sys;
+    const score = sys?.health_score || 0;
+    return `❤️ <b>健康评分</b>：${score}/100\n${'█'.repeat(Math.round(score / 5))}${'░'.repeat(20 - Math.round(score / 5))}`;
+  },
+  '/token': () => {
+    const t = liveData.token;
+    if (!t) return '⏳ 数据加载中...';
+    const d = t.daily || {};
+    return `💰 <b>Token消耗</b>\n今日：${AIOSData.fmtNum(d.tokens_used || 0)} tokens\n成本：¥${d.cost_cny || 0}\n任务：${d.tasks_count || 0}`;
+  },
+  '/aether': () => {
+    const a = liveData.aether;
+    if (!a) return '⏳ 数据加载中...';
+    return `📡 <b>Aether感知层</b>\n轮次：C${a.cycle || '?'}\n在线率：${Math.round((a.online_rate || 0) * 100)}%\n信号总数：${a.total_signals || 0}\n数据源：${a.sources_total || 0}`;
+  },
+  '/hot': () => {
+    const a = liveData.aether;
+    if (!a || !a.weibo_hot) return '⏳ 数据加载中...';
+    return '🔥 <b>微博热搜</b>\n' + a.weibo_hot.slice(0, 5).map(w => `#${w.rank + 1} ${w.title}${w.heat ? ' · ' + AIOSData.fmtNum(w.heat) : ''}`).join('\n');
+  },
+  '/help': () => '📋 <b>可用命令</b>\n/status — 系统状态\n/health — 健康评分\n/token — Token消耗\n/aether — 感知层\n/hot — 微博热搜\n/help — 帮助',
 };
 
-function sendMessage() {
-  const text = chatInput.value.trim();
-  if (!text) return;
-  chatInput.value = '';
-
-  // User message
-  const userMsg = document.createElement('div');
-  userMsg.className = 'msg';
-  const now = new Date();
-  const time = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
-  userMsg.innerHTML = `
-    <div class="msg-avatar user">教授</div>
-    <div class="msg-body">
-      <div class="msg-header">
-        <span class="msg-name user">教授</span>
-        <span class="msg-time">${time}</span>
-      </div>
-      <div class="msg-content">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-    </div>`;
-  chatMessages.insertBefore(userMsg, typingIndicator);
-  scrollToBottom();
-
-  // Show typing
-  typingIndicator.style.display = 'block';
-  scrollToBottom();
-
-  // Response
-  const cmd = text.toLowerCase().split(' ')[0];
-  const resp = responses[cmd];
-
-  setTimeout(() => {
-    typingIndicator.style.display = 'none';
-    const botMsg = document.createElement('div');
-    botMsg.className = 'msg';
-
-    let content;
-    if (resp) {
-      content = resp.content;
-    } else {
-      content = `收到。这个交互终端目前是演示版——实际接入AIOS后，你说的每句话都会直接驱动系统执行。<br><br>试试快捷命令：<code>/status</code> <code>/signal</code> <code>/prism</code> <code>/task</code> <code>/token</code> <code>/memory</code>`;
-    }
-
-    const rTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
-    botMsg.innerHTML = `
-      <div class="msg-avatar ternary">三</div>
-      <div class="msg-body">
-        <div class="msg-header">
-          <span class="msg-name ternary">三元</span>
-          <span class="msg-time">${rTime}</span>
-        </div>
-        <div class="msg-content">${content}</div>
-      </div>`;
-    chatMessages.insertBefore(botMsg, typingIndicator);
-    scrollToBottom();
-  }, 800 + Math.random() * 600);
-}
-
-function scrollToBottom() {
+function addMessage(text, isUser = false) {
+  const div = document.createElement('div');
+  div.className = `msg ${isUser ? 'user' : 'bot'}`;
+  div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g, '<br>')}</div>`;
+  chatMessages.appendChild(div);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-sendBtn.addEventListener('click', sendMessage);
-chatInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
+function handleInput() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  addMessage(text, true);
+  chatInput.value = '';
 
-// Quick commands
-document.querySelectorAll('.qcmd').forEach(btn => {
+  const cmd = text.startsWith('/') ? text.split(' ')[0] : null;
+  if (cmd && commands[cmd]) {
+    setTimeout(() => addMessage(commands[cmd]()), 300);
+  } else {
+    setTimeout(() => addMessage('收到。输入 /help 查看可用命令。'), 500);
+  }
+}
+
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleInput(); });
+document.querySelectorAll('.cmd-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    chatInput.value = btn.dataset.cmd;
-    sendMessage();
+    chatInput.value = btn.textContent.trim();
+    handleInput();
   });
 });
 
-chatInput.focus();
+// 初始化
+addMessage('🟢 三元 AIOS 交互终端已连接实时数据\n输入命令或点击快捷按钮开始');
+autoRefresh(loadLiveData, 60000);
+loadLiveData();
 </script>
-</body>
-</html>
