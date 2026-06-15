@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS 记忆共享总线</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+  
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111318;
+    --bg3: #181b22;
+    --cyan: #58b4ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --text: #c9d1d9;
+    --muted: #6e7681;
+    --border: #21262d;
+  }
+  
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  #app {
+    display: grid;
+    grid-template-rows: 48px 1fr 120px;
+    height: 100vh;
+  }
+  
+  /* Header */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+  }
+  .header h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cyan);
+    letter-spacing: 1px;
+  }
+  .header .status {
+    font-size: 11px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .header .status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; }
+    50% { opacity:0.3; }
+  }
+  .header .meta {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  
+  /* Main Canvas */
+  .main-area {
+    position: relative;
+    overflow: hidden;
+  }
+  #busCanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+  
+  /* Tooltip */
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11px;
+    line-height: 1.6;
+    max-width: 280px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.15s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip .tt-title {
+    color: var(--cyan);
+    font-weight: 600;
+    margin-bottom: 4px;
+    font-size: 12px;
+  }
+  .tooltip .tt-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .tooltip .tt-label { color: var(--muted); }
+  .tooltip .tt-val { color: var(--text); }
+  
+  /* Bottom Capacity Bar */
+  .capacity-bar {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    padding: 10px 16px;
+    align-items: center;
+  }
+  .cap-item {
+    padding: 6px 10px;
+  }
+  .cap-item .cap-label {
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .cap-item .cap-label span { color: var(--text); }
+  .cap-item .cap-track {
+    height: 4px;
+    background: var(--bg);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .cap-item .cap-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.8s ease;
+  }
+  
+  /* Conflict Panel */
+  .conflict-panel {
+    position: absolute;
+    bottom: 130px;
+    right: 16px;
+    width: 300px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 50;
+  }
+  .conflict-panel .cp-header {
+    padding: 8px 12px;
+    background: var(--bg3);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--yellow);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .conflict-panel .cp-header .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--yellow);
+    animation: pulse 1.5s infinite;
+  }
+  .conflict-panel .cp-body {
+    padding: 10px 12px;
+    font-size: 10px;
+    line-height: 1.7;
+  }
+  .conflict-entry {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .conflict-entry:last-child { border-bottom: none; }
+  .conflict-entry .ce-key {
+    color: var(--cyan);
+    font-weight: 500;
+  }
+  .conflict-entry .ce-agents {
+    color: var(--muted);
+    margin: 2px 0;
+  }
+  .conflict-entry .ce-resolution {
+    color: var(--green);
+    padding: 2px 6px;
+    background: rgba(63,185,80,0.1);
+    border-radius: 3px;
+    font-size: 9px;
+  }
+  .conflict-entry .ce-resolution.conflict {
+    color: var(--red);
+    background: rgba(248,81,73,0.1);
+  }
+  .conflict-entry .ce-resolution.arbitrating {
+    color: var(--yellow);
+    background: rgba(210,153,34,0.1);
+    animation: pulse 1s infinite;
+  }
+
+  /* Legend */
+  .legend {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 10px;
+    z-index: 50;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 3px 0;
+  }
+  .legend-item .li-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>⟨ AIOS MEMORY SHARED BUS ⟩</h1>
+    <div class="status">BUS ACTIVE</div>
+    <div class="meta">TRI-NODE ARCH v2.1 | TICK: <span id="tick">0</span></div>
+  </div>
+  
+  <div class="main-area">
+    <canvas id="busCanvas"></canvas>
+    
+    <div class="legend">
+      <div class="legend-item"><div class="li-dot" style="background:#58b4ff"></div>即时层写入</div>
+      <div class="legend-item"><div class="li-dot" style="background:#3fb950"></div>近中期层读写</div>
+      <div class="legend-item"><div class="li-dot" style="background:#bc8cff"></div>语义检索查询</div>
+      <div class="legend-item"><div class="li-dot" style="background:#d29922"></div>知识库同步</div>
+      <div class="legend-item"><div class="li-dot" style="background:#f85149"></div>冲突写入</div>
+    </div>
+    
+    <div class="tooltip" id="tooltip">
+      <div class="tt-title"></div>
+      <div class="tt-body"></div>
+    </div>
+    
+    <div class="conflict-panel">
+      <div class="cp-header"><div class="dot"></div>冲突仲裁面板</div>
+      <div class="cp-body" id="conflictBody"></div>
+    </div>
+  </div>
+  
+  <div class="capacity-bar" id="capacityBar"></div>
+</div>
+
+<script>
+// ── CONFIG ──
+const C = {
+  bg: '#0a0c0f', bg2: '#111318', bg3: '#181b22',
+  cyan: '#58b4ff', green: '#3fb950', yellow: '#d29922',
+  red: '#f85149', purple: '#bc8cff',
+  text: '#c9d1d9', muted: '#6e7681', border: '#21262d'
+};
+
+// ── NODE DEFINITIONS ──
+const agents = [
+  { id:'sanyuan', label:'三元', sub:'主Agent', color: C.cyan, x:0, y:0, w:110, h:70,
+    detail: { role:'决策中枢', write:'USER.md / MEMORY.md / SOUL.md', read:'全部层', uptime:'99.7%', writes:'2,847' }},
+  { id:'xingguang', label:'星光', sub:'内务Agent', color: C.green, x:0, y:0, w:110, h:70,
+    detail: { role:'内务调度', write:'recent_memory/', read:'即时层+近中期', uptime:'94.2%', writes:'1,563' }},
+  { id:'omega', label:'Ω_loop', sub:'感知Agent', color: C.purple, x:0, y:0, w:110, h:70,
+    detail: { role:'感知采集', write:'aether_signal_log', read:'语义检索层', uptime:'91.8%', writes:'4,221' }}
+];
+
+const busLayers = [
+  { id:'instant', label:'即时层', color: C.cyan, sub:['USER.md','MEMORY.md','SOUL.md'], x:0, y:0, w:160, h:60 },
+  { id:'recent', label:'近中期层', color: C.green, sub:['recent_memory/','index.json','project/','decision/'], x:0, y:0, w:160, h:60 },
+  { id:'semantic', label:'语义检索层', color: C.purple, sub:['memory_search()','向量数据库','语义召回'], x:0, y:0, w:160, h:60 }
+];
+
+const kbNodes = [
+  { id:'ima_dc', label:'ima·断层线', color: C.yellow, x:0, y:0, w:120, h:55, detail:'地缘政治知识库 | 1,247条' },
+  { id:'ima_sy', label:'ima·三元智能', color: C.yellow, x:0, y:0, w:120, h:55, detail:'AI系统知识库 | 836条' }
+];
+
+// ── CAPACITY DATA ──
+const capacities = [
+  { label:'即时层 (USER/MEMORY/SOUL)', pct:74, color: C.cyan },
+  { label:'近中期层 (recent_memory/)', pct:42, color: C.green },
+  { label:'语义检索层 (向量库)', pct:61, color: C.purple },
+  { label:'知识库同步队列', pct:18, color: C.yellow },
+  { label:'总线带宽占用', pct:56, color: C.red }
+];
+
+// ── CONFLICT DATA ──
+const conflicts = [
+  { key:'MEMORY.md §权限规则', agents:'三元(写) ↔ 星光(写)', ts:'14:32:07', status:'resolved', resolution:'三元优先·星光缓存延迟3s写入' },
+  { key:'recent_memory/index.json', agents:'星光(写) ↔ Ω_loop(读)', ts:'14:28:41', status:'resolved', resolution:'读写锁·星光写入完成后释放' },
+  { key:'SOUL.md §integral维度', agents:'三元(写) ↔ Ω_loop(写)', ts:'14:35:19', status:'arbitrating', resolution:'仲裁中: 紧急度对比...' },
+  { key:'aether_signal_log', agents:'Ω_loop(写) ↔ 星光(读)', ts:'14:30:55', status:'resolved', resolution:'追加写入·无冲突' }
+];
+
+// ── CANVAS SETUP ──
+const canvas = document.getElementById('busCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+let tick = 0;
+let particles = [];
+let hoveredNode = null;
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = canvas.width = rect.width * devicePixelRatio;
+  H = canvas.height = rect.height * devicePixelRatio;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  layoutNodes(rect.width, rect.height);
+}
+
+function layoutNodes(w, h) {
+  const cx = w / 2, cy = h / 2;
+  // Agents: left column
+  const agentSpacing = h * 0.25;
+  const agentStartY = cy - agentSpacing;
+  agents.forEach((a, i) => {
+    a.x = 80;
+    a.y = agentStartY + i * agentSpacing;
+  });
+  // Bus layers: center column
+  const busSpacing = h * 0.22;
+  const busStartY = cy - busSpacing;
+  busLayers.forEach((b, i) => {
+    b.x = cx - 80;
+    b.y = busStartY + i * busSpacing;
+  });
+  // KB: right column
+  kbNodes[0].x = w - 200;
+  kbNodes[0].y = cy - 50;
+  kbNodes[1].x = w - 200;
+  kbNodes[1].y = cy + 50;
+}
+
+// ── PARTICLES ──
+class Particle {
+  constructor(from, to, color) {
+    this.from = from;
+    this.to = to;
+    this.color = color;
+    this.t = 0;
+    this.speed = 0.005 + Math.random() * 0.008;
+    this.size = 1.5 + Math.random() * 1.5;
+    this.trail = [];
+    this.maxTrail = 6;
+    this.alive = true;
+  }
+  update() {
+    this.t += this.speed;
+    if (this.t >= 1) { this.alive = false; return; }
+    const p = this.getPos();
+    this.trail.push({ x: p.x, y: p.y });
+    if (this.trail.length > this.maxTrail) this.trail.shift();
+  }
+  getPos() {
+    const f = this.from, tt = this.to;
+    const x = f.x + (tt.x - f.x) * this.t;
+    const y = f.y + (tt.y - f.y) * this.t;
+    // slight curve
+    const wave = Math.sin(this.t * Math.PI) * 15 * (this.from.id === 'omega' ? -1 : 1);
+    return { x: x + wave * 0.3, y: y + wave * 0.1 };
+  }
+  draw(ctx) {
+    const p = this.getPos();
+    // Trail
+    for (let i = 0; i < this.trail.length; i++) {
+      const alpha = (i / this.trail.length) * 0.4;
+      ctx.beginPath();
+      ctx.arc(this.trail[i].x, this.trail[i].y, this.size * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = this.color + hexAlpha(alpha);
+      ctx.fill();
+    }
+    // Head
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    // Glow
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, this.size * 3, 0, Math.PI * 2);
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, this.size * 3);
+    g.addColorStop(0, this.color + '44');
+    g.addColorStop(1, this.color + '00');
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+}
+
+function hexAlpha(a) {
+  return Math.round(Math.min(1, Math.max(0, a)) * 255).toString(16).padStart(2, '0');
+}
+
+function spawnParticles() {
+  // Agent -> Bus
+  agents.forEach(agent => {
+    if (Math.random() < 0.04) {
+      const targetBus = busLayers[Math.floor(Math.random() * busLayers.length)];
+      particles.push(new Particle(agent, targetBus, agent.color));
+    }
+  });
+  // Bus -> KB
+  busLayers.forEach(bus => {
+    if (Math.random() < 0.025) {
+      const targetKB = kbNodes[Math.floor(Math.random() * kbNodes.length)];
+      particles.push(new Particle(bus, targetKB, bus.color));
+    }
+  });
+  // KB -> Bus (read-back)
+  if (Math.random() < 0.015) {
+    const srcKB = kbNodes[Math.floor(Math.random() * kbNodes.length)];
+    const targetBus = busLayers[Math.floor(Math.random() * busLayers.length)];
+    particles.push(new Particle(srcKB, targetBus, C.yellow));
+  }
+}
+
+// ── DRAWING ──
+function drawGrid(ctx, w, h) {
+  ctx.strokeStyle = C.border + '44';
+  ctx.lineWidth = 0.5;
+  const step = 40;
+  for (let x = 0; x < w; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += step) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+}
+
+function drawConnections(ctx) {
+  // Agent -> Bus
+  agents.forEach(agent => {
+    busLayers.forEach(bus => {
+      ctx.beginPath();
+      ctx.moveTo(agent.x + agent.w/2, agent.y);
+      const midX = (agent.x + agent.w/2 + bus.x - bus.w/2) / 2;
+      ctx.bezierCurveTo(midX, agent.y, midX, bus.y, bus.x - bus.w/2, bus.y);
+      ctx.strokeStyle = agent.color + '18';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+  });
+  // Bus -> KB
+  busLayers.forEach(bus => {
+    kbNodes.forEach(kb => {
+      ctx.beginPath();
+      ctx.moveTo(bus.x + bus.w/2, bus.y);
+      const midX = (bus.x + bus.w/2 + kb.x - kb.w/2) / 2;
+      ctx.bezierCurveTo(midX, bus.y, midX, kb.y, kb.x - kb.w/2, kb.y);
+      ctx.strokeStyle = C.yellow + '18';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+  });
+}
+
+function drawNode(ctx, node, type) {
+  const { x, y, w, h, label, color, sub } = node;
+  const isHovered = hoveredNode === node;
+  
+  // Background
+  ctx.fillStyle = isHovered ? color + '15' : C.bg2;
+  ctx.strokeStyle = isHovered ? color : C.border;
+  ctx.lineWidth = isHovered ? 1.5 : 1;
+  
+  const r = 6;
+  ctx.beginPath();
+  ctx.roundRect(x - w/2, y - h/2, w, h, r);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Top accent line
+  ctx.beginPath();
+  ctx.moveTo(x - w/2 + r, y - h/2);
+  ctx.lineTo(x + w/2 - r, y - h/2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Label
+  ctx.fillStyle = color;
+  ctx.font = '600 13px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y - (sub ? 6 : 0));
+  
+  // Sub-label
+  if (sub) {
+    ctx.fillStyle = C.muted;
+    ctx.font = '300 10px "JetBrains Mono"';
+    ctx.fillText(sub, x, y + 10);
+  }
+  
+  // Activity indicator (small blinking dot)
+  if (type === 'agent') {
+    const blink = Math.sin(tick * 0.1) > 0;
+    ctx.beginPath();
+    ctx.arc(x + w/2 - 10, y - h/2 + 10, 3, 0, Math.PI * 2);
+    ctx.fillStyle = blink ? C.green : C.green + '44';
+    ctx.fill();
+  }
+}
+
+function drawBusLayer(ctx, layer) {
+  const { x, y, w, h, label, color, sub } = layer;
+  const isHovered = hoveredNode === layer;
+  
+  // Hexagonal-ish bus shape
+  ctx.fillStyle = isHovered ? color + '10' : C.bg3;
+  ctx.strokeStyle = isHovered ? color : C.border;
+  ctx.lineWidth = isHovered ? 1.5 : 1;
+  
+  ctx.beginPath();
+  ctx.roundRect(x - w/2, y - h/2, w, h, 4);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Left/right bus connectors
+  ctx.fillStyle = color;
+  ctx.fillRect(x - w/2 - 4, y - 3, 8, 6);
+  ctx.fillRect(x + w/2 - 4, y - 3, 8, 6);
+  
+  // Label
+  ctx.fillStyle = color;
+  ctx.font = '600 12px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y - 6);
+  
+  // Sub items
+  ctx.fillStyle = C.muted;
+  ctx.font = '300 8px "JetBrains Mono"';
+  const subText = sub.join(' · ');
+  ctx.fillText(subText, x, y + 10);
+  
+  // Activity pulse
+  const pulseW = w * 0.8 * (0.5 + 0.5 * Math.sin(tick * 0.05));
+  ctx.fillStyle = color + '08';
+  ctx.fillRect(x - pulseW/2, y - h/2, pulseW, h);
+}
+
+// ── HOVER DETECTION ──
+function getNodeAt(mx, my) {
+  const allNodes = [...agents, ...busLayers, ...kbNodes];
+  for (const n of allNodes) {
+    const hw = n.w / 2, hh = n.h / 2;
+    if (mx >= n.x - hw && mx <= n.x + hw && my >= n.y - hh && my <= n.y + hh) {
+      return n;
+    }
+  }
+  return null;
+}
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const node = getNodeAt(mx, my);
+  hoveredNode = node;
+  
+  const tt = document.getElementById('tooltip');
+  if (node) {
+    canvas.style.cursor = 'pointer';
+    tt.classList.add('visible');
+    let html = `<div class="tt-title">${node.label} ${node.sub ? '(' + node.sub + ')' : ''}</div>`;
+    if (node.detail) {
+      if (typeof node.detail === 'object') {
+        for (const [k, v] of Object.entries(node.detail)) {
+          html += `<div class="tt-row"><span class="tt-label">${k}</span><span class="tt-val">${v}</span></div>`;
+        }
+      } else {
+        html += `<div class="tt-val">${node.detail}</div>`;
+      }
+    }
+    if (node.sub && Array.isArray(node.sub)) {
+      html += `<div class="tt-val" style="margin-top:4px">${node.sub.join(', ')}</div>`;
+    }
+    tt.querySelector('.tt-title').outerHTML = '';
+    tt.innerHTML = html;
+    tt.style.left = (mx + 16) + 'px';
+    tt.style.top = (my - 10) + 'px';
+  } else {
+    canvas.style.cursor = 'default';
+    tt.classList.remove('visible');
+  }
+});
+
+// ── CAPACITY BAR ──
+function renderCapacityBar() {
+  const container = document.getElementById('capacityBar');
+  container.innerHTML = capacities.map(c => `
+    <div class="cap-item">
+      <div class="cap-label">${c.label} <span>${c.pct}%</span></div>
+      <div class="cap-track">
+        <div class="cap-fill" style="width:${c.pct}%;background:${c.color}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── CONFLICT PANEL ──
+function renderConflicts() {
+  const body = document.getElementById('conflictBody');
+  body.innerHTML = conflicts.map(c => {
+    const cls = c.status === 'arbitrating' ? 'arbitrating' : c.status === 'resolved' ? '' : 'conflict';
+    const icon = c.status === 'resolved' ? '✓' : c.status === 'arbitrating' ? '⟳' : '✗';
+    return `<div class="conflict-entry">
+      <div class="ce-key">${c.key}</div>
+      <div class="ce-agents">${c.agents} | ${c.ts}</div>
+      <span class="ce-resolution ${cls}">${icon} ${c.resolution}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── MAIN LOOP ──
+function frame() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const w = rect.width, h = rect.height;
+  
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  
+  // Background grid
+  drawGrid(ctx, w, h);
+  
+  // Connections
+  drawConnections(ctx);
+  
+  // Spawn & update particles
+  spawnParticles();
+  particles = particles.filter(p => p.alive);
+  particles.forEach(p => { p.update(); p.draw(ctx); });
+  
+  // Draw bus layers
+  busLayers.forEach(l => drawBusLayer(ctx, l));
+  
+  // Draw agent nodes
+  agents.forEach(a => drawNode(ctx, a, 'agent'));
+  
+  // Draw KB nodes
+  kbNodes.forEach(kb => drawNode(ctx, kb, 'kb'));
+  
+  // Bus center label
+  ctx.fillStyle = C.muted + '66';
+  ctx.font = '300 9px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText('MEMORY BUS', w / 2, 20);
+  
+  // Direction arrows
+  ctx.fillStyle = C.muted + '44';
+  ctx.font = '300 16px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  const arrowY = h - 20;
+  ctx.fillText('Agent ──▶ Bus ──▶ 知识库', w / 2, arrowY);
+  
+  tick++;
+  document.getElementById('tick').textContent = tick;
+  
+  requestAnimationFrame(frame);
+}
+
+// ── INIT ──
+window.addEventListener('resize', resize);
+resize();
+renderCapacityBar();
+renderConflicts();
+frame();
+</script>
+</body>
+</html>

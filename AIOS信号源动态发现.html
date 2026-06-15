@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS 信号源动态发现</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111318;
+    --bg3: #181b22;
+    --bg4: #1e222b;
+    --cyan: #58b4ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #f0883e;
+    --text: #c9d1d9;
+    --text2: #8b949e;
+    --border: #2a2f3a;
+  }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── header ── */
+  .header {
+    padding: 16px 24px;
+    background: linear-gradient(135deg, var(--bg2), var(--bg3));
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+  }
+  .header-icon {
+    width: 36px; height: 36px;
+    border: 2px solid var(--green);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green);
+    font-size: 18px;
+    font-weight: 700;
+    background: rgba(63,185,80,0.08);
+  }
+  .header h1 { font-size: 17px; font-weight: 600; color: var(--green); letter-spacing: 1px; }
+  .header .subtitle { font-size: 10px; color: var(--text2); margin-left: auto; }
+  .header-stats {
+    display: flex; gap: 18px; margin-left: 20px;
+  }
+  .header-stat {
+    text-align: center;
+  }
+  .header-stat .val { font-size: 16px; font-weight: 700; }
+  .header-stat .lbl { font-size: 8px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 0;
+  }
+  .main-col { padding: 16px; }
+
+  /* ── scatter chart section ── */
+  .section-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .badge {
+    font-size: 8px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .scatter-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .scatter-container canvas {
+    width: 100%;
+    display: block;
+  }
+  .scatter-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 9px;
+    color: var(--text2);
+    flex-wrap: wrap;
+  }
+  .scatter-legend span {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* ── flow section ── */
+  .flow-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+  .flow-row:last-child { margin-bottom: 0; }
+  .flow-label {
+    font-size: 9px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 80px;
+    text-align: right;
+    padding-right: 12px;
+    flex-shrink: 0;
+  }
+  .flow-node {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 10px;
+    text-align: center;
+    min-width: 100px;
+    position: relative;
+    transition: border-color .3s, background .3s;
+    cursor: default;
+  }
+  .flow-node:hover {
+    border-color: var(--cyan);
+    background: rgba(88,180,255,0.05);
+  }
+  .flow-node .fn-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .flow-node .fn-detail {
+    font-size: 8px;
+    color: var(--text2);
+  }
+  .flow-arrow {
+    color: var(--text2);
+    font-size: 14px;
+    margin: 0 6px;
+    opacity: 0.5;
+  }
+  .flow-arrow.down {
+    display: block;
+    text-align: center;
+    margin: 4px auto;
+    transform: rotate(90deg);
+  }
+  .flow-node.success { border-left: 3px solid var(--green); }
+  .flow-node.warning { border-left: 3px solid var(--yellow); }
+  .flow-node.danger { border-left: 3px solid var(--red); }
+  .flow-node.info { border-left: 3px solid var(--cyan); }
+
+  /* pipeline animation */
+  .flow-pipeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .pipe-segment {
+    height: 4px;
+    background: var(--border);
+    width: 40px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+  }
+  .pipe-segment::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    animation: pipeFlow 2s linear infinite;
+  }
+  @keyframes pipeFlow {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+  .pipe-node {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 9px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all .3s;
+  }
+  .pipe-node:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ── ranking section ── */
+  .ranking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .ranking-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .ranking-card .rc-title {
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    border-radius: 4px;
+    margin-bottom: 3px;
+    font-size: 10px;
+    background: var(--bg3);
+    transition: background .2s;
+  }
+  .ranking-item:hover { background: var(--bg4); }
+  .ranking-item .rank-num {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .ranking-item .rank-name { flex: 1; }
+  .ranking-item .rank-score { font-weight: 600; }
+  .ranking-item .rank-bar {
+    width: 40px; height: 3px;
+    background: var(--bg4);
+    border-radius: 2px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .ranking-item .rank-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .rank-top .rank-num { background: rgba(63,185,80,0.15); color: var(--green); }
+  .rank-bottom .rank-num { background: rgba(248,81,73,0.15); color: var(--red); }
+  .rank-new .rank-num { background: rgba(88,180,255,0.15); color: var(--cyan); }
+
+  /* ── right sidebar ── */
+  .right-col {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    padding: 16px;
+    overflow-y: auto;
+    max-height: calc(100vh - 64px);
+  }
+  .right-col .section-title {
+    font-size: 9px;
+  }
+
+  .history-item {
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: 5px;
+    font-size: 9px;
+    line-height: 1.5;
+    border-left: 3px solid;
+    background: var(--bg3);
+  }
+  .history-item.added { border-left-color: var(--green); }
+  .history-item.removed { border-left-color: var(--red); }
+  .history-item.demoted { border-left-color: var(--yellow); }
+  .history-item.promoted { border-left-color: var(--cyan); }
+
+  .history-item .hi-action {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .history-item .hi-time {
+    font-size: 8px;
+    color: var(--text2);
+  }
+  .history-item .hi-detail {
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  /* source health mini chart */
+  .health-bar-container {
+    margin-top: 12px;
+  }
+  .health-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    font-size: 8px;
+  }
+  .health-row .hr-label {
+    width: 60px;
+    text-align: right;
+    color: var(--text2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .health-row .hr-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg4);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .health-row .hr-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+  .health-row .hr-val {
+    width: 24px;
+    text-align: right;
+    color: var(--text2);
+    flex-shrink: 0;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* tooltip */
+  .scatter-tooltip {
+    position: absolute;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 10px;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+    max-width: 200px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.5);
+  }
+  .scatter-tooltip .tt-name { font-weight: 600; margin-bottom: 4px; }
+  .scatter-tooltip .tt-row { color: var(--text2); line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-icon">∞</div>
+  <h1>AIOS 信号源动态发现</h1>
+  <span class="subtitle">AETHER PERCEPTION LAYER v3.1</span>
+  <div class="header-stats">
+    <div class="header-stat">
+      <div class="val" style="color:var(--cyan);">54</div>
+      <div class="lbl">活跃源</div>
+    </div>
+    <div class="header-stat">
+      <div class="val" style="color:var(--green);">8</div>
+      <div class="lbl">候选源</div>
+    </div>
+    <div class="header-stat">
+      <div class="val" style="color:var(--red);">3</div>
+      <div class="lbl">已死亡</div>
+    </div>
+    <div class="header-stat">
+      <div class="val" style="color:var(--yellow);">5</div>
+      <div class="lbl">降频中</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Main Column -->
+  <div class="main-col">
+
+    <!-- Section 1: Scatter Chart -->
+    <div class="section-title">
+      ⟐ 数据源质量评分矩阵
+      <span class="badge" style="background:rgba(88,180,255,0.12); color:var(--cyan);">54 源</span>
+    </div>
+    <div class="scatter-container">
+      <canvas id="scatterCanvas"></canvas>
+      <div class="scatter-tooltip" id="scatterTooltip">
+        <div class="tt-name"></div>
+        <div class="tt-row"></div>
+      </div>
+      <div class="scatter-legend">
+        <span><span class="legend-dot" style="background:var(--green);"></span> 在线率 &gt;70%</span>
+        <span><span class="legend-dot" style="background:var(--yellow);"></span> 在线率 30-70%</span>
+        <span><span class="legend-dot" style="background:var(--red);"></span> 在线率 &lt;30%</span>
+        <span style="margin-left:12px;">气泡大小 = 独特性（信号增量）</span>
+      </div>
+    </div>
+
+    <!-- Section 2: Dynamic Discovery Flow -->
+    <div class="section-title">
+      ⟐ 动态发现机制
+      <span class="badge" style="background:rgba(63,185,80,0.12); color:var(--green);">运行中</span>
+    </div>
+    <div class="flow-container">
+      <!-- Row 1: New source discovery -->
+      <div class="flow-row">
+        <div class="flow-label">新源发现</div>
+        <div class="flow-node info">
+          <div class="fn-title">开放数据市场扫描</div>
+          <div class="fn-detail">GDELT / Open-Meteo / CKAN</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node info">
+          <div class="fn-title">质量预评估</div>
+          <div class="fn-detail">信噪比估算 + 去重检测</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node warning">
+          <div class="fn-title">试采集 (3轮)</div>
+          <div class="fn-detail">24h/72h/7d 递进</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node success">
+          <div class="fn-title">评分决策</div>
+          <div class="fn-detail">接入 / 降频 / 淘汰</div>
+        </div>
+      </div>
+
+      <!-- Pipeline animation -->
+      <div class="flow-pipeline">
+        <div class="pipe-node" style="border-color:var(--cyan); color:var(--cyan);">扫描</div>
+        <div class="pipe-segment"></div>
+        <div class="pipe-node">预评</div>
+        <div class="pipe-segment" style="animation-delay:.3s;"></div>
+        <div class="pipe-node">试采</div>
+        <div class="pipe-segment" style="animation-delay:.6s;"></div>
+        <div class="pipe-node" style="border-color:var(--green); color:var(--green);">决策</div>
+      </div>
+
+      <!-- Row 2: Existing source evaluation -->
+      <div class="flow-row" style="margin-top:16px;">
+        <div class="flow-label">存量评估</div>
+        <div class="flow-node info">
+          <div class="fn-title">现有源评估</div>
+          <div class="fn-detail">54源周期性健康检查</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node info">
+          <div class="fn-title">综合评分</div>
+          <div class="fn-detail">信噪比 + 时效性 + 独特性</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node danger">
+          <div class="fn-title">低分淘汰</div>
+          <div class="fn-detail">评分&lt;30 连续3周期</div>
+        </div>
+        <span class="flow-arrow">/</span>
+        <div class="flow-node success">
+          <div class="fn-title">高分保留</div>
+          <div class="fn-detail">评分&gt;70 自动续期</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Health Rankings -->
+    <div class="section-title">
+      ⟐ 源健康度排行榜
+      <span class="badge" style="background:rgba(188,140,255,0.12); color:var(--purple);">按综合评分</span>
+    </div>
+    <div class="ranking-grid">
+      <!-- Top 5 -->
+      <div class="ranking-card">
+        <div class="rc-title" style="color:var(--green);">★ Top 5 优质源</div>
+        <div id="top5List"></div>
+      </div>
+      <!-- Bottom 5 -->
+      <div class="ranking-card">
+        <div class="rc-title" style="color:var(--red);">✕ Bottom 5 待淘汰</div>
+        <div id="bottom5List"></div>
+      </div>
+      <!-- New candidates -->
+      <div class="ranking-card" style="grid-column: 1 / -1;">
+        <div class="rc-title" style="color:var(--cyan);">◉ 新发现候选源</div>
+        <div id="newList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Sidebar: History -->
+  <div class="right-col">
+    <div class="section-title">⟐ 淘汰/新增记录</div>
+    <div id="historyList"></div>
+
+    <div class="section-title" style="margin-top:16px;">⟐ 源健康度速览</div>
+    <div class="health-bar-container" id="healthBars"></div>
+  </div>
+</div>
+
+<script>
+// ─── Data ───
+const sources = [
+  // Top quality
+  { name:'GDELT', snr:92, timeliness:78, uniqueness:95, online:98, type:'global' },
+  { name:'Open-Meteo', snr:88, timeliness:95, uniqueness:72, online:99, type:'weather' },
+  { name:'FRED', snr:94, timeliness:70, uniqueness:80, online:97, type:'econ' },
+  { name:'World Bank', snr:90, timeliness:55, uniqueness:85, online:96, type:'econ' },
+  { name:'Semantic Scholar', snr:85, timeliness:82, uniqueness:78, online:95, type:'academic' },
+  { name:'PubMed', snr:91, timeliness:75, uniqueness:70, online:98, type:'academic' },
+  { name:'Crossref', snr:87, timeliness:80, uniqueness:65, online:94, type:'academic' },
+  { name:'NASA APOD', snr:72, timeliness:68, uniqueness:90, online:99, type:'science' },
+  { name:'NASA Earthdata', snr:80, timeliness:72, uniqueness:88, online:92, type:'science' },
+  { name:'EBI Search', snr:83, timeliness:74, uniqueness:62, online:91, type:'bio' },
+  // Mid quality
+  { name:'OpenAlex', snr:78, timeliness:80, uniqueness:58, online:90, type:'academic' },
+  { name:'USDA FDC', snr:82, timeliness:60, uniqueness:55, online:88, type:'food' },
+  { name:'Open Food Facts', snr:70, timeliness:65, uniqueness:60, online:85, type:'food' },
+  { name:'Figshare', snr:65, timeliness:70, uniqueness:72, online:87, type:'academic' },
+  { name:'Zenodo', snr:68, timeliness:68, uniqueness:70, online:86, type:'academic' },
+  { name:'IMF', snr:85, timeliness:50, uniqueness:75, online:82, type:'econ' },
+  { name:'OECD', snr:82, timeliness:48, uniqueness:68, online:80, type:'econ' },
+  { name:'Eurostat', snr:80, timeliness:52, uniqueness:65, online:83, type:'econ' },
+  { name:'UN Comtrade', snr:75, timeliness:42, uniqueness:78, online:78, type:'econ' },
+  { name:'BIS', snr:78, timeliness:45, uniqueness:60, online:80, type:'econ' },
+  { name:'Harvard Dataverse', snr:72, timeliness:55, uniqueness:80, online:82, type:'academic' },
+  { name:'OpenCitations', snr:70, timeliness:58, uniqueness:45, online:75, type:'academic' },
+  { name:'arXiv', snr:80, timeliness:90, uniqueness:55, online:99, type:'academic' },
+  { name:'bioRxiv', snr:75, timeliness:88, uniqueness:50, online:95, type:'academic' },
+  { name:'ChEMBL', snr:82, timeliness:50, uniqueness:68, online:85, type:'bio' },
+  { name:'UniProt', snr:88, timeliness:55, uniqueness:62, online:90, type:'bio' },
+  { name:'PDBe', snr:75, timeliness:52, uniqueness:48, online:82, type:'bio' },
+  { name:'ENA', snr:78, timeliness:58, uniqueness:55, online:80, type:'bio' },
+  { name:'ExchangeRate-API', snr:65, timeliness:92, uniqueness:30, online:95, type:'econ' },
+  { name:'CoinGecko', snr:55, timeliness:94, uniqueness:35, online:92, type:'crypto' },
+  { name:'AurumRates', snr:60, timeliness:85, uniqueness:40, online:88, type:'commodity' },
+  { name:'风云卫星 WMS', snr:72, timeliness:82, uniqueness:75, online:72, type:'weather' },
+  { name:'七麦数据', snr:68, timeliness:78, uniqueness:58, online:90, type:'app' },
+  { name:'天眼查', snr:72, timeliness:70, uniqueness:50, online:88, type:'biz' },
+  { name:'广发龙虎榜', snr:65, timeliness:75, uniqueness:42, online:85, type:'stock' },
+  { name:'AurumRates', snr:58, timeliness:82, uniqueness:38, online:82, type:'commodity' },
+  { name:'Statistics Canada', snr:74, timeliness:40, uniqueness:52, online:75, type:'econ' },
+  // Lower quality
+  { name:'深圳开放数据', snr:20, timeliness:10, uniqueness:30, online:5, type:'local' },
+  { name:'某市政务API', snr:25, timeliness:15, uniqueness:22, online:12, type:'local' },
+  { name:'旧版聚合API', snr:30, timeliness:20, uniqueness:15, online:18, type:'legacy' },
+  { name:'退役天气源', snr:28, timeliness:8, uniqueness:10, online:8, type:'legacy' },
+  { name:'废弃社媒源', snr:15, timeliness:5, uniqueness:8, online:3, type:'legacy' },
+  { name:'过期金融源', snr:22, timeliness:12, uniqueness:18, online:10, type:'legacy' },
+  // More mid
+  { name:'东方财富', snr:70, timeliness:80, uniqueness:40, online:90, type:'stock' },
+  { name:'雪球实时', snr:65, timeliness:85, uniqueness:35, online:88, type:'stock' },
+  { name:'新浪财经', snr:62, timeliness:82, uniqueness:30, online:85, type:'stock' },
+  { name:'腾讯行情', snr:68, timeliness:88, uniqueness:32, online:92, type:'stock' },
+  { name:'Open-Meteo海洋', snr:80, timeliness:90, uniqueness:68, online:95, type:'weather' },
+  { name:'Open-Meteo空气', snr:78, timeliness:92, uniqueness:65, online:96, type:'weather' },
+  { name:'OpenAlex Authors', snr:72, timeliness:72, uniqueness:48, online:85, type:'academic' },
+  { name:'DONKI空间天气', snr:60, timeliness:75, uniqueness:82, online:78, type:'science' },
+  { name:'EPIC地球影像', snr:55, timeliness:70, uniqueness:78, online:75, type:'science' },
+  { name:'NeoWs小行星', snr:50, timeliness:72, uniqueness:85, online:72, type:'science' },
+  { name:'NASA TechTransfer', snr:62, timeliness:35, uniqueness:70, online:68, type:'science' },
+  { name:'FDA开放数据', snr:72, timeliness:45, uniqueness:55, online:70, type:'bio' },
+];
+
+// Compute composite score
+sources.forEach(s => {
+  s.composite = Math.round(s.snr * 0.35 + s.timeliness * 0.35 + s.uniqueness * 0.20 + s.online * 0.10);
+});
+
+// Sort for rankings
+const sorted = [...sources].sort((a,b) => b.composite - a.composite);
+const top5 = sorted.slice(0, 5);
+const bottom5 = sorted.slice(-5).reverse();
+const newCandidates = [
+  { name:'Climate TRACE', score:72, status:'试采第2轮' },
+  { name:'HuggingFace Datasets', score:68, status:'预评估通过' },
+  { name:'EPO专利数据', score:65, status:'试采第1轮' },
+  { name:'中国气象局开放API', score:61, status:'质量预评估中' },
+  { name:'Global Fishing Watch', score:58, status:'市场扫描发现' },
+  { name:'Copernicus气候数据', score:75, status:'试采第3轮' },
+  { name:'中国海关统计', score:55, status:'市场扫描发现' },
+  { name:'Stack Overflow数据', score:52, status:'市场扫描发现' },
+];
+
+// ─── Render Rankings ───
+function renderRanking(list, containerId, cssClass, scoreKey) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = list.map((item, i) => {
+    const score = scoreKey ? item[scoreKey] : item.composite;
+    const barColor = cssClass === 'rank-top' ? 'var(--green)' :
+                     cssClass === 'rank-bottom' ? 'var(--red)' : 'var(--cyan)';
+    return `<div class="ranking-item ${cssClass}">
+      <div class="rank-num">${i+1}</div>
+      <div class="rank-name">${item.name}</div>
+      <div class="rank-bar"><div class="rank-bar-fill" style="width:${score}%; background:${barColor};"></div></div>
+      <div class="rank-score" style="color:${barColor};">${score}</div>
+    </div>`;
+  }).join('');
+}
+renderRanking(top5, 'top5List', 'rank-top');
+renderRanking(bottom5, 'bottom5List', 'rank-bottom');
+
+// New candidates
+const newEl = document.getElementById('newList');
+newEl.innerHTML = newCandidates.map((item, i) => `
+  <div class="ranking-item rank-new" style="display:inline-flex; width:calc(50% - 4px); margin-right:${i%2===0?'8px':'0'};">
+    <div class="rank-num">${i+1}</div>
+    <div class="rank-name">${item.name}</div>
+    <div style="font-size:8px; color:var(--text2); margin-left:auto;">${item.status}</div>
+    <div class="rank-score" style="color:var(--cyan);">${item.score}</div>
+  </div>
+`).join('');
+
+// ─── History ───
+const history = [
+  { action:'淘汰', source:'深圳开放数据', time:'06-14 18:00', detail:'在线率5%，连续30天无响应，综合评分14', type:'removed' },
+  { action:'淘汰', source:'退役天气源', time:'06-14 12:00', detail:'被Open-Meteo完全替代，综合评分18', type:'removed' },
+  { action:'新增', source:'Copernicus气候数据', time:'06-13 20:00', detail:'试采集3轮通过，综合评分75', type:'added' },
+  { action:'降频', source:'某市政务API', time:'06-13 16:00', detail:'在线率12%→采集间隔从1h调整为6h', type:'demoted' },
+  { action:'淘汰', source:'废弃社媒源', time:'06-12 22:00', detail:'API密钥过期，综合评分8', type:'removed' },
+  { action:'新增', source:'Climate TRACE', time:'06-12 14:00', detail:'进入试采集第2轮，碳排放数据源', type:'added' },
+  { action:'升级', source:'Open-Meteo海洋', time:'06-11 20:00', detail:'增加wave_height参数，独特性提升', type:'promoted' },
+  { action:'淘汰', source:'过期金融源', time:'06-11 10:00', detail:'数据延迟>24h，被新浪财经替代', type:'removed' },
+  { action:'新增', source:'HuggingFace Datasets', time:'06-10 18:00', detail:'预评估通过，AI/ML数据集仓库', type:'added' },
+  { action:'降频', source:'旧版聚合API', time:'06-10 12:00', detail:'在线率18%→采集间隔从2h调整为12h', type:'demoted' },
+  { action:'升级', source:'NASA Earthdata', time:'06-09 20:00', detail:'新增MODIS植被指数数据集', type:'promoted' },
+  { action:'新增', source:'EPO专利数据', time:'06-09 10:00', detail:'进入试采集第1轮', type:'added' },
+];
+
+const histEl = document.getElementById('historyList');
+histEl.innerHTML = history.map(h => `
+  <div class="history-item ${h.type}">
+    <div class="hi-action" style="color:${h.type==='added'?'var(--green)':h.type==='removed'?'var(--red)':h.type==='demoted'?'var(--yellow)':'var(--cyan)'};">${h.action}: ${h.source}</div>
+    <div class="hi-time">${h.time}</div>
+    <div class="hi-detail">${h.detail}</div>
+  </div>
+`).join('');
+
+// ─── Health Bars ───
+const top10 = sorted.slice(0, 10);
+const healthEl = document.getElementById('healthBars');
+healthEl.innerHTML = top10.map(s => {
+  const color = s.online > 70 ? 'var(--green)' : s.online > 30 ? 'var(--yellow)' : 'var(--red)';
+  return `<div class="health-row">
+    <div class="hr-label">${s.name}</div>
+    <div class="hr-bar"><div class="hr-bar-fill" style="width:${s.composite}%; background:${color};"></div></div>
+    <div class="hr-val">${s.composite}</div>
+  </div>`;
+}).join('');
+
+// ─── Scatter Chart (Canvas) ───
+(function() {
+  const canvas = document.getElementById('scatterCanvas');
+  const ctx = canvas.getContext('2d');
+  const tooltip = document.getElementById('scatterTooltip');
+  const container = canvas.parentElement;
+
+  let W, H, dpr;
+  const padding = { top: 30, right: 30, bottom: 40, left: 50 };
+
+  function resize() {
+    const rect = container.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    W = rect.width - 24; // account for padding
+    H = 380;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', () => { resize(); draw(); });
+
+  function getColor(online) {
+    if (online > 70) return '#3fb950';
+    if (online > 30) return '#d29922';
+    return '#f85149';
+  }
+
+  function getX(snr) { return padding.left + (snr / 100) * (W - padding.left - padding.right); }
+  function getY(timeliness) { return H - padding.bottom - (timeliness / 100) * (H - padding.top - padding.bottom); }
+  function getR(uniqueness) { return 4 + (uniqueness / 100) * 14; }
+
+  // Key sources to annotate
+  const annotateSet = new Set(['GDELT', 'Open-Meteo', '深圳开放数据', 'FRED', '废弃社媒源']);
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#1e222b';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 10; i++) {
+      const x = padding.left + (i / 10) * (W - padding.left - padding.right);
+      const y = H - padding.bottom - (i / 10) * (H - padding.top - padding.bottom);
+      ctx.beginPath(); ctx.moveTo(x, padding.top); ctx.lineTo(x, H - padding.bottom); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(W - padding.right, y); ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#2a2f3a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, H - padding.bottom);
+    ctx.lineTo(W - padding.right, H - padding.bottom);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('信噪比 (SNR)', W / 2, H - 6);
+    ctx.save();
+    ctx.translate(14, H / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('时效性', 0, 0);
+    ctx.restore();
+
+    // Axis ticks
+    for (let i = 0; i <= 100; i += 20) {
+      const x = getX(i);
+      const y = getY(i);
+      ctx.fillStyle = '#8b949e';
+      ctx.font = '9px JetBrains Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText(i, x, H - padding.bottom + 14);
+      ctx.textAlign = 'right';
+      ctx.fillText(i, padding.left - 6, y + 3);
+    }
+
+    // Zone labels
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#3fb950';
+    ctx.fillRect(getX(70), getY(100), getX(100) - getX(70), getY(70) - getY(100));
+    ctx.fillStyle = '#d29922';
+    ctx.fillRect(getX(40), getY(70), getX(70) - getX(40), getY(40) - getY(70));
+    ctx.fillStyle = '#f85149';
+    ctx.fillRect(getX(0), getY(40), getX(40) - getX(0), getY(0) - getY(40));
+    ctx.globalAlpha = 1;
+
+    // Zone corner labels
+    ctx.globalAlpha = 0.25;
+    ctx.font = '9px JetBrains Mono';
+    ctx.fillStyle = '#3fb950';
+    ctx.textAlign = 'right';
+    ctx.fillText('优质区', getX(98), getY(97));
+    ctx.fillStyle = '#d29922';
+    ctx.fillText('观察区', getX(68), getY(67));
+    ctx.fillStyle = '#f85149';
+    ctx.textAlign = 'left';
+    ctx.fillText('淘汰区', getX(3), getY(5));
+    ctx.globalAlpha = 1;
+
+    // Bubbles
+    sources.forEach(s => {
+      const x = getX(s.snr);
+      const y = getY(s.timeliness);
+      const r = getR(s.uniqueness);
+      const color = getColor(s.online);
+
+      // glow
+      ctx.beginPath();
+      ctx.arc(x, y, r + 2, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.1;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // bubble
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.45;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Annotate key sources
+      if (annotateSet.has(s.name)) {
+        ctx.fillStyle = '#c9d1d9';
+        ctx.font = '10px JetBrains Mono';
+        ctx.textAlign = 'center';
+        const labelY = y - r - 6;
+        ctx.fillText(s.name, x, labelY);
+
+        // small connector
+        ctx.beginPath();
+        ctx.moveTo(x, labelY + 2);
+        ctx.lineTo(x, y - r);
+        ctx.strokeStyle = '#8b949e';
+        ctx.lineWidth = 0.5;
+        ctx.globalAlpha = 0.4;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Special markers for dead sources
+        if (s.online < 10) {
+          ctx.beginPath();
+          ctx.moveTo(x - r, y - r);
+          ctx.lineTo(x + r, y + r);
+          ctx.moveTo(x + r, y - r);
+          ctx.lineTo(x - r, y + r);
+          ctx.strokeStyle = '#f85149';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+    });
+  }
+
+  draw();
+
+  // Tooltip interaction
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    let found = null;
+    for (const s of sources) {
+      const x = getX(s.snr);
+      const y = getY(s.timeliness);
+      const r = getR(s.uniqueness);
+      const dist = Math.sqrt((mx - x) ** 2 + (my - y) ** 2);
+      if (dist < r + 3) {
+        found = s;
+        break;
+      }
+    }
+
+    if (found) {
+      tooltip.style.display = 'block';
+      tooltip.querySelector('.tt-name').textContent = found.name;
+      tooltip.querySelector('.tt-row').innerHTML =
+        `信噪比: ${found.snr} | 时效性: ${found.timeliness}<br>` +
+        `独特性: ${found.uniqueness} | 在线率: ${found.online}%<br>` +
+        `综合评分: <span style="color:${found.composite>70?'var(--green)':found.composite>40?'var(--yellow)':'var(--red)'};">${found.composite}</span>`;
+      const containerRect = container.getBoundingClientRect();
+      let tx = e.clientX - containerRect.left + 12;
+      let ty = e.clientY - containerRect.top - 10;
+      if (tx + 200 > containerRect.width) tx = tx - 220;
+      tooltip.style.left = tx + 'px';
+      tooltip.style.top = ty + 'px';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    tooltip.style.display = 'none';
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS 发布渠道抽象层</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0c0f;
+  --bg-card: #12151a;
+  --bg-surface: #181c22;
+  --cyan: #58b4ff;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --red: #f85149;
+  --purple: #bc8cff;
+  --orange: #f0883e;
+  --text: #c9d1d9;
+  --text-dim: #6e7681;
+  --border: #21262d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.header {
+  padding: 20px 32px 12px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0f1217 0%, var(--bg) 100%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+
+.header .status-dot {
+  width: 8px; height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(63,185,80,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(63,185,80,0); }
+}
+
+.header .meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 220px 1fr 240px;
+  gap: 0;
+  height: calc(100vh - 280px);
+  min-height: 500px;
+  position: relative;
+}
+
+/* === LEFT PANEL: Sources === */
+.panel-sources {
+  border-right: 1px solid var(--border);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel-title::before {
+  content: '';
+  width: 3px; height: 12px;
+  background: var(--cyan);
+  border-radius: 2px;
+}
+
+.source-node {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.source-node:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px rgba(88,180,255,0.1);
+}
+
+.source-node .icon {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.source-node .name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.source-node .desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.source-node .rate {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--green);
+}
+
+.source-node::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 8px; height: 2px;
+  background: var(--cyan);
+  opacity: 0.5;
+}
+
+/* Source colors */
+.source-node.s-prism { border-left: 3px solid var(--cyan); }
+.source-node.s-research { border-left: 3px solid var(--purple); }
+.source-node.s-social { border-left: 3px solid var(--orange); }
+.source-node.s-rsi { border-left: 3px solid var(--green); }
+
+/* === CENTER: Canvas + Router === */
+.panel-router {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.router-layers {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.router-layer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(18,21,26,0.85);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 20px;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  white-space: nowrap;
+}
+
+.router-layer:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 24px rgba(88,180,255,0.15);
+}
+
+.router-layer .layer-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.router-layer .layer-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.router-layer .layer-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.layer-format { top: 8%; }
+.layer-health { top: 28%; }
+.layer-priority { top: 48%; }
+.layer-queue { top: 68%; }
+
+.layer-format .layer-name { color: var(--purple); }
+.layer-health .layer-name { color: var(--green); }
+.layer-priority .layer-name { color: var(--cyan); }
+.layer-queue .layer-name { color: var(--orange); }
+
+.router-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+}
+
+/* === RIGHT PANEL: Channels === */
+.panel-channels {
+  border-left: 1px solid var(--border);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.channel-node {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.channel-node.online {
+  border-color: rgba(63,185,80,0.3);
+}
+
+.channel-node.offline {
+  border-color: rgba(248,81,73,0.3);
+  opacity: 0.7;
+}
+
+.channel-node .ch-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.channel-node .ch-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.channel-node.online .ch-dot {
+  background: var(--green);
+  box-shadow: 0 0 8px rgba(63,185,80,0.6);
+  animation: pulse-dot 2s infinite;
+}
+
+.channel-node.offline .ch-dot {
+  background: var(--red);
+  box-shadow: 0 0 8px rgba(248,81,73,0.4);
+}
+
+.channel-node .ch-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.channel-node .ch-platform {
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.channel-node .ch-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 10px;
+}
+
+.channel-node .ch-stat-label {
+  color: var(--text-dim);
+}
+
+.channel-node .ch-stat-value {
+  color: var(--text);
+  text-align: right;
+}
+
+.channel-node .ch-status-text {
+  margin-top: 6px;
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.channel-node.online .ch-status-text { color: var(--green); }
+.channel-node.offline .ch-status-text { color: var(--red); }
+
+.channel-node::before {
+  content: '';
+  position: absolute;
+  left: -1px;
+  top: 50%;
+  width: 8px; height: 2px;
+  background: var(--green);
+  opacity: 0.5;
+}
+
+.channel-node.offline::before { background: var(--red); }
+
+/* === BOTTOM: Routing Rules === */
+.bottom-panel {
+  border-top: 1px solid var(--border);
+  padding: 16px 32px;
+  background: var(--bg-card);
+}
+
+.bottom-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bottom-title::before {
+  content: '';
+  width: 3px; height: 12px;
+  background: var(--orange);
+  border-radius: 2px;
+}
+
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.rules-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: var(--text-dim);
+  font-weight: 500;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rules-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(33,38,45,0.5);
+  vertical-align: middle;
+}
+
+.rules-table tr:hover td {
+  background: rgba(88,180,255,0.03);
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.tag-format { background: rgba(188,140,255,0.15); color: var(--purple); }
+.tag-primary { background: rgba(63,185,80,0.15); color: var(--green); }
+.tag-fallback { background: rgba(210,153,34,0.15); color: var(--yellow); }
+.tag-weight { background: rgba(88,180,255,0.1); color: var(--cyan); }
+.tag-freq { background: rgba(240,136,62,0.15); color: var(--orange); }
+
+/* === Reroute toast === */
+.reroute-toast {
+  position: fixed;
+  top: 80px;
+  right: 32px;
+  background: rgba(210,153,34,0.15);
+  border: 1px solid rgba(210,153,34,0.4);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 11px;
+  color: var(--yellow);
+  z-index: 100;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.4s ease;
+  pointer-events: none;
+}
+
+.reroute-toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* === Scanline overlay === */
+.scanline {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+}
+
+/* === Animations === */
+@keyframes glow-cyan { 0%,100% { text-shadow: 0 0 4px rgba(88,180,255,0.3); } 50% { text-shadow: 0 0 12px rgba(88,180,255,0.6); } }
+.glow-cyan { animation: glow-cyan 3s infinite; }
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<!-- Reroute notification -->
+<div class="reroute-toast" id="rerouteToast">
+  ⚡ 路由重定向: 内容已自动分配至备用渠道
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="status-dot"></div>
+  <h1>AIOS PUBLISH CHANNEL ABSTRACTION LAYER</h1>
+  <span style="font-size:11px;color:var(--text-dim)">v2.1</span>
+  <div class="meta">
+    <span id="clock"></span> &nbsp;|&nbsp; 路由引擎: <span style="color:var(--green)">ACTIVE</span> &nbsp;|&nbsp; 队列深度: <span id="queueDepth" style="color:var(--cyan)">0</span>
+  </div>
+</div>
+
+<!-- Main Dashboard -->
+<div class="dashboard">
+
+  <!-- Left: Sources -->
+  <div class="panel-sources">
+    <div class="panel-title">内容生产源</div>
+
+    <div class="source-node s-prism" data-source="prism">
+      <div class="icon">◈</div>
+      <div class="name">三棱镜情报</div>
+      <div class="desc">地缘态势/断层线/每日快报 S级信号</div>
+      <div class="rate">产出率: 6条/日</div>
+    </div>
+
+    <div class="source-node s-research" data-source="research">
+      <div class="icon">⊿</div>
+      <div class="name">深度研究</div>
+      <div class="desc">行业趋势/竞品调研/技术方案</div>
+      <div class="rate">产出率: 2条/日</div>
+    </div>
+
+    <div class="source-node s-social" data-source="social">
+      <div class="icon">△</div>
+      <div class="name">社媒创作</div>
+      <div class="desc">小红书笔记/微博文案/公众号文章</div>
+      <div class="rate">产出率: 4条/日</div>
+    </div>
+
+    <div class="source-node s-rsi" data-source="rsi">
+      <div class="icon">Ω</div>
+      <div class="name">RSI产出</div>
+      <div class="desc">递归自改进/元认知/系统升级日志</div>
+      <div class="rate">产出率: 1条/日</div>
+    </div>
+  </div>
+
+  <!-- Center: Canvas -->
+  <div class="panel-router">
+    <canvas class="router-canvas" id="routerCanvas"></canvas>
+    <div class="router-layers">
+      <div class="router-layer layer-format">
+        <div class="layer-label">Layer 01</div>
+        <div class="layer-name">格式适配器</div>
+        <div class="layer-desc">长文→微博/公众号/小红书</div>
+      </div>
+      <div class="router-layer layer-health">
+        <div class="layer-label">Layer 02</div>
+        <div class="layer-name">渠道健康检测</div>
+        <div class="layer-desc">实时检查各渠道可用性</div>
+      </div>
+      <div class="router-layer layer-priority">
+        <div class="layer-label">Layer 03</div>
+        <div class="layer-name">优先级路由</div>
+        <div class="layer-desc">权重计算 & 可用性选择</div>
+      </div>
+      <div class="router-layer layer-queue">
+        <div class="layer-label">Layer 04</div>
+        <div class="layer-name">排队分发器</div>
+        <div class="layer-desc">频率控制 + 时段调度</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Channels -->
+  <div class="panel-channels">
+    <div class="panel-title">渠道端点</div>
+
+    <div class="channel-node online" data-channel="xhs" id="ch-xhs">
+      <div class="ch-header">
+        <div class="ch-dot"></div>
+        <div class="ch-name">雪崩星河</div>
+      </div>
+      <div class="ch-platform">小红书 RED</div>
+      <div class="ch-stats">
+        <span class="ch-stat-label">今日发布</span><span class="ch-stat-value" id="stat-xhs-pub">3</span>
+        <span class="ch-stat-label">频率限制</span><span class="ch-stat-value">4条/日</span>
+        <span class="ch-stat-label">权重</span><span class="ch-stat-value" style="color:var(--cyan)">0.40</span>
+        <span class="ch-stat-label">延迟</span><span class="ch-stat-value" style="color:var(--green)">120ms</span>
+      </div>
+      <div class="ch-status-text">● ONLINE</div>
+    </div>
+
+    <div class="channel-node online" data-channel="weibo" id="ch-weibo">
+      <div class="ch-header">
+        <div class="ch-dot"></div>
+        <div class="ch-name">地缘通</div>
+      </div>
+      <div class="ch-platform">微博 Weibo</div>
+      <div class="ch-stats">
+        <span class="ch-stat-label">今日发布</span><span class="ch-stat-value" id="stat-weibo-pub">2</span>
+        <span class="ch-stat-label">频率限制</span><span class="ch-stat-value">6条/日</span>
+        <span class="ch-stat-label">权重</span><span class="ch-stat-value" style="color:var(--cyan)">0.30</span>
+        <span class="ch-stat-label">延迟</span><span class="ch-stat-value" style="color:var(--green)">85ms</span>
+      </div>
+      <div class="ch-status-text">● ONLINE</div>
+    </div>
+
+    <div class="channel-node online" data-channel="gzh" id="ch-gzh">
+      <div class="ch-header">
+        <div class="ch-dot"></div>
+        <div class="ch-name">公众号</div>
+      </div>
+      <div class="ch-platform">微信公众号 WeChat</div>
+      <div class="ch-stats">
+        <span class="ch-stat-label">今日发布</span><span class="ch-stat-value" id="stat-gzh-pub">1</span>
+        <span class="ch-stat-label">频率限制</span><span class="ch-stat-value">2条/日</span>
+        <span class="ch-stat-label">权重</span><span class="ch-stat-value" style="color:var(--cyan)">0.20</span>
+        <span class="ch-stat-label">延迟</span><span class="ch-stat-value" style="color:var(--green)">200ms</span>
+      </div>
+      <div class="ch-status-text">● ONLINE</div>
+    </div>
+
+    <div class="channel-node online" data-channel="feishu" id="ch-feishu">
+      <div class="ch-header">
+        <div class="ch-dot"></div>
+        <div class="ch-name">飞书推送</div>
+      </div>
+      <div class="ch-platform">飞书 Lark</div>
+      <div class="ch-stats">
+        <span class="ch-stat-label">今日发布</span><span class="ch-stat-value" id="stat-feishu-pub">5</span>
+        <span class="ch-stat-label">频率限制</span><span class="ch-stat-value">∞</span>
+        <span class="ch-stat-label">权重</span><span class="ch-stat-value" style="color:var(--cyan)">0.10</span>
+        <span class="ch-stat-label">延迟</span><span class="ch-stat-value" style="color:var(--green)">45ms</span>
+      </div>
+      <div class="ch-status-text">● ONLINE</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom: Routing Rules -->
+<div class="bottom-panel">
+  <div class="bottom-title">路由规则配置</div>
+  <table class="rules-table">
+    <thead>
+      <tr>
+        <th>内容源</th>
+        <th>格式转换</th>
+        <th>首选渠道</th>
+        <th>备选渠道</th>
+        <th>权重</th>
+        <th>频率</th>
+        <th>时段</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:var(--cyan)">三棱镜情报</td>
+        <td><span class="tag tag-format">长文→短评</span></td>
+        <td><span class="tag tag-primary">微博·地缘通</span></td>
+        <td><span class="tag tag-fallback">公众号</span></td>
+        <td><span class="tag tag-weight">0.30</span></td>
+        <td><span class="tag tag-freq">6条/日</span></td>
+        <td style="color:var(--text-dim)">08:00-22:00</td>
+      </tr>
+      <tr>
+        <td style="color:var(--purple)">深度研究</td>
+        <td><span class="tag tag-format">长文→全文</span></td>
+        <td><span class="tag tag-primary">公众号</span></td>
+        <td><span class="tag tag-fallback">飞书推送</span></td>
+        <td><span class="tag tag-weight">0.20</span></td>
+        <td><span class="tag tag-freq">2条/日</span></td>
+        <td style="color:var(--text-dim)">10:00-20:00</td>
+      </tr>
+      <tr>
+        <td style="color:var(--orange)">社媒创作</td>
+        <td><span class="tag tag-format">原格式</span></td>
+        <td><span class="tag tag-primary">小红书·雪崩星河</span></td>
+        <td><span class="tag tag-fallback">微博·地缘通</span></td>
+        <td><span class="tag tag-weight">0.40</span></td>
+        <td><span class="tag tag-freq">4条/日</span></td>
+        <td style="color:var(--text-dim)">07:00-23:00</td>
+      </tr>
+      <tr>
+        <td style="color:var(--green)">RSI产出</td>
+        <td><span class="tag tag-format">日志→摘要</span></td>
+        <td><span class="tag tag-primary">飞书推送</span></td>
+        <td><span class="tag tag-fallback">公众号</span></td>
+        <td><span class="tag tag-weight">0.10</span></td>
+        <td><span class="tag tag-freq">1条/日</span></td>
+        <td style="color:var(--text-dim)">00:00-06:00</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+// === CLOCK ===
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleString('zh-CN', {hour12:false});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// === CHANNEL STATE ===
+const channels = {
+  xhs:    { online: true,  weight: 0.40, fallback: 'weibo' },
+  weibo:  { online: true,  weight: 0.30, fallback: 'gzh' },
+  gzh:    { online: true,  weight: 0.20, fallback: 'feishu' },
+  feishu: { online: true,  weight: 0.10, fallback: null }
+};
+
+const sources = ['prism', 'research', 'social', 'rsi'];
+const sourceColors = {
+  prism:   '#58b4ff',
+  research:'#bc8cff',
+  social:  '#f0883e',
+  rsi:     '#3fb950'
+};
+
+const sourceChannelMap = {
+  prism:   ['weibo', 'gzh'],
+  research:['gzh', 'feishu'],
+  social:  ['xhs', 'weibo'],
+  rsi:     ['feishu', 'gzh']
+};
+
+// === TOGGLE CHANNEL ONLINE/OFFLINE periodically ===
+let offlineCycle = 0;
+function toggleChannels() {
+  const chKeys = Object.keys(channels);
+  // Rotate one channel offline periodically
+  const targetIdx = offlineCycle % chKeys.length;
+  const targetKey = chKeys[targetIdx];
+
+  // Set previous offline back to online
+  chKeys.forEach(k => {
+    channels[k].online = true;
+    const el = document.getElementById('ch-' + k);
+    el.classList.remove('offline');
+    el.classList.add('online');
+    el.querySelector('.ch-status-text').textContent = '● ONLINE';
+  });
+
+  // Set target offline
+  channels[targetKey].online = false;
+  const targetEl = document.getElementById('ch-' + targetKey);
+  targetEl.classList.remove('online');
+  targetEl.classList.add('offline');
+  targetEl.querySelector('.ch-status-text').textContent = '● OFFLINE';
+
+  // Show toast
+  const toast = document.getElementById('rerouteToast');
+  const names = { xhs:'小红书·雪崩星河', weibo:'微博·地缘通', gzh:'公众号', feishu:'飞书推送' };
+  toast.textContent = '⚡ 渠道故障: ' + names[targetKey] + ' 已离线 — 内容自动路由至 ' + names[channels[targetKey].fallback];
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+
+  offlineCycle++;
+}
+setInterval(toggleChannels, 8000);
+setTimeout(toggleChannels, 3000);
+
+// === CANVAS ANIMATION ===
+const canvas = document.getElementById('routerCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let W, H;
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = canvas.width = rect.width * window.devicePixelRatio;
+  H = canvas.height = rect.height * window.devicePixelRatio;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+const dpr = window.devicePixelRatio;
+
+// Particle class
+class Particle {
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    const srcIdx = Math.floor(Math.random() * sources.length);
+    this.source = sources[srcIdx];
+    this.color = sourceColors[this.source];
+    this.x = 0;
+    this.y = (0.15 + srcIdx * 0.22) * (H / dpr);
+    this.startY = this.y;
+    this.targetChannel = null;
+    this.phase = 0; // 0: to router, 1: in router, 2: to channel
+    this.progress = 0;
+    this.speed = 0.008 + Math.random() * 0.006;
+    this.size = 3 + Math.random() * 2;
+    this.trail = [];
+    this.alive = true;
+    this.rerouted = false;
+
+    // Determine target
+    const preferred = sourceChannelMap[this.source][0];
+    const fallback = sourceChannelMap[this.source][1];
+    if (channels[preferred].online) {
+      this.targetChannel = preferred;
+    } else if (channels[fallback] && channels[fallback].online) {
+      this.targetChannel = fallback;
+      this.rerouted = true;
+    } else {
+      // Find any online
+      for (const k of Object.keys(channels)) {
+        if (channels[k].online) { this.targetChannel = k; break; }
+      }
+    }
+
+    // Target Y based on channel
+    const chIdx = { xhs: 0, weibo: 1, gzh: 2, feishu: 3 };
+    this.targetY = (0.15 + (chIdx[this.targetChannel] || 0) * 0.22) * (H / dpr);
+    this.endX = (W / dpr);
+  }
+
+  update() {
+    if (!this.alive) return;
+
+    this.progress += this.speed;
+
+    if (this.progress >= 1) {
+      if (this.phase < 2) {
+        this.phase++;
+        this.progress = 0;
+      } else {
+        this.alive = false;
+        return;
+      }
+    }
+
+    const w = W / dpr;
+
+    if (this.phase === 0) {
+      // Source → router center
+      this.x = this.progress * (w * 0.35);
+      this.y = this.startY;
+    } else if (this.phase === 1) {
+      // Inside router (oscillate vertically toward target Y)
+      this.x = w * 0.35 + this.progress * (w * 0.3);
+      const t = this.progress;
+      this.y = this.startY + (this.targetY - this.startY) * (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+    } else {
+      // Router → channel
+      this.x = w * 0.65 + this.progress * (w * 0.35);
+      this.y = this.targetY;
+    }
+
+    this.trail.push({ x: this.x, y: this.y });
+    if (this.trail.length > 20) this.trail.shift();
+  }
+
+  draw() {
+    if (!this.alive) return;
+
+    // Trail
+    for (let i = 0; i < this.trail.length - 1; i++) {
+      const alpha = (i / this.trail.length) * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(this.trail[i].x, this.trail[i].y);
+      ctx.lineTo(this.trail[i + 1].x, this.trail[i + 1].y);
+      ctx.strokeStyle = this.color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Particle
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+
+    // Glow
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 3, 0, Math.PI * 2);
+    const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 3);
+    grad.addColorStop(0, this.color + '40');
+    grad.addColorStop(1, this.color + '00');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Reroute indicator
+    if (this.rerouted && this.phase === 2) {
+      ctx.font = '9px JetBrains Mono';
+      ctx.fillStyle = '#d29922';
+      ctx.fillText('↻', this.x + 8, this.y - 4);
+    }
+  }
+}
+
+// Spawn particles
+let spawnTimer = 0;
+function spawnParticle() {
+  if (particles.length < 60) {
+    particles.push(new Particle());
+  }
+}
+
+// Draw router center lines
+function drawRouterLines() {
+  const w = W / dpr;
+  const h = H / dpr;
+
+  // Dashed vertical guide lines
+  ctx.setLineDash([4, 8]);
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 1;
+
+  // Left zone line
+  ctx.beginPath();
+  ctx.moveTo(w * 0.35, 0);
+  ctx.lineTo(w * 0.35, h);
+  ctx.stroke();
+
+  // Right zone line
+  ctx.beginPath();
+  ctx.moveTo(w * 0.65, 0);
+  ctx.lineTo(w * 0.65, h);
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+
+  // Zone labels
+  ctx.font = '9px JetBrains Mono';
+  ctx.fillStyle = '#6e7681';
+  ctx.fillText('INGRESS', 10, h - 12);
+  ctx.textAlign = 'center';
+  ctx.fillText('ROUTING ENGINE', w * 0.5, h - 12);
+  ctx.textAlign = 'right';
+  ctx.fillText('EGRESS', w - 10, h - 12);
+  ctx.textAlign = 'left';
+}
+
+// Main loop
+let queueDepthVal = 0;
+function animate() {
+  const w = W / dpr;
+  const h = H / dpr;
+  ctx.clearRect(0, 0, w, h);
+
+  drawRouterLines();
+
+  spawnTimer++;
+  if (spawnTimer > 30) {
+    spawnParticle();
+    spawnTimer = 0;
+  }
+
+  // Update & draw particles
+  let activeCount = 0;
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    if (!particles[i].alive) {
+      particles.splice(i, 1);
+    } else {
+      particles[i].draw();
+      activeCount++;
+    }
+  }
+
+  // Update queue depth
+  queueDepthVal += (activeCount - queueDepthVal) * 0.1;
+  document.getElementById('queueDepth').textContent = Math.round(queueDepthVal);
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+// === Source node hover highlight ===
+document.querySelectorAll('.source-node').forEach(node => {
+  node.addEventListener('mouseenter', () => {
+    node.style.borderColor = sourceColors[node.dataset.source] || '#58b4ff';
+  });
+  node.addEventListener('mouseleave', () => {
+    node.style.borderColor = '';
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS 第三视角审计</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111318;
+    --bg3: #181b22;
+    --bg4: #1e222b;
+    --cyan: #58b4ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #f0883e;
+    --text: #c9d1d9;
+    --text2: #8b949e;
+    --border: #2a2f3a;
+  }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── header ── */
+  .header {
+    padding: 18px 28px;
+    background: linear-gradient(135deg, var(--bg2), var(--bg3));
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  }
+  .header-icon {
+    width: 36px; height: 36px;
+    border: 2px solid var(--cyan);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--cyan);
+    font-size: 18px;
+    font-weight: 700;
+    background: rgba(88,180,255,0.08);
+  }
+  .header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--cyan);
+    letter-spacing: 1px;
+  }
+  .header .subtitle {
+    font-size: 11px;
+    color: var(--text2);
+    margin-left: auto;
+  }
+  .header .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-dot 2s infinite;
+    margin-left: 8px;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; box-shadow: 0 0 4px var(--green); }
+    50% { opacity: .4; box-shadow: 0 0 8px var(--green); }
+  }
+
+  /* ── main grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr 300px;
+    gap: 0;
+    min-height: calc(100vh - 260px);
+  }
+
+  /* ── LEFT: audited objects ── */
+  .left-panel {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 16px;
+  }
+  .panel-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .audit-object {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all .25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .audit-object:hover, .audit-object.active {
+    border-color: var(--cyan);
+    background: rgba(88,180,255,0.05);
+  }
+  .audit-object.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0;
+    width: 3px; height: 100%;
+    background: var(--cyan);
+  }
+  .audit-object .obj-icon {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .audit-object .obj-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .audit-object .obj-desc {
+    font-size: 9px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+  .audit-object .obj-status {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+  .status-auditing { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .status-passed { background: rgba(63,185,80,0.15); color: var(--green); }
+  .status-flagged { background: rgba(248,81,73,0.15); color: var(--red); }
+
+  /* ── CENTER: audit dimensions + canvas ── */
+  .center-panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .canvas-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    height: 180px;
+  }
+  .canvas-container canvas {
+    width: 100%;
+    height: 100%;
+  }
+  .canvas-label {
+    position: absolute;
+    bottom: 6px; right: 10px;
+    font-size: 9px;
+    color: var(--text2);
+    opacity: .6;
+  }
+
+  /* dimension cards */
+  .dimensions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    flex: 1;
+  }
+  .dim-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .25s;
+  }
+  .dim-card:hover { border-color: var(--cyan); }
+  .dim-card .dim-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .dim-card .dim-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .dim-card .dim-title {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .dim-card .dim-score {
+    margin-left: auto;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .dim-card .dim-desc {
+    font-size: 10px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .dim-card .dim-bar-track {
+    height: 4px;
+    background: var(--bg4);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .dim-card .dim-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1.5s ease;
+  }
+  .dim-card .dim-issues {
+    margin-top: 8px;
+    font-size: 9px;
+    color: var(--text2);
+  }
+  .dim-card .dim-issues span {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-right: 4px;
+    margin-bottom: 3px;
+  }
+
+  /* ── RIGHT: audit report ── */
+  .right-panel {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    padding: 16px;
+    overflow-y: auto;
+    max-height: calc(100vh - 260px);
+  }
+  .gauge-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .gauge-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+  .gauge-item canvas {
+    display: block;
+    margin: 0 auto 6px;
+  }
+  .gauge-item .gauge-label {
+    font-size: 9px;
+    color: var(--text2);
+    margin-bottom: 2px;
+  }
+  .gauge-item .gauge-value {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  /* issue list */
+  .issue-section { margin-bottom: 16px; }
+  .issue-section-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .issue-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 8px;
+    margin-bottom: 4px;
+    border-radius: 5px;
+    background: var(--bg3);
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .issue-priority {
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .priority-high { background: rgba(248,81,73,0.18); color: var(--red); }
+  .priority-mid { background: rgba(210,153,34,0.18); color: var(--yellow); }
+  .priority-low { background: rgba(63,185,80,0.18); color: var(--green); }
+
+  /* suggestions */
+  .suggestion-item {
+    background: var(--bg3);
+    border-left: 3px solid var(--purple);
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-radius: 0 5px 5px 0;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .suggestion-item .sug-ref {
+    font-size: 8px;
+    color: var(--purple);
+    margin-top: 4px;
+  }
+
+  /* ── BOTTOM: timeline ── */
+  .bottom-bar {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 14px 20px;
+    position: relative;
+  }
+  .bottom-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--purple), transparent);
+  }
+  .timeline-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .timeline {
+    display: flex;
+    gap: 0;
+    align-items: flex-end;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .timeline-node {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 140px;
+    position: relative;
+  }
+  .timeline-node:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 10px; left: 50%;
+    width: 100%; height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+  .timeline-dot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    background: var(--bg2);
+  }
+  .timeline-time {
+    font-size: 9px;
+    color: var(--text2);
+    margin-top: 6px;
+  }
+  .timeline-label {
+    font-size: 9px;
+    color: var(--text);
+    margin-top: 2px;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .timeline-result {
+    font-size: 8px;
+    margin-top: 3px;
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* animations */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .fade-in { animation: fadeIn .5s ease both; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-icon">Ξ</div>
+  <h1>AIOS 第三视角审计</h1>
+  <span class="subtitle">INDEPENDENT AUDIT AGENT FRAMEWORK v2.4</span>
+  <div class="live-dot"></div>
+</div>
+
+<!-- Main 3-column grid -->
+<div class="main-grid">
+
+  <!-- LEFT: Audited Objects -->
+  <div class="left-panel">
+    <div class="panel-title">⟐ 被审计对象</div>
+
+    <div class="audit-object active" data-obj="ternary" onclick="selectObject(this)">
+      <div class="obj-icon" style="color:var(--cyan);">◉</div>
+      <div class="obj-name">三元决策链</div>
+      <div class="obj-desc">感知→分析→决策 三级链路完整性审计</div>
+      <span class="obj-status status-auditing">审计中</span>
+    </div>
+
+    <div class="audit-object" data-obj="starlight" onclick="selectObject(this)">
+      <div class="obj-icon" style="color:var(--green);">✦</div>
+      <div class="obj-name">星光执行链</div>
+      <div class="obj-desc">战略→战术→执行 下达链路审计</div>
+      <span class="obj-status status-passed">已通过</span>
+    </div>
+
+    <div class="audit-object" data-obj="omega" onclick="selectObject(this)">
+      <div class="obj-icon" style="color:var(--purple);">Ω</div>
+      <div class="obj-name">Ω_loop 认知链</div>
+      <div class="obj-desc">感知→反思→进化 闭环审计</div>
+      <span class="obj-status status-flagged">有问题</span>
+    </div>
+
+    <div class="audit-object" data-obj="aios" onclick="selectObject(this)">
+      <div class="obj-icon" style="color:var(--orange);">⬡</div>
+      <div class="obj-name">AIOS 调度链</div>
+      <div class="obj-desc">21任务调度+看门狗+心跳审计</div>
+      <span class="obj-status status-auditing">审计中</span>
+    </div>
+
+    <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+      <div class="panel-title" style="margin-bottom:8px;">审计统计</div>
+      <div style="font-size:10px; color:var(--text2); line-height:2;">
+        总审计次数: <span style="color:var(--cyan);">147</span><br>
+        本周审计: <span style="color:var(--green);">12</span><br>
+        发现问题: <span style="color:var(--red);">23</span><br>
+        已修复: <span style="color:var(--green);">19</span><br>
+        审计覆盖率: <span style="color:var(--cyan);">94.2%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER: Flow Canvas + Dimensions -->
+  <div class="center-panel">
+    <!-- Flow Animation Canvas -->
+    <div class="canvas-container">
+      <canvas id="flowCanvas"></canvas>
+      <div class="canvas-label">实时审计数据流</div>
+    </div>
+
+    <!-- 4 Audit Dimensions -->
+    <div class="dimensions-grid">
+      <!-- 逻辑一致性 -->
+      <div class="dim-card fade-in" style="animation-delay:.1s">
+        <div class="dim-header">
+          <div class="dim-icon" style="background:rgba(88,180,255,0.12); color:var(--cyan);">⇌</div>
+          <div class="dim-title">逻辑一致性</div>
+          <div class="dim-score" style="color:var(--cyan);">82</div>
+        </div>
+        <div class="dim-desc">检查决策链路是否存在自相矛盾、循环依赖或逻辑跳跃</div>
+        <div class="dim-bar-track">
+          <div class="dim-bar-fill" style="width:82%; background:var(--cyan);"></div>
+        </div>
+        <div class="dim-issues">
+          <span style="background:rgba(248,81,73,0.15); color:var(--red);">2处跳跃</span>
+          <span style="background:rgba(210,153,34,0.15); color:var(--yellow);">1处循环</span>
+        </div>
+      </div>
+
+      <!-- 产出质量 -->
+      <div class="dim-card fade-in" style="animation-delay:.2s">
+        <div class="dim-header">
+          <div class="dim-icon" style="background:rgba(63,185,80,0.12); color:var(--green);">◈</div>
+          <div class="dim-title">产出质量</div>
+          <div class="dim-score" style="color:var(--green);">91</div>
+        </div>
+        <div class="dim-desc">抽查分析报告的事实准确率、逻辑强度和可操作性</div>
+        <div class="dim-bar-track">
+          <div class="dim-bar-fill" style="width:91%; background:var(--green);"></div>
+        </div>
+        <div class="dim-issues">
+          <span style="background:rgba(63,185,80,0.15); color:var(--green);">准确率97%</span>
+          <span style="background:rgba(210,153,34,0.15); color:var(--yellow);">3处弱引用</span>
+        </div>
+      </div>
+
+      <!-- 认知盲区 -->
+      <div class="dim-card fade-in" style="animation-delay:.3s">
+        <div class="dim-header">
+          <div class="dim-icon" style="background:rgba(188,140,255,0.12); color:var(--purple);">◎</div>
+          <div class="dim-title">认知盲区</div>
+          <div class="dim-score" style="color:var(--purple);">58</div>
+        </div>
+        <div class="dim-desc">标记系统未覆盖但应该覆盖的信息域和决策维度</div>
+        <div class="dim-bar-track">
+          <div class="dim-bar-fill" style="width:58%; background:var(--purple);"></div>
+        </div>
+        <div class="dim-issues">
+          <span style="background:rgba(248,81,73,0.15); color:var(--red);">5个盲区</span>
+          <span style="background:rgba(210,153,34,0.15); color:var(--yellow);">3个弱覆盖</span>
+        </div>
+      </div>
+
+      <!-- 效率评估 -->
+      <div class="dim-card fade-in" style="animation-delay:.4s">
+        <div class="dim-header">
+          <div class="dim-icon" style="background:rgba(240,136,62,0.12); color:var(--orange);">⟐</div>
+          <div class="dim-title">效率评估</div>
+          <div class="dim-score" style="color:var(--orange);">74</div>
+        </div>
+        <div class="dim-desc">识别重复劳动、资源浪费和冗余计算路径</div>
+        <div class="dim-bar-track">
+          <div class="dim-bar-fill" style="width:74%; background:var(--orange);"></div>
+        </div>
+        <div class="dim-issues">
+          <span style="background:rgba(248,81,73,0.15); color:var(--red);">4处重复</span>
+          <span style="background:rgba(210,153,34,0.15); color:var(--yellow);">2处冗余</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Audit Report -->
+  <div class="right-panel">
+    <div class="panel-title">⟐ 审计报告产出</div>
+
+    <!-- Gauge Dashboard -->
+    <div class="gauge-row">
+      <div class="gauge-item">
+        <canvas id="gauge1" width="80" height="80"></canvas>
+        <div class="gauge-label">逻辑一致性</div>
+        <div class="gauge-value" style="color:var(--cyan);">82</div>
+      </div>
+      <div class="gauge-item">
+        <canvas id="gauge2" width="80" height="80"></canvas>
+        <div class="gauge-label">产出质量</div>
+        <div class="gauge-value" style="color:var(--green);">91</div>
+      </div>
+      <div class="gauge-item">
+        <canvas id="gauge3" width="80" height="80"></canvas>
+        <div class="gauge-label">认知盲区</div>
+        <div class="gauge-value" style="color:var(--purple);">58</div>
+      </div>
+      <div class="gauge-item">
+        <canvas id="gauge4" width="80" height="80"></canvas>
+        <div class="gauge-label">效率评估</div>
+        <div class="gauge-value" style="color:var(--orange);">74</div>
+      </div>
+    </div>
+
+    <!-- Issue List -->
+    <div class="issue-section">
+      <div class="issue-section-title">问题清单</div>
+      <div class="issue-item">
+        <span class="issue-priority priority-high">高</span>
+        <span>Ω_loop反思层未覆盖情感维度，导致人格偏移检测缺失</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-priority priority-high">高</span>
+        <span>三元决策链在"感知→分析"转接处存在2步逻辑跳跃</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-priority priority-mid">中</span>
+        <span>AIOS调度链看门狗重启日志未记录恢复前状态快照</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-priority priority-mid">中</span>
+        <span>星光执行链战术层与执行层存在1处循环依赖</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-priority priority-mid">中</span>
+        <span>分析报告3处引用源为非一手数据，可信度降级</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-priority priority-low">低</span>
+        <span>dispatcher日志中4处重复调度记录，疑似race condition</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-priority priority-low">低</span>
+        <span>aether_collector轮询间隔固定，未根据源响应时间自适应</span>
+      </div>
+    </div>
+
+    <!-- Improvement Suggestions -->
+    <div class="issue-section">
+      <div class="issue-section-title">改进建议</div>
+      <div class="suggestion-item">
+        在Ω_loop反思层增加PAD情感空间维度检测，每cycle采样并设置偏移阈值告警
+        <div class="sug-ref">→ 关联: Ω_loop认知链 #HIGH-001</div>
+      </div>
+      <div class="suggestion-item">
+        三元决策链感知→分析转接处增加"中间推理步"强制输出，避免隐性跳跃
+        <div class="sug-ref">→ 关联: 三元决策链 #HIGH-002</div>
+      </div>
+      <div class="suggestion-item">
+        看门狗重启前dump当前daemon_state到检查点文件，恢复后可对比状态
+        <div class="sug-ref">→ 关联: AIOS调度链 #MID-001</div>
+      </div>
+      <div class="suggestion-item">
+        引入引信源可信度评分机制，自动标注非一手数据并提示替代源
+        <div class="sug-ref">→ 关联: 产出质量 #MID-003</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM: Audit Timeline -->
+<div class="bottom-bar">
+  <div class="timeline-title">⟐ 最近审计记录</div>
+  <div class="timeline" id="timeline">
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--cyan); color:var(--cyan);">1</div>
+      <div class="timeline-time">06-14 22:30</div>
+      <div class="timeline-label">三元决策链<br>季度审计</div>
+      <span class="timeline-result" style="background:rgba(210,153,34,0.15); color:var(--yellow);">进行中</span>
+    </div>
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--green); color:var(--green);">2</div>
+      <div class="timeline-time">06-14 20:00</div>
+      <div class="timeline-label">星光执行链<br>周度审计</div>
+      <span class="timeline-result" style="background:rgba(63,185,80,0.15); color:var(--green);">已通过</span>
+    </div>
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--red); color:var(--red);">3</div>
+      <div class="timeline-time">06-14 18:15</div>
+      <div class="timeline-label">Ω_loop认知链<br>触发审计</div>
+      <span class="timeline-result" style="background:rgba(248,81,73,0.15); color:var(--red);">2问题</span>
+    </div>
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--orange); color:var(--orange);">4</div>
+      <div class="timeline-time">06-14 14:00</div>
+      <div class="timeline-label">AIOS调度链<br>日常审计</div>
+      <span class="timeline-result" style="background:rgba(210,153,34,0.15); color:var(--yellow);">进行中</span>
+    </div>
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--green); color:var(--green);">5</div>
+      <div class="timeline-time">06-13 22:00</div>
+      <div class="timeline-label">三元决策链<br>增量审计</div>
+      <span class="timeline-result" style="background:rgba(63,185,80,0.15); color:var(--green);">已通过</span>
+    </div>
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--green); color:var(--green);">6</div>
+      <div class="timeline-time">06-13 16:30</div>
+      <div class="timeline-label">星光执行链<br>变更审计</div>
+      <span class="timeline-result" style="background:rgba(63,185,80,0.15); color:var(--green);">已通过</span>
+    </div>
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--purple); color:var(--purple);">7</div>
+      <div class="timeline-time">06-12 20:00</div>
+      <div class="timeline-label">Ω_loop认知链<br>周期审计</div>
+      <span class="timeline-result" style="background:rgba(210,153,34,0.15); color:var(--yellow);">1警告</span>
+    </div>
+    <div class="timeline-node">
+      <div class="timeline-dot" style="border-color:var(--green); color:var(--green);">8</div>
+      <div class="timeline-time">06-12 10:00</div>
+      <div class="timeline-label">AIOS调度链<br>看门狗审计</div>
+      <span class="timeline-result" style="background:rgba(63,185,80,0.15); color:var(--green);">已通过</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Object Selection ───
+function selectObject(el) {
+  document.querySelectorAll('.audit-object').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── Gauge Drawing ───
+function drawGauge(canvasId, value, color) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w/2, cy = h/2, r = Math.max(1, w/2 - 10);
+  const startAngle = Math.PI * 0.75;
+  const endAngle = Math.PI * 2.25;
+  const valueAngle = startAngle + (endAngle - startAngle) * (value / 100);
+
+  ctx.clearRect(0,0,w,h);
+
+  // track
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startAngle, endAngle);
+  ctx.strokeStyle = '#2a2f3a';
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // value arc
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startAngle, valueAngle);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // glow
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, startAngle, valueAngle);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 10;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+drawGauge('gauge1', 82, '#58b4ff');
+drawGauge('gauge2', 91, '#3fb950');
+drawGauge('gauge3', 58, '#bc8cff');
+drawGauge('gauge4', 74, '#f0883e');
+
+// ─── Flow Animation Canvas ───
+(function() {
+  const canvas = document.getElementById('flowCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    W = canvas.width = rect.width * 2;
+    H = canvas.height = rect.height * 2;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.scale(1, 1);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // particles
+  const particles = [];
+  const maxParticles = 80;
+
+  const dimColors = ['#58b4ff', '#3fb950', '#bc8cff', '#f0883e'];
+  const dimLabels = ['逻辑', '质量', '盲区', '效率'];
+  const dimX = [0.32, 0.44, 0.56, 0.68]; // relative X positions for dimension filters
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = W * 0.05 + Math.random() * W * 0.03;
+      this.y = H * 0.15 + Math.random() * H * 0.7;
+      this.vx = 1.5 + Math.random() * 2;
+      this.vy = 0;
+      this.color = '#8b949e';
+      this.size = 2 + Math.random() * 2;
+      this.alpha = 0.4 + Math.random() * 0.5;
+      this.passedDims = 0;
+      this.filtering = false;
+      this.filterDim = -1;
+      this.filterTime = 0;
+      this.flagged = false;
+      this.trail = [];
+    }
+    update() {
+      // left zone → move right
+      if (this.x < W * 0.28) {
+        this.vx = 1.5 + Math.random() * 1;
+        this.color = '#8b949e';
+      }
+
+      // dimension filter zone
+      for (let i = 0; i < 4; i++) {
+        const dx = W * dimX[i];
+        if (this.x > dx - 8 && this.x < dx + 8 && this.passedDims === i) {
+          this.filtering = true;
+          this.filterDim = i;
+          this.filterTime++;
+          this.vx = 0.3;
+          // chance to be flagged
+          if (this.filterTime > 15 && !this.flagged && Math.random() < 0.03) {
+            this.flagged = true;
+            this.color = this.filterDim === 0 ? '#f85149' :
+                         this.filterDim === 1 ? '#d29922' :
+                         this.filterDim === 2 ? '#f85149' : '#d29922';
+          }
+          if (this.filterTime > 25) {
+            this.passedDims++;
+            this.filtering = false;
+            this.filterTime = 0;
+            this.vx = 2 + Math.random();
+            if (!this.flagged) {
+              this.color = dimColors[i];
+            }
+          }
+          break;
+        }
+      }
+
+      // past all dims
+      if (this.passedDims >= 4) {
+        this.vx = 2 + Math.random() * 1.5;
+      }
+
+      this.x += this.vx;
+      this.y += Math.sin(this.x * 0.008 + this.y * 0.01) * 0.3;
+
+      // trail
+      this.trail.push({x: this.x, y: this.y});
+      if (this.trail.length > 12) this.trail.shift();
+
+      // reset if off screen
+      if (this.x > W * 0.95) {
+        this.reset();
+      }
+    }
+    draw() {
+      // trail
+      if (this.trail.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(this.trail[0].x, this.trail[0].y);
+        for (let i = 1; i < this.trail.length; i++) {
+          ctx.lineTo(this.trail[i].x, this.trail[i].y);
+        }
+        ctx.strokeStyle = this.color;
+        ctx.globalAlpha = this.alpha * 0.15;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // dot
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+
+      if (this.flagged) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size + 3, 0, Math.PI * 2);
+        ctx.strokeStyle = this.color;
+        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  for (let i = 0; i < maxParticles; i++) {
+    const p = new Particle();
+    p.x = Math.random() * W * 0.8;
+    particles.push(p);
+  }
+
+  function drawZones() {
+    // left zone label
+    ctx.globalAlpha = 0.3;
+    ctx.font = '18px JetBrains Mono';
+    ctx.fillStyle = '#58b4ff';
+    ctx.textAlign = 'center';
+    ctx.fillText('输入', W * 0.12, H * 0.08);
+
+    // dimension filter labels
+    for (let i = 0; i < 4; i++) {
+      const x = W * dimX[i];
+      // vertical line
+      ctx.beginPath();
+      ctx.moveTo(x, H * 0.05);
+      ctx.lineTo(x, H * 0.95);
+      ctx.strokeStyle = dimColors[i];
+      ctx.globalAlpha = 0.15;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // label
+      ctx.globalAlpha = 0.5;
+      ctx.font = '14px JetBrains Mono';
+      ctx.fillStyle = dimColors[i];
+      ctx.fillText(dimLabels[i], x, H * 0.95 + 4);
+    }
+
+    // right zone label
+    ctx.globalAlpha = 0.3;
+    ctx.font = '18px JetBrains Mono';
+    ctx.fillStyle = '#3fb950';
+    ctx.fillText('报告', W * 0.88, H * 0.08);
+
+    // arrows
+    ctx.globalAlpha = 0.08;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.05, H * 0.5);
+    ctx.lineTo(W * 0.95, H * 0.5);
+    ctx.strokeStyle = '#c9d1d9';
+    ctx.lineWidth = 40;
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    drawZones();
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+
+// ─── Animate dimension bars on load ───
+window.addEventListener('load', () => {
+  document.querySelectorAll('.dim-bar-fill').forEach(bar => {
+    const w = bar.style.width;
+    bar.style.width = '0%';
+    setTimeout(() => { bar.style.width = w; }, 300);
+  });
+});
+</script>
+
+</body>
+</html>

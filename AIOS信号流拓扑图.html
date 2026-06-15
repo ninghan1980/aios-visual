@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三元 AIOS · 信号流拓扑图</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  background: #0a0c0f;
+  color: #e8eaed;
+  min-height: 100vh;
+  overflow: hidden;
+}
+canvas { display: block; }
+#tooltip {
+  position: absolute;
+  display: none;
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #8b949e;
+  pointer-events: none;
+  z-index: 100;
+  max-width: 240px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+#tooltip .tt-title {
+  color: #e8eaed;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+#tooltip .tt-value { color: #58b4ff; }
+#tooltip .tt-warn { color: #d29922; }
+#tooltip .tt-err { color: #f85149; }
+
+.header {
+  position: absolute;
+  top: 24px; left: 32px;
+  z-index: 10;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #58b4ff, #bc8cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+.header .sub {
+  font-size: 11px;
+  color: #484f58;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.legend {
+  position: absolute;
+  bottom: 24px; left: 32px;
+  z-index: 10;
+  display: flex;
+  gap: 20px;
+  font-size: 10px;
+  color: #484f58;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Signal Flow Topology</h1>
+  <div class="sub">Aether 感知层 → 处理链路 → 发布渠道 · 实时信号拓扑</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-dot" style="background:#3fb950;box-shadow:0 0 4px rgba(63,185,80,0.5)"></span> 在线</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#d29922;box-shadow:0 0 4px rgba(210,153,34,0.4)"></span> 降级</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#f85149;box-shadow:0 0 4px rgba(248,81,73,0.4)"></span> 离线</div>
+  <div class="legend-item"><span class="legend-dot" style="background:#58b4ff;box-shadow:0 0 4px rgba(88,180,255,0.4)"></span> 信号流</div>
+</div>
+
+<div id="tooltip"></div>
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Node definitions
+const nodes = [
+  // Layer 0: Aether Sources
+  { id: 'aether', label: 'Aether', sub: '54源·9圈层', x: 0.12, y: 0.5, r: 28, color: '#bc8cff', status: 'online', pulse: true },
+  { id: 'src_ocean', label: '海洋', sub: '6源', x: 0.05, y: 0.25, r: 14, color: '#58b4ff', status: 'online' },
+  { id: 'src_econ', label: '经济金融', sub: '8源', x: 0.05, y: 0.40, r: 16, color: '#3fb950', status: 'online' },
+  { id: 'src_ship', label: '航运货运', sub: '5源', x: 0.05, y: 0.55, r: 13, color: '#58b4ff', status: 'online' },
+  { id: 'src_atmo', label: '大气', sub: '6源', x: 0.05, y: 0.70, r: 14, color: '#3fb950', status: 'online' },
+  { id: 'src_space', label: '太空', sub: '4源', x: 0.05, y: 0.85, r: 12, color: '#58b4ff', status: 'online' },
+  { id: 'src_ai', label: 'AI行业', sub: '8源', x: 0.05, y: 0.15, r: 16, color: '#3fb950', status: 'online' },
+  { id: 'src_info', label: '信息知识', sub: '7源', x: 0.05, y: 0.95, r: 15, color: '#3fb950', status: 'online' },
+
+  // Layer 1: Processing
+  { id: 'omega', label: 'Ω_loop', sub: 'PID 1988·180s', x: 0.32, y: 0.35, r: 24, color: '#3fb950', status: 'online', pulse: true },
+  { id: 'aios', label: 'AIOS', sub: '22 tasks·17 tools', x: 0.32, y: 0.65, r: 26, color: '#3fb950', status: 'online', pulse: true },
+
+  // Layer 2: Analysis
+  { id: 'prism', label: '三棱镜', sub: '断层线+涌现树+δ', x: 0.52, y: 0.30, r: 24, color: '#bc8cff', status: 'online', pulse: true },
+  { id: 'deep_research', label: '深度研究', sub: '5方向轮换', x: 0.52, y: 0.55, r: 20, color: '#3fb950', status: 'online' },
+  { id: 'rsi', label: 'RSI自优化', sub: '30min/cycle', x: 0.52, y: 0.78, r: 16, color: '#d29922', status: 'degraded' },
+
+  // Layer 3: Output
+  { id: 'ima', label: 'ima知识库', sub: '断层线+三元智能', x: 0.72, y: 0.30, r: 20, color: '#3fb950', status: 'online' },
+  { id: 'report', label: '报告产出', sub: '.md/.docx', x: 0.72, y: 0.55, r: 18, color: '#3fb950', status: 'online' },
+  { id: 'social', label: '社媒分发', sub: '待恢复', x: 0.72, y: 0.78, r: 20, color: '#d29922', status: 'degraded' },
+
+  // Layer 4: Channels
+  { id: 'xhs', label: '小红书', sub: '雪崩星河·手动发', x: 0.92, y: 0.20, r: 16, color: '#3fb950', status: 'online' },
+  { id: 'weibo', label: '微博', sub: '禁言至06-22', x: 0.92, y: 0.40, r: 16, color: '#f85149', status: 'offline' },
+  { id: 'gzh', label: '公众号', sub: '待开通发布', x: 0.92, y: 0.60, r: 16, color: '#d29922', status: 'degraded' },
+  { id: 'feishu', label: '飞书', sub: '失联第11天', x: 0.92, y: 0.80, r: 16, color: '#f85149', status: 'offline' },
+];
+
+const edges = [
+  // Sources → Aether
+  { from: 'src_ai', to: 'aether' },
+  { from: 'src_ocean', to: 'aether' },
+  { from: 'src_econ', to: 'aether' },
+  { from: 'src_ship', to: 'aether' },
+  { from: 'src_atmo', to: 'aether' },
+  { from: 'src_space', to: 'aether' },
+  { from: 'src_info', to: 'aether' },
+  // Aether → Processing
+  { from: 'aether', to: 'omega' },
+  { from: 'aether', to: 'aios' },
+  // Processing → Analysis
+  { from: 'omega', to: 'prism' },
+  { from: 'omega', to: 'rsi' },
+  { from: 'aios', to: 'prism' },
+  { from: 'aios', to: 'deep_research' },
+  { from: 'aios', to: 'rsi' },
+  // Analysis → Output
+  { from: 'prism', to: 'ima' },
+  { from: 'prism', to: 'report' },
+  { from: 'deep_research', to: 'ima' },
+  { from: 'deep_research', to: 'report' },
+  // Output → Channels
+  { from: 'ima', to: 'xhs' },
+  { from: 'ima', to: 'gzh' },
+  { from: 'social', to: 'xhs' },
+  { from: 'social', to: 'weibo' },
+  { from: 'social', to: 'gzh' },
+  { from: 'report', to: 'feishu' },
+  { from: 'report', to: 'gzh' },
+];
+
+const nodeMap = {};
+nodes.forEach(n => nodeMap[n.id] = n);
+
+// Flowing particles
+class Particle {
+  constructor(edge) {
+    this.edge = edge;
+    this.t = Math.random();
+    this.speed = 0.002 + Math.random() * 0.003;
+    this.size = 1.5 + Math.random() * 1.5;
+    this.alpha = 0.3 + Math.random() * 0.5;
+  }
+  update() {
+    this.t += this.speed;
+    if (this.t > 1) this.t = 0;
+  }
+  getPos() {
+    const from = nodeMap[this.edge.from];
+    const to = nodeMap[this.edge.to];
+    const x1 = from.x * W, y1 = from.y * H;
+    const x2 = to.x * W, y2 = to.y * H;
+    const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2 - 20;
+    const t = this.t;
+    const x = (1-t)*(1-t)*x1 + 2*(1-t)*t*cx + t*t*x2;
+    const y = (1-t)*(1-t)*y1 + 2*(1-t)*t*cy + t*t*y2;
+    return { x, y };
+  }
+}
+
+const particles = [];
+edges.forEach(e => {
+  const count = e.from === 'weibo' || e.to === 'feishu' ? 0 : 3;
+  for (let i = 0; i < count; i++) particles.push(new Particle(e));
+});
+
+let hovered = null;
+let mouseX = 0, mouseY = 0;
+
+canvas.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  hovered = null;
+  for (const n of nodes) {
+    const nx = n.x * W, ny = n.y * H;
+    const dist = Math.sqrt((mouseX - nx) ** 2 + (mouseY - ny) ** 2);
+    if (dist < n.r + 8) {
+      hovered = n;
+      break;
+    }
+  }
+  if (hovered) {
+    tooltip.style.display = 'block';
+    tooltip.style.left = (mouseX + 16) + 'px';
+    tooltip.style.top = (mouseY - 10) + 'px';
+    const statusClass = hovered.status === 'online' ? 'tt-value' : hovered.status === 'degraded' ? 'tt-warn' : 'tt-err';
+    const statusText = hovered.status === 'online' ? '在线' : hovered.status === 'degraded' ? '降级' : '离线';
+    tooltip.innerHTML = `<div class="tt-title">${hovered.label}</div><div>${hovered.sub}</div><div class="${statusClass}">状态: ${statusText}</div>`;
+  } else {
+    tooltip.style.display = 'none';
+  }
+});
+
+let time = 0;
+function draw() {
+  time += 0.016;
+  ctx.clearRect(0, 0, W, H);
+
+  // Draw edges
+  edges.forEach(e => {
+    const from = nodeMap[e.from];
+    const to = nodeMap[e.to];
+    const x1 = from.x * W, y1 = from.y * H;
+    const x2 = to.x * W, y2 = to.y * H;
+    const cx = (x1 + x2) / 2, cy = (y1 + y2) / 2 - 20;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.quadraticCurveTo(cx, cy, x2, y2);
+    const isDead = from.status === 'offline' || to.status === 'offline';
+    ctx.strokeStyle = isDead ? 'rgba(248,81,73,0.08)' : 'rgba(88,180,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+
+  // Draw particles
+  particles.forEach(p => {
+    p.update();
+    const pos = p.getPos();
+    const fromNode = nodeMap[p.edge.from];
+    const toNode = nodeMap[p.edge.to];
+    const isDead = fromNode.status === 'offline' || toNode.status === 'offline';
+    if (isDead) return;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(88,180,255,${p.alpha})`;
+    ctx.fill();
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    const nx = n.x * W, ny = n.y * H;
+    const isHover = hovered && hovered.id === n.id;
+    const scale = isHover ? 1.2 : 1;
+    const r = n.r * scale;
+
+    // Glow
+    if (n.pulse && n.status === 'online') {
+      const glowR = r + 12 + Math.sin(time * 2) * 4;
+      const grad = ctx.createRadialGradient(nx, ny, r, nx, ny, glowR);
+      grad.addColorStop(0, n.color + '22');
+      grad.addColorStop(1, n.color + '00');
+      ctx.beginPath();
+      ctx.arc(nx, ny, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // Offline glow
+    if (n.status === 'offline') {
+      const glowR = r + 8;
+      const grad = ctx.createRadialGradient(nx, ny, r, nx, ny, glowR);
+      grad.addColorStop(0, 'rgba(248,81,73,0.10)');
+      grad.addColorStop(1, 'rgba(248,81,73,0.00)');
+      ctx.beginPath();
+      ctx.arc(nx, ny, glowR, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(nx, ny, r, 0, Math.PI * 2);
+    const fillAlpha = n.status === 'offline' ? '0a' : '1a';
+    ctx.fillStyle = n.color + fillAlpha;
+    ctx.fill();
+    ctx.strokeStyle = isHover ? n.color : n.color + '66';
+    ctx.lineWidth = isHover ? 2 : 1;
+    ctx.stroke();
+
+    // Label
+    ctx.font = `${n.r > 20 ? 11 : 9}px 'JetBrains Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = n.status === 'offline' ? '#484f58' : '#e8eaed';
+    ctx.fillText(n.label, nx, ny + r + 14);
+
+    // Sub label
+    if (n.r > 16) {
+      ctx.font = `8px 'JetBrains Mono', monospace`;
+      ctx.fillStyle = '#484f58';
+      ctx.fillText(n.sub, nx, ny + r + 24);
+    }
+
+    // Status dot inside
+    const dotColor = n.status === 'online' ? '#3fb950' : n.status === 'degraded' ? '#d29922' : '#f85149';
+    ctx.beginPath();
+    ctx.arc(nx, ny, 3, 0, Math.PI * 2);
+    ctx.fillStyle = dotColor;
+    ctx.fill();
+  });
+
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>

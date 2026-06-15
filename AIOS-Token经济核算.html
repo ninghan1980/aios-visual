@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS Token 经济核算</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0c0f;
+  --bg-card: #12151a;
+  --bg-surface: #181c22;
+  --cyan: #58b4ff;
+  --green: #3fb950;
+  --yellow: #d29922;
+  --red: #f85149;
+  --purple: #bc8cff;
+  --orange: #f0883e;
+  --text: #c9d1d9;
+  --text-dim: #6e7681;
+  --border: #21262d;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.scanline {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 999;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+}
+
+.header {
+  padding: 16px 32px 12px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0f1217 0%, var(--bg) 100%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+
+.header .meta {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+/* === TOP SUMMARY CARDS === */
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+}
+
+.summary-card.sc-total::before { background: var(--cyan); }
+.summary-card.sc-cost::before { background: var(--orange); }
+.summary-card.sc-avg::before { background: var(--green); }
+.summary-card.sc-max::before { background: var(--red); }
+
+.summary-card .sc-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.summary-card .sc-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.summary-card.sc-total .sc-value { color: var(--cyan); }
+.summary-card.sc-cost .sc-value { color: var(--orange); }
+.summary-card.sc-avg .sc-value { color: var(--green); }
+.summary-card.sc-max .sc-value { color: var(--red); }
+
+.summary-card .sc-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+.summary-card .sc-delta {
+  margin-top: 6px;
+  font-size: 10px;
+}
+
+.sc-delta.up { color: var(--red); }
+.sc-delta.down { color: var(--green); }
+
+/* === MAIN GRID === */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px 32px;
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-header .ph-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+.panel-header h2 {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.panel-body {
+  padding: 16px 20px;
+}
+
+/* === TASK COST RANKING === */
+.task-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.task-bar-row .tbr-rank {
+  width: 20px;
+  text-align: right;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.task-bar-row .tbr-name {
+  width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  font-size: 10.5px;
+}
+
+.task-bar-row .tbr-bar-bg {
+  flex: 1;
+  height: 18px;
+  background: var(--bg-surface);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.task-bar-row .tbr-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+  position: relative;
+}
+
+.task-bar-row .tbr-tokens {
+  width: 60px;
+  text-align: right;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.task-bar-row .tbr-cost {
+  width: 50px;
+  text-align: right;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.task-bar-row .tbr-grade {
+  width: 28px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.grade-a { color: var(--green); }
+.grade-b { color: var(--yellow); }
+.grade-c { color: var(--red); }
+
+/* === TREND CHART === */
+.trend-canvas-wrap {
+  width: 100%;
+  height: 200px;
+  position: relative;
+}
+
+.trend-canvas-wrap canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* === ROI PANEL === */
+.roi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.roi-column {
+  background: var(--bg-surface);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.roi-column .roi-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.roi-column .roi-title::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 2px;
+}
+
+.roi-high .roi-title::before { background: var(--green); }
+.roi-low .roi-title::before { background: var(--red); }
+
+.roi-high .roi-title { color: var(--green); }
+.roi-low .roi-title { color: var(--red); }
+
+.roi-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(33,38,45,0.5);
+  font-size: 10.5px;
+}
+
+.roi-item:last-child { border-bottom: none; }
+
+.roi-item .roi-val {
+  font-weight: 600;
+}
+
+.roi-high .roi-val { color: var(--green); }
+.roi-low .roi-val { color: var(--red); }
+
+/* === BUDGET BAR === */
+.budget-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.budget-header .bh-label {
+  color: var(--text-dim);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.budget-header .bh-value {
+  font-weight: 600;
+}
+
+.budget-bar-outer {
+  width: 100%;
+  height: 24px;
+  background: var(--bg-surface);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.budget-bar-inner {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 1.5s ease, background 0.5s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--bg);
+}
+
+.budget-threshold {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--yellow);
+  z-index: 2;
+}
+
+.budget-threshold.th-red {
+  background: var(--red);
+}
+
+.budget-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.budget-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.leg-safe::before { background: var(--green); }
+.leg-warn::before { background: var(--yellow); }
+.leg-danger::before { background: var(--red); }
+.leg-used::before { background: var(--cyan); }
+
+/* === OPTIMIZATION SUGGESTIONS === */
+.opt-list {
+  list-style: none;
+}
+
+.opt-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(33,38,45,0.5);
+  align-items: flex-start;
+}
+
+.opt-item:last-child { border-bottom: none; }
+
+.opt-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.opt-icon.opt-cut { background: rgba(248,81,73,0.15); color: var(--red); }
+.opt-icon.opt-opt { background: rgba(210,153,34,0.15); color: var(--yellow); }
+.opt-icon.opt-merge { background: rgba(188,140,255,0.15); color: var(--purple); }
+
+.opt-content .opt-title {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.opt-content .opt-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.opt-content .opt-saving {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--green);
+  font-weight: 500;
+}
+
+/* Full-width panel */
+.panel-full {
+  grid-column: 1 / -1;
+}
+
+/* Footer */
+.footer {
+  padding: 12px 32px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+}
+</style>
+</head>
+<body>
+
+<div class="scanline"></div>
+
+<!-- Header -->
+<div class="header">
+  <h1>AIOS TOKEN ECONOMICS</h1>
+  <span style="font-size:11px;color:var(--text-dim)">v2.1</span>
+  <div class="meta">
+    <span id="clock"></span> &nbsp;|&nbsp; 核算周期: <span style="color:var(--cyan)">2026-06</span> &nbsp;|&nbsp; 引擎: <span style="color:var(--green)">RUNNING</span>
+  </div>
+</div>
+
+<!-- Top Summary -->
+<div class="summary-row">
+  <div class="summary-card sc-total">
+    <div class="sc-label">今日总消耗</div>
+    <div class="sc-value" id="totalTokens">0<span class="sc-unit">K tokens</span></div>
+    <div class="sc-delta up">▲ 12.3% vs 昨日</div>
+  </div>
+  <div class="summary-card sc-cost">
+    <div class="sc-label">今日总成本</div>
+    <div class="sc-value" id="totalCost">$0.00</div>
+    <div class="sc-delta up">▲ 8.7% vs 昨日</div>
+  </div>
+  <div class="summary-card sc-avg">
+    <div class="sc-label">平均单任务成本</div>
+    <div class="sc-value" id="avgCost">$0.00</div>
+    <div class="sc-delta down">▼ 3.2% vs 昨日</div>
+  </div>
+  <div class="summary-card sc-max">
+    <div class="sc-label">最贵任务</div>
+    <div class="sc-value" id="maxTask" style="font-size:16px;">—</div>
+    <div class="sc-delta" style="color:var(--text-dim)">Token: <span id="maxToken">0</span>K</div>
+  </div>
+</div>
+
+<!-- Budget Bar -->
+<div class="budget-section">
+  <div class="budget-header">
+    <span class="bh-label">月度预算使用</span>
+    <span class="bh-value"><span id="budgetUsed" style="color:var(--cyan)">$0.00</span> / $50.00</span>
+  </div>
+  <div class="budget-bar-outer">
+    <div class="budget-threshold" style="left:60%;" title="警告阈值 60%"></div>
+    <div class="budget-threshold th-red" style="left:85%;" title="危险阈值 85%"></div>
+    <div class="budget-bar-inner" id="budgetBar" style="width:0%;background:var(--green);">
+      <span id="budgetPct">0%</span>
+    </div>
+  </div>
+  <div class="budget-legend">
+    <span class="leg-safe">安全 (&lt;60%)</span>
+    <span class="leg-warn">警告 (60-85%)</span>
+    <span class="leg-danger">危险 (&gt;85%)</span>
+    <span class="leg-used">已使用</span>
+  </div>
+</div>
+
+<!-- Main Grid -->
+<div class="main-grid">
+
+  <!-- Task Cost Ranking -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--cyan)"></div>
+      <h2>任务成本排行</h2>
+    </div>
+    <div class="panel-body" id="taskRanking" style="max-height:520px;overflow-y:auto;">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- Cost Trend -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--orange)"></div>
+      <h2>7日成本趋势</h2>
+    </div>
+    <div class="panel-body">
+      <div class="trend-canvas-wrap">
+        <canvas id="trendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROI Panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--green)"></div>
+      <h2>ROI 价值分析</h2>
+    </div>
+    <div class="panel-body">
+      <div class="roi-grid">
+        <div class="roi-column roi-high">
+          <div class="roi-title">高价值任务</div>
+          <div class="roi-item">
+            <span>三棱镜决策情报</span>
+            <span class="roi-val">ROI 4.2x</span>
+          </div>
+          <div class="roi-item">
+            <span>深度研究</span>
+            <span class="roi-val">ROI 3.8x</span>
+          </div>
+          <div class="roi-item">
+            <span>断层线每日快报</span>
+            <span class="roi-val">ROI 3.5x</span>
+          </div>
+          <div class="roi-item">
+            <span>Aether感知层采集</span>
+            <span class="roi-val">ROI 2.9x</span>
+          </div>
+          <div class="roi-item">
+            <span>社媒内容发布</span>
+            <span class="roi-val">ROI 2.6x</span>
+          </div>
+        </div>
+        <div class="roi-column roi-low">
+          <div class="roi-title">低价值任务</div>
+          <div class="roi-item">
+            <span>RSI跳过/空转</span>
+            <span class="roi-val">ROI 0.2x</span>
+          </div>
+          <div class="roi-item">
+            <span>失败重试(平均3次)</span>
+            <span class="roi-val">ROI 0.3x</span>
+          </div>
+          <div class="roi-item">
+            <span>心跳日志冗余</span>
+            <span class="roi-val">ROI 0.5x</span>
+          </div>
+          <div class="roi-item">
+            <span>重复感知采集</span>
+            <span class="roi-val">ROI 0.6x</span>
+          </div>
+          <div class="roi-item">
+            <span>闲置状态轮询</span>
+            <span class="roi-val">ROI 0.4x</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Optimization Suggestions -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="ph-dot" style="background:var(--yellow)"></div>
+      <h2>优化建议</h2>
+    </div>
+    <div class="panel-body">
+      <ul class="opt-list">
+        <li class="opt-item">
+          <div class="opt-icon opt-cut">✂</div>
+          <div class="opt-content">
+            <div class="opt-title">削减RSI空转检测频率</div>
+            <div class="opt-desc">当前每30分钟检测一次RSI状态，82%为空转。建议调整为每2小时，触发时即时响应。</div>
+            <div class="opt-saving">预计节省: 15K tokens/日 ≈ $0.45/日</div>
+          </div>
+        </li>
+        <li class="opt-item">
+          <div class="opt-icon opt-opt">⟳</div>
+          <div class="opt-content">
+            <div class="opt-title">Aether感知层去重</div>
+            <div class="opt-desc">当前6个采集源中，3个存在30%+内容重叠。引入内容指纹去重可减少冗余Token消耗。</div>
+            <div class="opt-saving">预计节省: 8K tokens/日 ≈ $0.24/日</div>
+          </div>
+        </li>
+        <li class="opt-item">
+          <div class="opt-icon opt-merge">⊕</div>
+          <div class="opt-content">
+            <div class="opt-title">合并心跳与状态日志</div>
+            <div class="opt-desc">heartbeat_logger与aios_heartbeat功能重叠，合并为单一组件可减少50%日志Token。</div>
+            <div class="opt-saving">预计节省: 5K tokens/日 ≈ $0.15/日</div>
+          </div>
+        </li>
+        <li class="opt-item">
+          <div class="opt-icon opt-opt">↻</div>
+          <div class="opt-content">
+            <div class="opt-title">失败重试退避策略</div>
+            <div class="opt-desc">当前失败后立即重试，建议指数退避(1min→5min→15min)，并设置最大重试次数=3。</div>
+            <div class="opt-saving">预计节省: 12K tokens/日 ≈ $0.36/日</div>
+          </div>
+        </li>
+        <li class="opt-item">
+          <div class="opt-icon opt-cut">↓</div>
+          <div class="opt-content">
+            <div class="opt-title">闲置时段降频</div>
+            <div class="opt-desc">01:00-06:00为低产出时段，可将非关键任务频率降至1/4，保留应急响应能力。</div>
+            <div class="opt-saving">预计节省: 10K tokens/日 ≈ $0.30/日</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <span>AIOS Token Economics v2.1 — 成本监控与优化引擎</span>
+  <span id="footerTime"></span>
+</div>
+
+<script>
+// === CLOCK ===
+function updateClock() {
+  const now = new Date();
+  const str = now.toLocaleString('zh-CN', { hour12: false });
+  document.getElementById('clock').textContent = str;
+  document.getElementById('footerTime').textContent = str;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// === TASK DATA ===
+const tasks = [
+  { name: '三棱镜决策情报', tokens: 85, cost: 2.55, grade: 'A', color: '#58b4ff' },
+  { name: 'Aether感知层采集', tokens: 72, cost: 2.16, grade: 'A', color: '#3fb950' },
+  { name: '深度研究', tokens: 68, cost: 2.04, grade: 'A', color: '#bc8cff' },
+  { name: '断层线每日快报', tokens: 55, cost: 1.65, grade: 'A', color: '#58b4ff' },
+  { name: '微博热搜采集', tokens: 48, cost: 1.44, grade: 'B', color: '#f0883e' },
+  { name: '社媒内容发布', tokens: 42, cost: 1.26, grade: 'B', color: '#f0883e' },
+  { name: 'RSI续训/进化', tokens: 38, cost: 1.14, grade: 'B', color: '#3fb950' },
+  { name: '小红书爆款查询', tokens: 35, cost: 1.05, grade: 'B', color: '#f0883e' },
+  { name: '公众号文章生成', tokens: 32, cost: 0.96, grade: 'B', color: '#bc8cff' },
+  { name: '心跳日志记录', tokens: 28, cost: 0.84, grade: 'C', color: '#d29922' },
+  { name: '美伊冲突追踪', tokens: 25, cost: 0.75, grade: 'A', color: '#58b4ff' },
+  { name: 'Omega Loop守护', tokens: 22, cost: 0.66, grade: 'B', color: '#3fb950' },
+  { name: '调度器任务派发', tokens: 20, cost: 0.60, grade: 'B', color: '#bc8cff' },
+  { name: 'NSP世界模型', tokens: 18, cost: 0.54, grade: 'B', color: '#3fb950' },
+  { name: 'ima知识库同步', tokens: 16, cost: 0.48, grade: 'B', color: '#bc8cff' },
+  { name: '失败重试(平均3次)', tokens: 30, cost: 0.90, grade: 'C', color: '#f85149' },
+  { name: 'RSI空转/跳过', tokens: 24, cost: 0.72, grade: 'C', color: '#f85149' },
+  { name: '重复感知采集', tokens: 15, cost: 0.45, grade: 'C', color: '#f85149' },
+  { name: '闲置状态轮询', tokens: 12, cost: 0.36, grade: 'C', color: '#f85149' },
+  { name: '星光系统调度', tokens: 14, cost: 0.42, grade: 'B', color: '#f0883e' },
+  { name: '链路B社媒创作', tokens: 26, cost: 0.78, grade: 'B', color: '#f0883e' },
+  { name: 'Token核算自监控', tokens: 8, cost: 0.24, grade: 'C', color: '#d29922' },
+];
+
+// Sort by tokens desc
+tasks.sort((a, b) => b.tokens - a.tokens);
+const maxTokens = tasks[0].tokens;
+
+// === RENDER TASK RANKING ===
+function renderTaskRanking() {
+  const container = document.getElementById('taskRanking');
+  container.innerHTML = '';
+
+  tasks.forEach((t, i) => {
+    const pct = (t.tokens / maxTokens * 100).toFixed(1);
+    const gradeClass = t.grade === 'A' ? 'grade-a' : t.grade === 'B' ? 'grade-b' : 'grade-c';
+
+    const row = document.createElement('div');
+    row.className = 'task-bar-row';
+    row.innerHTML = `
+      <span class="tbr-rank">${i + 1}</span>
+      <span class="tbr-name" title="${t.name}">${t.name}</span>
+      <span class="tbr-bar-bg">
+        <span class="tbr-bar-fill" style="width:${pct}%;background:${t.color}20;">
+          <span style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${t.color};border-radius:3px;opacity:0.7;"></span>
+        </span>
+      </span>
+      <span class="tbr-tokens">${t.tokens}K</span>
+      <span class="tbr-cost">$${t.cost.toFixed(2)}</span>
+      <span class="tbr-grade ${gradeClass}">${t.grade}</span>
+    `;
+    container.appendChild(row);
+  });
+}
+
+// === SUMMARY ANIMATION ===
+function animateSummary() {
+  const totalTokens = tasks.reduce((s, t) => s + t.tokens, 0);
+  const totalCost = tasks.reduce((s, t) => s + t.cost, 0);
+  const avgCost = totalCost / tasks.length;
+  const maxTask = tasks[0];
+
+  // Animate numbers
+  animateValue('totalTokens', 0, totalTokens, 1500, v => v.toFixed(0) + '<span class="sc-unit">K tokens</span>');
+  animateValue('totalCost', 0, totalCost, 1500, v => '$' + v.toFixed(2));
+  animateValue('avgCost', 0, avgCost, 1500, v => '$' + v.toFixed(2));
+
+  setTimeout(() => {
+    document.getElementById('maxTask').textContent = maxTask.name;
+    document.getElementById('maxToken').textContent = maxTask.tokens;
+  }, 800);
+
+  // Budget
+  const budgetTotal = 50;
+  const budgetUsed = totalCost * 30 / 100 * 15; // simulate monthly
+  const budgetPct = Math.min(budgetUsed / budgetTotal * 100, 95);
+  const usedVal = budgetUsed.toFixed(2);
+
+  setTimeout(() => {
+    document.getElementById('budgetUsed').textContent = '$' + usedVal;
+    const bar = document.getElementById('budgetBar');
+    bar.style.width = budgetPct + '%';
+
+    if (budgetPct > 85) {
+      bar.style.background = 'var(--red)';
+    } else if (budgetPct > 60) {
+      bar.style.background = 'var(--yellow)';
+    } else {
+      bar.style.background = 'var(--cyan)';
+    }
+
+    document.getElementById('budgetPct').textContent = budgetPct.toFixed(1) + '%';
+  }, 300);
+}
+
+function animateValue(elementId, start, end, duration, formatter) {
+  const el = document.getElementById(elementId);
+  const startTime = performance.now();
+
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = start + (end - start) * eased;
+    el.innerHTML = formatter(current);
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// === TREND CHART ===
+function drawTrendChart() {
+  const canvas = document.getElementById('trendChart');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const W = rect.width;
+  const H = rect.height;
+  const pad = { top: 30, right: 20, bottom: 30, left: 50 };
+
+  // Data
+  const days = ['06-09', '06-10', '06-11', '06-12', '06-13', '06-14', '06-15'];
+  const tokenData = [580, 620, 710, 650, 690, 720, 750];
+  const costData = [17.4, 18.6, 21.3, 19.5, 20.7, 21.6, 22.5];
+
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+
+  const maxToken = 900;
+  const maxCost = 30;
+
+  // Grid lines
+  ctx.strokeStyle = '#21262d';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.top + (chartH / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+
+    // Y labels (tokens)
+    ctx.font = '9px JetBrains Mono';
+    ctx.fillStyle = '#6e7681';
+    ctx.textAlign = 'right';
+    ctx.fillText((maxToken - (maxToken / 5) * i).toFixed(0) + 'K', pad.left - 6, y + 3);
+  }
+
+  // X labels
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#6e7681';
+  days.forEach((d, i) => {
+    const x = pad.left + (chartW / (days.length - 1)) * i;
+    ctx.fillText(d, x, H - 8);
+  });
+
+  // Cost line (behind)
+  ctx.beginPath();
+  costData.forEach((v, i) => {
+    const x = pad.left + (chartW / (days.length - 1)) * i;
+    const y = pad.top + chartH - (v / maxCost * chartH);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#f0883e';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Cost area
+  const costPath = new Path2D();
+  costData.forEach((v, i) => {
+    const x = pad.left + (chartW / (days.length - 1)) * i;
+    const y = pad.top + chartH - (v / maxCost * chartH);
+    if (i === 0) costPath.moveTo(x, y); else costPath.lineTo(x, y);
+  });
+  costPath.lineTo(pad.left + chartW, pad.top + chartH);
+  costPath.lineTo(pad.left, pad.top + chartH);
+  costPath.closePath();
+  ctx.fillStyle = 'rgba(240,136,62,0.08)';
+  ctx.fill(costPath);
+
+  // Token line
+  ctx.beginPath();
+  tokenData.forEach((v, i) => {
+    const x = pad.left + (chartW / (days.length - 1)) * i;
+    const y = pad.top + chartH - (v / maxToken * chartH);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#58b4ff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Token area
+  const tokenPath = new Path2D();
+  tokenData.forEach((v, i) => {
+    const x = pad.left + (chartW / (days.length - 1)) * i;
+    const y = pad.top + chartH - (v / maxToken * chartH);
+    if (i === 0) tokenPath.moveTo(x, y); else tokenPath.lineTo(x, y);
+  });
+  tokenPath.lineTo(pad.left + chartW, pad.top + chartH);
+  tokenPath.lineTo(pad.left, pad.top + chartH);
+  tokenPath.closePath();
+  ctx.fillStyle = 'rgba(88,180,255,0.1)';
+  ctx.fill(tokenPath);
+
+  // Data points - tokens
+  tokenData.forEach((v, i) => {
+    const x = pad.left + (chartW / (days.length - 1)) * i;
+    const y = pad.top + chartH - (v / maxToken * chartH);
+
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#58b4ff';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(x, y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(88,180,255,0.2)';
+    ctx.fill();
+  });
+
+  // Data points - cost
+  costData.forEach((v, i) => {
+    const x = pad.left + (chartW / (days.length - 1)) * i;
+    const y = pad.top + chartH - (v / maxCost * chartH);
+
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#f0883e';
+    ctx.fill();
+  });
+
+  // Legend
+  ctx.font = '10px JetBrains Mono';
+  const legY = 14;
+
+  ctx.fillStyle = '#58b4ff';
+  ctx.fillRect(pad.left, legY - 4, 12, 3);
+  ctx.fillStyle = '#c9d1d9';
+  ctx.textAlign = 'left';
+  ctx.fillText('Token消耗', pad.left + 16, legY);
+
+  ctx.fillStyle = '#f0883e';
+  ctx.fillRect(pad.left + 110, legY - 4, 12, 3);
+  ctx.fillStyle = '#c9d1d9';
+  ctx.fillText('成本($)', pad.left + 126, legY);
+
+  // Right Y axis for cost
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#6e7681';
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.top + (chartH / 5) * i;
+    const val = maxCost - (maxCost / 5) * i;
+    ctx.fillText('$' + val.toFixed(0), W - pad.right + 4, y + 3);
+  }
+}
+
+// === INIT ===
+renderTaskRanking();
+animateSummary();
+
+// Delayed chart draw for font loading
+setTimeout(() => {
+  drawTrendChart();
+}, 500);
+
+window.addEventListener('resize', () => {
+  drawTrendChart();
+});
+</script>
+</body>
+</html>

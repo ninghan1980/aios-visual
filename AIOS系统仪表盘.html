@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三元 AIOS 系统仪表盘</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0c0f;
+    --bg-secondary: #111418;
+    --bg-card: #161b22;
+    --bg-card-hover: #1c2333;
+    --border: #1e2a3a;
+    --text-primary: #e8eaed;
+    --text-secondary: #8b949e;
+    --text-muted: #484f58;
+    --accent-cyan: #58b4ff;
+    --accent-green: #3fb950;
+    --accent-yellow: #d29922;
+    --accent-red: #f85149;
+    --accent-purple: #bc8cff;
+    --accent-orange: #f0883e;
+    --glow-cyan: rgba(88, 180, 255, 0.12);
+    --glow-green: rgba(63, 185, 80, 0.10);
+    --glow-red: rgba(248, 81, 73, 0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 24px;
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .container {
+    max-width: 1440px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+  }
+
+  .system-logo {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .system-logo .ver {
+    font-size: 12px;
+    font-weight: 300;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 1px;
+  }
+
+  .system-tagline {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+  }
+
+  .header-time {
+    text-align: right;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .header-time .date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .status-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .status-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    border-radius: 0 2px 2px 0;
+  }
+
+  .status-item.online::before { background: var(--accent-green); box-shadow: 0 0 8px var(--glow-green); }
+  .status-item.warning::before { background: var(--accent-yellow); box-shadow: 0 0 8px rgba(210, 153, 34, 0.15); }
+  .status-item.offline::before { background: var(--accent-red); box-shadow: 0 0 8px var(--glow-red); }
+  .status-item.partial::before { background: var(--accent-orange); box-shadow: 0 0 8px rgba(240, 136, 62, 0.12); }
+
+  .status-item:hover {
+    background: var(--bg-card-hover);
+    border-color: #2d3f5a;
+  }
+
+  .status-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .status-value {
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .status-value.green { color: var(--accent-green); }
+  .status-value.yellow { color: var(--accent-yellow); }
+  .status-value.red { color: var(--accent-red); }
+  .status-value.orange { color: var(--accent-orange); }
+  .status-value.cyan { color: var(--accent-cyan); }
+
+  .status-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Grid Layout */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .grid-full {
+    grid-column: 1 / -1;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    transition: border-color 0.2s;
+  }
+
+  .card:hover {
+    border-color: #2d3f5a;
+  }
+
+  .card-title {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .card-title .dot.cyan { background: var(--accent-cyan); box-shadow: 0 0 6px var(--glow-cyan); }
+  .card-title .dot.green { background: var(--accent-green); }
+  .card-title .dot.purple { background: var(--accent-purple); }
+  .card-title .dot.yellow { background: var(--accent-yellow); }
+  .card-title .dot.orange { background: var(--accent-orange); }
+
+  /* Module List */
+  .module-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .module-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .module-item:hover {
+    background: rgba(255,255,255,0.04);
+    border-color: var(--border);
+  }
+
+  .module-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .module-icon {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .module-icon.green { background: var(--accent-green); box-shadow: 0 0 6px rgba(63,185,80,0.4); }
+  .module-icon.red { background: var(--accent-red); box-shadow: 0 0 6px rgba(248,81,73,0.4); }
+  .module-icon.yellow { background: var(--accent-yellow); box-shadow: 0 0 6px rgba(210,153,34,0.3); }
+  .module-icon.orange { background: var(--accent-orange); box-shadow: 0 0 6px rgba(240,136,62,0.3); }
+  .module-icon.cyan { background: var(--accent-cyan); box-shadow: 0 0 6px rgba(88,180,255,0.3); }
+  .module-icon.purple { background: var(--accent-purple); box-shadow: 0 0 6px rgba(188,140,255,0.3); }
+
+  .module-name {
+    font-size: 13px;
+    font-weight: 400;
+  }
+
+  .module-detail {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .module-right {
+    text-align: right;
+  }
+
+  .module-status {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .module-status.green { color: var(--accent-green); }
+  .module-status.red { color: var(--accent-red); }
+  .module-status.yellow { color: var(--accent-yellow); }
+  .module-status.orange { color: var(--accent-orange); }
+
+  /* Signal Flow */
+  .signal-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .signal-dot {
+    width: 24px; height: 24px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .signal-dot.new { background: rgba(88,180,255,0.15); border-color: rgba(88,180,255,0.3); color: var(--accent-cyan); }
+  .signal-dot.accumulated { background: rgba(63,185,80,0.10); border-color: rgba(63,185,80,0.2); color: var(--text-secondary); }
+  .signal-dot.failed { background: rgba(248,81,73,0.10); border-color: rgba(248,81,73,0.2); color: var(--accent-red); }
+
+  .signal-dot:hover {
+    transform: scale(1.15);
+  }
+
+  /* Metrics */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .metric-item {
+    text-align: center;
+    padding: 16px 8px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Channel status */
+  .channel-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .channel-item {
+    padding: 16px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
+    border: 1px solid transparent;
+    text-align: center;
+  }
+
+  .channel-item:hover {
+    border-color: var(--border);
+  }
+
+  .channel-name {
+    font-size: 12px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+  }
+
+  .channel-status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+
+  .channel-status-badge.online { background: rgba(63,185,80,0.12); color: var(--accent-green); }
+  .channel-status-badge.offline { background: rgba(248,81,73,0.10); color: var(--accent-red); }
+  .channel-status-badge.pending { background: rgba(210,153,34,0.10); color: var(--accent-yellow); }
+
+  .channel-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* Recent Activity Log */
+  .activity-log {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .log-entry:last-child {
+    border-bottom: none;
+  }
+
+  .log-time {
+    color: var(--text-muted);
+    flex-shrink: 0;
+    width: 60px;
+    font-size: 11px;
+  }
+
+  .log-content {
+    color: var(--text-secondary);
+  }
+
+  .log-content .highlight { color: var(--accent-cyan); }
+  .log-content .success { color: var(--accent-green); }
+  .log-content .fail { color: var(--accent-red); }
+  .log-content .warn { color: var(--accent-yellow); }
+
+  /* Progress Bar */
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    margin-top: 16px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+    width: 42%;
+  }
+
+  /* Pulse animation */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .status-bar { grid-template-columns: repeat(3, 1fr); }
+    .grid { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .channel-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 600px) {
+    .status-bar { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .metrics-grid { grid-template-columns: 1fr; }
+    .channel-grid { grid-template-columns: 1fr; }
+    body { padding: 12px; }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* Tooltip */
+  [data-tooltip] {
+    position: relative;
+    cursor: help;
+  }
+
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 100;
+    color: var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div>
+        <div class="system-logo">
+          SANYUAN AIOS
+          <span class="ver">v2.0</span>
+        </div>
+        <div class="system-tagline">System-level Agent Intelligence · 系统级智能操作系统</div>
+      </div>
+    </div>
+    <div class="header-time">
+      <div id="live-time">--:--:--</div>
+      <div class="date">UTC+8 · Last sync: 2026-06-15 13:11</div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-item online">
+      <div class="status-label">Ω_loop Daemon</div>
+      <div class="status-value green">● ONLINE</div>
+      <div class="status-meta">PID 1988 · 10min/cycle · 正常运行</div>
+    </div>
+    <div class="status-item online">
+      <div class="status-label">AIOS Core</div>
+      <div class="status-value green">● ONLINE</div>
+      <div class="status-meta">25 modules · 17 tools · 22 tasks</div>
+    </div>
+    <div class="status-item online">
+      <div class="status-label">Aether 感知层</div>
+      <div class="status-value cyan">66.7%</div>
+      <div class="status-meta">100 signals · 54 sources · 9 layers</div>
+    </div>
+    <div class="status-item warning">
+      <div class="status-label">星光·发布通道</div>
+      <div class="status-value yellow">⚠ DEGRADED</div>
+      <div class="status-meta">第11天瘫痪 · errCode 4000004</div>
+    </div>
+    <div class="status-item warning">
+      <div class="status-label">Memory 层</div>
+      <div class="status-value orange">74%</div>
+      <div class="status-meta">即时层 5.1K / 7.2K · 渐进压缩中</div>
+    </div>
+  </div>
+
+  <!-- Row 1 -->
+  <div class="grid">
+    <!-- Core Modules -->
+    <div class="card">
+      <div class="card-title"><span class="dot cyan"></span> 核心模块状态</div>
+      <div class="module-list">
+        <div class="module-item">
+          <div class="module-left">
+            <span class="module-icon green"></span>
+            <div>
+              <div class="module-name">Ω_loop Daemon</div>
+              <div class="module-detail">PID 1988 · 180s/cycle · watchdog ✅</div>
+            </div>
+          </div>
+          <div class="module-right">
+            <div class="module-status green">运行中</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-left">
+            <span class="module-icon green"></span>
+            <div>
+              <div class="module-name">AIOS Dispatcher</div>
+              <div class="module-detail">22 tasks · EventBus → Scheduler → ToolRouter</div>
+            </div>
+          </div>
+          <div class="module-right">
+            <div class="module-status green">运行中</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-left">
+            <span class="module-icon green"></span>
+            <div>
+              <div class="module-name">三元推理引擎</div>
+              <div class="module-detail">DS V4 · ~33元/亿Token · 全自主驱动</div>
+            </div>
+          </div>
+          <div class="module-right">
+            <div class="module-status green">运行中</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-left">
+            <span class="module-icon yellow"></span>
+            <div>
+              <div class="module-name">RSI 自优化</div>
+              <div class="module-detail">30min/cycle · samples=0 · 跳过续训</div>
+            </div>
+          </div>
+          <div class="module-right">
+            <div class="module-status yellow">待信号</div>
+          </div>
+        </div>
+        <div class="module-item">
+          <div class="module-left">
+            <span class="module-icon green"></span>
+            <div>
+              <div class="module-name">ima 知识库</div>
+              <div class="module-detail">三元智能(27条) + 断层线(0条·待填充)</div>
+            </div>
+          </div>
+          <div class="module-right">
+            <div class="module-status green">在线</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Channels -->
+    <div class="card">
+      <div class="card-title"><span class="dot orange"></span> 发布渠道状态</div>
+      <div class="channel-grid">
+        <div class="channel-item">
+          <div class="channel-name">小红书</div>
+          <div><span class="channel-status-badge online">雪崩星河</span></div>
+          <div class="channel-meta">14篇草稿 · 1篇已发<br>星光依赖 · 需手动发布</div>
+        </div>
+        <div class="channel-item">
+          <div class="channel-name">微博</div>
+          <div><span class="channel-status-badge offline">地缘通</span></div>
+          <div class="channel-meta">禁言至06-22 14:19<br>还剩7天</div>
+        </div>
+        <div class="channel-item">
+          <div class="channel-name">公众号</div>
+          <div><span class="channel-status-badge pending">待开通</span></div>
+          <div class="channel-meta">已有内容能力<br>无自动化发布通道</div>
+        </div>
+        <div class="channel-item">
+          <div class="channel-name">飞书</div>
+          <div><span class="channel-status-badge offline">失联</span></div>
+          <div class="channel-meta">最后活跃06-05<br>第11天</div>
+        </div>
+      </div>
+      <div class="progress-bar" style="margin-top:20px">
+        <div class="progress-fill" style="width:25%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-muted)">
+        <span>渠道可用率</span>
+        <span>1/4 在线</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2 -->
+  <div class="grid">
+    <!-- Aether Signal Flow -->
+    <div class="card">
+      <div class="card-title"><span class="dot purple"></span> Aether 感知层 · 信号流</div>
+      <div class="metrics-grid" style="margin-bottom:20px">
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-cyan)">100</div>
+          <div class="metric-label">累计信号</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-green)">15</div>
+          <div class="metric-label">采集轮次</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-purple)">66.7%</div>
+          <div class="metric-label">平均在线率</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-yellow)">54</div>
+          <div class="metric-label">数据源</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">最新信号批次 (Cycle 15 · 13:11)</div>
+      <div class="signal-flow">
+        <span class="signal-dot new" data-tooltip="AI行业">N</span>
+        <span class="signal-dot new" data-tooltip="AI行业">...</span>
+        <span class="signal-dot new" data-tooltip="信息知识">K</span>
+        <span class="signal-dot accumulated" data-tooltip="已累积信号">+89</span>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:12px;font-size:10px;color:var(--text-muted)">
+        <span>● 本轮新增: <span style="color:var(--accent-cyan)">11条</span></span>
+        <span>● 失败: <span style="color:var(--accent-red)">1源</span></span>
+        <span>● 在线率: <span style="color:var(--accent-green)">91.7%</span></span>
+      </div>
+    </div>
+
+    <!-- Token & Memory -->
+    <div class="card">
+      <div class="card-title"><span class="dot green"></span> 资源消耗</div>
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-cyan)">DS V4</div>
+          <div class="metric-label">推理模型</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-yellow)">33元</div>
+          <div class="metric-label">亿Token成本</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-purple)">22</div>
+          <div class="metric-label">已注册任务</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value" style="color:var(--accent-green)">93</div>
+          <div class="metric-label">可用Skill</div>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px">
+          <span>记忆层使用</span>
+          <span>5.1K / 7.2K (74%)</span>
+        </div>
+        <div class="progress-bar" style="margin-top:0">
+          <div class="progress-fill" style="width:74%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div>
+        </div>
+      </div>
+      <div style="margin-top:16px;font-size:11px;color:var(--text-muted)">
+        记忆分层: 即时层(5.1K) → 近中期层(索引+文件) → 语义检索
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Log -->
+  <div class="card grid-full">
+    <div class="card-title"><span class="dot yellow"></span> 最近活动日志</div>
+    <div class="activity-log">
+      <div class="log-entry">
+        <span class="log-time">13:11</span>
+        <span class="log-content"><span class="highlight">Aether</span> Cycle 15 完成 · 11条新信号 · 累计 <span class="success">100条</span> · 在线率 91.7%</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">13:06</span>
+        <span class="log-content"><span class="highlight">微博热搜</span> 链路B触发 · 命中"系统级AI" · <span class="warn">星光发布失败</span> → pending_queue</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">12:48</span>
+        <span class="log-content"><span class="highlight">雪崩星河</span> 小红书发布成功 · 《系统级AI这个热搜，其实是在说我》</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">12:33</span>
+        <span class="log-content"><span class="highlight">深度研究</span> Token消费分析报告完成 · 交付 [Token消费-未来必备消费分析报告.md]</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">12:30</span>
+        <span class="log-content"><span class="highlight">RSI</span> 续训跳过 · samples=0 · 零开销</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">12:11</span>
+        <span class="log-content"><span class="highlight">AIOS</span> 健康检查通过 · 25 modules · 17 tools · 全部正常</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">12:06</span>
+        <span class="log-content"><span class="highlight">决策</span> 三棱镜决策情报日程创建 · 每日09:00 · ima断层线知识库</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">11:35</span>
+        <span class="log-content"><span class="highlight">技能</span> AICEO CEO技能自动发布 · skill_id: 7651445785602654254</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:32px;padding:16px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)">
+    <span>三元 AIOS · 系统级智能体操作系统</span>
+    <span>运行于 Coze Agent Cloud · DS V4</span>
+  </div>
+
+</div>
+
+<script>
+  // Live clock
+  function updateTime() {
+    const now = new Date();
+    const opts = { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Shanghai' };
+    document.getElementById('live-time').textContent = now.toLocaleTimeString('zh-CN', opts);
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+</script>
+</body>
+</html>

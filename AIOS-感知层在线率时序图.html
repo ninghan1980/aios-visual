@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三元 AIOS · Aether感知层在线率时序</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  background: #0a0c0f;
+  color: #e8eaed;
+  min-height: 100vh;
+  padding: 32px;
+}
+.header { margin-bottom: 32px; }
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #bc8cff, #58b4ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header .sub {
+  font-size: 11px;
+  color: #484f58;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.summary-card {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+}
+.summary-card:nth-child(1)::before { background: #58b4ff; }
+.summary-card:nth-child(2)::before { background: #3fb950; }
+.summary-card:nth-child(3)::before { background: #d29922; }
+.summary-card:nth-child(4)::before { background: #f85149; }
+.summary-card:nth-child(5)::before { background: #bc8cff; }
+.summary-card:nth-child(6)::before { background: #f0883e; }
+
+.s-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #484f58;
+  margin-bottom: 6px;
+}
+.s-value {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.s-meta {
+  font-size: 10px;
+  color: #484f58;
+}
+
+.chart-box {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  padding: 28px;
+  margin-bottom: 24px;
+  position: relative;
+}
+.chart-box canvas { display: block; width: 100%; }
+
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.source-group {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  padding: 20px;
+}
+.source-group-title {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #8b949e;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.source-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.source-item:last-child { border-bottom: none; }
+.source-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.source-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.source-dot.online { background: #3fb950; box-shadow: 0 0 4px rgba(63,185,80,0.4); }
+.source-dot.intermittent { background: #d29922; box-shadow: 0 0 4px rgba(210,153,34,0.3); }
+.source-dot.offline { background: #f85149; box-shadow: 0 0 4px rgba(248,81,73,0.3); }
+
+.source-name { font-size: 12px; }
+.source-rate { font-size: 11px; }
+.source-rate.good { color: #3fb950; }
+.source-rate.mid { color: #d29922; }
+.source-rate.bad { color: #f85149; }
+
+.legend {
+  display: flex;
+  gap: 20px;
+  font-size: 10px;
+  color: #484f58;
+  justify-content: center;
+  margin-top: 16px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-line { width: 20px; height: 2px; border-radius: 1px; }
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 4px rgba(63,185,80,0.4); }
+  50% { box-shadow: 0 0 8px rgba(63,185,80,0.7); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Aether Perception Layer</h1>
+  <div class="sub">感知层在线率时序 · 54数据源 · 9圈层 · 15轮采集周期</div>
+</div>
+
+<div class="summary-row">
+  <div class="summary-card">
+    <div class="s-label">累计信号</div>
+    <div class="s-value" style="color:#58b4ff">100</div>
+    <div class="s-meta">条 · 6月15日突破</div>
+  </div>
+  <div class="summary-card">
+    <div class="s-label">平均在线率</div>
+    <div class="s-value" style="color:#3fb950">56.2%</div>
+    <div class="s-meta">15轮平均 · >30%阈值</div>
+  </div>
+  <div class="summary-card">
+    <div class="s-label">最新在线率</div>
+    <div class="s-value" style="color:#3fb950">91.7%</div>
+    <div class="s-meta">Cycle 15 · AI+知识圈层</div>
+  </div>
+  <div class="summary-card">
+    <div class="s-label">最低在线率</div>
+    <div class="s-value" style="color:#d29922">25.0%</div>
+    <div class="s-meta">Cycle 5 · 触发告警</div>
+  </div>
+  <div class="summary-card">
+    <div class="s-label">数据源总数</div>
+    <div class="s-value" style="color:#bc8cff">54</div>
+    <div class="s-meta">9圈层 · round_robin</div>
+  </div>
+  <div class="summary-card">
+    <div class="s-label">信号增长速率</div>
+    <div class="s-value" style="color:#f0883e">6.7</div>
+    <div class="s-meta">条/轮 · 平均增量</div>
+  </div>
+</div>
+
+<div class="chart-box">
+  <canvas id="rateChart" height="350"></canvas>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-line" style="background:#3fb950"></span> 在线率 (%)</div>
+    <div class="legend-item"><span class="legend-line" style="background:#d29922;border:1px dashed #d29922;height:0"></span> 30% 告警阈值</div>
+    <div class="legend-item"><span class="legend-line" style="background:#58b4ff"></span> 信号增量 (条)</div>
+    <div class="legend-item"><span class="legend-line" style="background:#bc8cff"></span> 累计信号量</div>
+  </div>
+</div>
+
+<div class="source-grid">
+  <div class="source-group">
+    <div class="source-group-title">稳定在线源</div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot online"></span><span class="source-name">Open-Meteo 气象</span></div>
+      <span class="source-rate good">~95%</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot online"></span><span class="source-name">GDELT 全球事件</span></div>
+      <span class="source-rate good">~85%</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot online"></span><span class="source-name">FRED 经济数据</span></div>
+      <span class="source-rate good">~90%</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot online"></span><span class="source-name">World Bank</span></div>
+      <span class="source-rate good">~88%</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot online"></span><span class="source-name">NOAA 海洋</span></div>
+      <span class="source-rate good">~92%</span>
+    </div>
+  </div>
+  <div class="source-group">
+    <div class="source-group-title">间歇性源</div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot intermittent"></span><span class="source-name">Semantic Scholar</span></div>
+      <span class="source-rate mid">~60%</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot intermittent"></span><span class="source-name">CoinGecko</span></div>
+      <span class="source-rate mid">~50%</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot intermittent"></span><span class="source-name">ECB 汇率</span></div>
+      <span class="source-rate mid">~45%</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot intermittent"></span><span class="source-name">风云卫星 WMS</span></div>
+      <span class="source-rate mid">~55%</span>
+    </div>
+  </div>
+  <div class="source-group">
+    <div class="source-group-title">持续故障源</div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot offline"></span><span class="source-name">深圳开放数据</span></div>
+      <span class="source-rate bad">404</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot offline"></span><span class="source-name">UPI LNG Index</span></div>
+      <span class="source-rate bad">404</span>
+    </div>
+    <div class="source-item">
+      <div class="source-left"><span class="source-dot offline"></span><span class="source-name">部分自建源</span></div>
+      <span class="source-rate bad">超时</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('rateChart');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 56;
+  canvas.height = 350;
+}
+resize();
+window.addEventListener('resize', () => { resize(); draw(); });
+
+// Cycle data (1-15)
+const cycles = Array.from({length: 15}, (_, i) => i + 1);
+const onlineRate = [33.3, 41.7, 50.0, 33.3, 25.0, 41.7, 50.0, 58.3, 66.7, 50.0, 58.3, 42.0, 66.7, 66.7, 91.7];
+const signalIncrement = [4, 5, 6, 3, 3, 5, 6, 7, 8, 6, 7, 5, 8, 8, 11];
+// Cumulative
+let cum = 0;
+const cumulative = signalIncrement.map(s => { cum += s; return cum; });
+
+function draw() {
+  const W = canvas.width;
+  const H = canvas.height;
+  const padL = 55, padR = 55, padT = 20, padB = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = padT + (chartH / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.stroke();
+  }
+
+  // X labels
+  ctx.font = '10px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#484f58';
+  cycles.forEach((c, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    ctx.fillText('C' + c, x, H - padB + 18);
+  });
+
+  // Y labels left (rate %)
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 5; i++) {
+    const y = padT + (chartH / 5) * i;
+    const val = 100 - i * 20;
+    ctx.fillText(val + '%', padL - 8, y + 3);
+  }
+
+  // Y labels right (signal count)
+  ctx.textAlign = 'left';
+  const maxSig = 100;
+  for (let i = 0; i <= 5; i++) {
+    const y = padT + (chartH / 5) * i;
+    const val = Math.round(maxSig - i * 20);
+    ctx.fillStyle = '#bc8cff66';
+    ctx.fillText(val, W - padR + 8, y + 3);
+  }
+
+  // 30% threshold line
+  const threshY = padT + chartH - (30 / 100) * chartH;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(210,153,34,0.4)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, threshY);
+  ctx.lineTo(W - padR, threshY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '9px JetBrains Mono';
+  ctx.fillStyle = '#d29922';
+  ctx.textAlign = 'right';
+  ctx.fillText('30% 告警线', W - padR - 4, threshY - 4);
+
+  // Draw online rate area
+  ctx.beginPath();
+  onlineRate.forEach((r, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const y = padT + chartH - (r / 100) * chartH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  // Stroke
+  ctx.strokeStyle = '#3fb950';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Fill gradient
+  const lastX = padL + chartW;
+  ctx.lineTo(lastX, padT + chartH);
+  ctx.lineTo(padL, padT + chartH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+  grad.addColorStop(0, 'rgba(63,185,80,0.15)');
+  grad.addColorStop(1, 'rgba(63,185,80,0.00)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Signal increment bars
+  const barW = Math.max(chartW / cycles.length * 0.4, 6);
+  signalIncrement.forEach((s, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const barH = (s / 12) * chartH * 0.4;
+    const y = padT + chartH - barH;
+    ctx.fillStyle = 'rgba(88,180,255,0.15)';
+    ctx.fillRect(x - barW / 2, y, barW, barH);
+    ctx.strokeStyle = 'rgba(88,180,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x - barW / 2, y, barW, barH);
+  });
+
+  // Cumulative line
+  ctx.beginPath();
+  cumulative.forEach((c, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const y = padT + chartH - (c / maxSig) * chartH;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#bc8cff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dots on rate line
+  onlineRate.forEach((r, i) => {
+    const x = padL + (chartW / (cycles.length - 1)) * i;
+    const y = padT + chartH - (r / 100) * chartH;
+    const isLow = r < 30;
+    ctx.beginPath();
+    ctx.arc(x, y, isLow ? 5 : 3, 0, Math.PI * 2);
+    ctx.fillStyle = isLow ? '#f85149' : '#3fb950';
+    ctx.fill();
+    if (isLow) {
+      ctx.beginPath();
+      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(248,81,73,0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+  });
+
+  // Highlight latest point
+  const lastIdx = cycles.length - 1;
+  const lastX2 = padL + (chartW / (cycles.length - 1)) * lastIdx;
+  const lastY = padT + chartH - (onlineRate[lastIdx] / 100) * chartH;
+  ctx.beginPath();
+  ctx.arc(lastX2, lastY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = '#3fb950';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(lastX2, lastY, 10, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(63,185,80,0.3)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Annotation
+  ctx.font = '10px JetBrains Mono';
+  ctx.fillStyle = '#3fb950';
+  ctx.textAlign = 'left';
+  ctx.fillText('91.7%', lastX2 + 14, lastY + 3);
+
+  // C5 annotation
+  const c5x = padL + (chartW / (cycles.length - 1)) * 4;
+  const c5y = padT + chartH - (onlineRate[4] / 100) * chartH;
+  ctx.fillStyle = '#f85149';
+  ctx.textAlign = 'right';
+  ctx.fillText('25% ⚠', c5x - 10, c5y - 6);
+}
+
+draw();
+</script>
+</body>
+</html>

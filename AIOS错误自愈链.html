@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS 错误自愈链</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+  
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #111318;
+    --bg3: #181b22;
+    --cyan: #58b4ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --text: #c9d1d9;
+    --muted: #6e7681;
+    --border: #21262d;
+  }
+  
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #app {
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    height: 100vh;
+  }
+
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+  }
+  .header h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--red);
+    letter-spacing: 1px;
+  }
+  .header .sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .header .live-status {
+    margin-left: auto;
+    font-size: 10px;
+    display: flex;
+    gap: 14px;
+  }
+  .header .ls-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .header .ls-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .header .ls-dot.ok { background: var(--green); }
+  .header .ls-dot.warn { background: var(--yellow); animation: blink 1.5s infinite; }
+  .header .ls-dot.err { background: var(--red); animation: blink 0.8s infinite; }
+
+  @keyframes blink {
+    0%,100% { opacity:1; }
+    50% { opacity:0.2; }
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    overflow: hidden;
+  }
+
+  .main-canvas-area {
+    position: relative;
+    overflow: hidden;
+  }
+  #healCanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* Right Timeline Panel */
+  .timeline-panel {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .tp-header {
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cyan);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+  .tp-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 14px;
+  }
+  .tp-body::-webkit-scrollbar { width: 4px; }
+  .tp-body::-webkit-scrollbar-track { background: var(--bg); }
+  .tp-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .tl-entry {
+    position: relative;
+    padding: 6px 0 6px 18px;
+    border-left: 2px solid var(--border);
+    margin-left: 4px;
+    font-size: 10px;
+    line-height: 1.6;
+  }
+  .tl-entry::before {
+    content: '';
+    position: absolute;
+    left: -5px; top: 10px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 2px solid;
+  }
+  .tl-entry.error { border-left-color: var(--red); }
+  .tl-entry.error::before { border-color: var(--red); background: var(--bg2); }
+  .tl-entry.healing { border-left-color: var(--yellow); }
+  .tl-entry.healing::before { border-color: var(--yellow); background: var(--bg2); animation: blink 1s infinite; }
+  .tl-entry.resolved { border-left-color: var(--green); }
+  .tl-entry.resolved::before { border-color: var(--green); background: var(--green); }
+  .tl-entry .tl-time { color: var(--muted); }
+  .tl-entry .tl-msg { color: var(--text); }
+  .tl-entry .tl-tag {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 8px;
+    font-weight: 600;
+  }
+  .tl-entry .tl-tag.err { background: rgba(248,81,73,0.15); color: var(--red); }
+  .tl-entry .tl-tag.heal { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .tl-entry .tl-tag.ok { background: rgba(63,185,80,0.15); color: var(--green); }
+
+  /* Stats footer in timeline */
+  .tp-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    background: var(--bg3);
+    font-size: 10px;
+  }
+  .tp-footer .stat-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 3px 0;
+  }
+  .tp-footer .stat-label { color: var(--muted); }
+  .tp-footer .stat-val { font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>⟨ AIOS SELF-HEALING CHAIN ⟩</h1>
+    <div class="sub">故障检测 → 自愈决策 → 自动恢复</div>
+    <div class="live-status">
+      <div class="ls-item"><div class="ls-dot ok"></div><span style="color:var(--green)">心跳正常</span></div>
+      <div class="ls-item"><div class="ls-dot err"></div><span style="color:var(--red)">3 故障</span></div>
+      <div class="ls-item"><div class="ls-dot warn"></div><span style="color:var(--yellow)">1 仲裁中</span></div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="main-canvas-area">
+      <canvas id="healCanvas"></canvas>
+    </div>
+
+    <div class="timeline-panel">
+      <div class="tp-header">⏱ 故障历史时间线</div>
+      <div class="tp-body" id="timelineBody"></div>
+      <div class="tp-footer">
+        <div class="stat-row"><span class="stat-label">今日故障总数</span><span class="stat-val" style="color:var(--red)">7</span></div>
+        <div class="stat-row"><span class="stat-label">自愈成功</span><span class="stat-val" style="color:var(--green)">4</span></div>
+        <div class="stat-row"><span class="stat-label">自愈中</span><span class="stat-val" style="color:var(--yellow)">2</span></div>
+        <div class="stat-row"><span class="stat-label">需人工介入</span><span class="stat-val" style="color:var(--red)">1</span></div>
+        <div class="stat-row"><span class="stat-label">平均恢复时间</span><span class="stat-val" style="color:var(--cyan)">47s</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const C = {
+  bg:'#0a0c0f', bg2:'#111318', bg3:'#181b22',
+  cyan:'#58b4ff', green:'#3fb950', yellow:'#d29922',
+  red:'#f85149', purple:'#bc8cff',
+  text:'#c9d1d9', muted:'#6e7681', border:'#21262d'
+};
+
+// ── FAULT DETECTION LAYER (top) ──
+const faultDetectors = [
+  { id:'hb', label:'心跳超时', icon:'♥', color: C.red, active:true },
+  { id:'ch', label:'通道失败', icon:'⚡', color: C.yellow, active:true },
+  { id:'api', label:'API错误', icon:'⚠', color: C.yellow, active:true },
+  { id:'mem', label:'内存溢出', icon:'◉', color: C.purple, active:false }
+];
+
+// ── SELF-HEALING DECISION TREE ──
+const healTree = {
+  // Channel failure chain
+  channel: {
+    label: '通道失败', color: C.yellow, x:0, y:0,
+    steps: [
+      { label:'重试(3次)', color: C.cyan, status:'auto', activeStep:0 },
+      { label:'切换备用通道', color: C.green, status:'auto', activeStep:1 },
+      { label:'降级模式', color: C.yellow, status:'auto', activeStep:2 },
+      { label:'人工告警', color: C.red, status:'manual', activeStep:3 }
+    ]
+  },
+  // Agent hang chain
+  agent: {
+    label: 'Agent挂起', color: C.red, x:0, y:0,
+    steps: [
+      { label:'自动重启', color: C.cyan, status:'auto', activeStep:0 },
+      { label:'检查依赖', color: C.green, status:'auto', activeStep:1 },
+      { label:'恢复上次状态', color: C.purple, status:'auto', activeStep:2 }
+    ]
+  },
+  // Data source offline chain
+  datasource: {
+    label: '数据源离线', color: C.purple, x:0, y:0,
+    steps: [
+      { label:'标记降频', color: C.cyan, status:'auto', activeStep:0 },
+      { label:'寻找替代源', color: C.green, status:'auto', activeStep:1 },
+      { label:'更新源列表', color: C.yellow, status:'auto', activeStep:2 }
+    ]
+  }
+};
+
+// ── CURRENT FAULT STATUS (bottom) ──
+const currentFaults = [
+  { id:'xg4000004', label:'星光 4000004', type:'agent', chain:'agent', activeStep:1, color: C.red, detail:'session创建失败·自动重启中' },
+  { id:'weibo_ban', label:'微博禁言', type:'channel', chain:'channel', activeStep:2, color: C.yellow, detail:'API返回403·已降级为tophub源' },
+  { id:'feishu_lost', label:'飞书失联', type:'channel', chain:'channel', activeStep:3, color: C.red, detail:'lark-cli超时·需人工检查OAuth' }
+];
+
+// ── TIMELINE DATA ──
+const timelineData = [
+  { time:'15:42:18', msg:'飞书 lark-cli 连接超时', type:'error', tag:'故障' },
+  { time:'15:42:19', msg:'触发通道失败自愈链', type:'healing', tag:'自愈' },
+  { time:'15:42:21', msg:'重试1/3 → 失败', type:'healing', tag:'重试' },
+  { time:'15:42:25', msg:'重试2/3 → 失败', type:'healing', tag:'重试' },
+  { time:'15:42:30', msg:'重试3/3 → 失败', type:'error', tag:'失败' },
+  { time:'15:42:31', msg:'切换备用通道 → 无可用备用', type:'error', tag:'失败' },
+  { time:'15:42:32', msg:'进入降级模式·本地缓存', type:'healing', tag:'降级' },
+  { time:'15:42:33', msg:'降级仍不可用·触发人工告警', type:'error', tag:'告警' },
+  { time:'15:38:07', msg:'星光 session创建错误4000004', type:'error', tag:'故障' },
+  { time:'15:38:08', msg:'触发Agent挂起自愈链', type:'healing', tag:'自愈' },
+  { time:'15:38:10', msg:'自动重启星光进程', type:'healing', tag:'重启' },
+  { time:'15:38:12', msg:'检查依赖项→lark-cli模块异常', type:'healing', tag:'检查' },
+  { time:'15:38:15', msg:'从上次状态恢复→部分成功', type:'resolved', tag:'恢复' },
+  { time:'15:21:44', msg:'微博API返回403 Forbidden', type:'error', tag:'故障' },
+  { time:'15:21:45', msg:'触发通道失败自愈链', type:'healing', tag:'自愈' },
+  { time:'15:21:48', msg:'重试1/3 → 403', type:'healing', tag:'重试' },
+  { time:'15:21:55', msg:'切换备用→tophub源', type:'healing', tag:'切换' },
+  { time:'15:21:56', msg:'降级模式运行中·数据延迟5min', type:'resolved', tag:'降级' }
+];
+
+// ── CANVAS ──
+const canvas = document.getElementById('healCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+let tick = 0;
+let flowParticles = [];
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = canvas.width = rect.width * devicePixelRatio;
+  H = canvas.height = rect.height * devicePixelRatio;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  layoutTree(rect.width, rect.height);
+}
+
+function hexAlpha(a) {
+  return Math.round(Math.min(1, Math.max(0, a)) * 255).toString(16).padStart(2, '0');
+}
+
+function layoutTree(w, h) {
+  // Top: fault detectors
+  const detW = 120, detH = 44;
+  const detGap = 20;
+  const detTotalW = faultDetectors.length * detW + (faultDetectors.length - 1) * detGap;
+  const detStartX = (w - detTotalW) / 2 + detW / 2;
+  faultDetectors.forEach((d, i) => {
+    d.x = detStartX + i * (detW + detGap);
+    d.y = 50;
+    d.w = detW;
+    d.h = detH;
+  });
+
+  // Middle: decision trees
+  const treeY = h * 0.45;
+  const trees = [healTree.channel, healTree.agent, healTree.datasource];
+  const treeGap = w / 4;
+  trees.forEach((tree, i) => {
+    tree.x = treeGap * (i + 1);
+    tree.y = treeY;
+    tree.steps.forEach((s, j) => {
+      s.x = tree.x;
+      s.y = treeY + 40 + j * 48;
+      s.w = 140;
+      s.h = 34;
+    });
+  });
+
+  // Bottom: current faults
+  const faultY = h - 70;
+  currentFaults.forEach((f, i) => {
+    f.x = w * (i + 1) / (currentFaults.length + 1);
+    f.y = faultY;
+    f.w = 160;
+    f.h = 52;
+  });
+}
+
+// ── FLOW PARTICLES (along healing chains) ──
+class FlowParticle {
+  constructor(tree, stepIdx, color) {
+    this.tree = tree;
+    this.stepIdx = stepIdx;
+    this.color = color;
+    this.t = 0;
+    this.speed = 0.01 + Math.random() * 0.005;
+    this.alive = true;
+    this.size = 2 + Math.random();
+  }
+  update() {
+    this.t += this.speed;
+    if (this.t >= 1) this.alive = false;
+  }
+  getPos() {
+    const steps = this.tree.steps;
+    const fromIdx = Math.min(this.stepIdx, steps.length - 2);
+    const toIdx = fromIdx + 1;
+    if (toIdx >= steps.length) {
+      const s = steps[steps.length - 1];
+      return { x: s.x, y: s.y };
+    }
+    const from = steps[fromIdx];
+    const to = steps[toIdx];
+    const x = from.x + (to.x - from.x) * this.t;
+    const y = from.y + (to.y - from.y) * this.t;
+    return { x, y };
+  }
+  draw(ctx) {
+    const p = this.getPos();
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    // glow
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, this.size * 4);
+    g.addColorStop(0, this.color + '44');
+    g.addColorStop(1, this.color + '00');
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, this.size * 4, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+}
+
+function spawnFlowParticles() {
+  // For each current fault, spawn particles along its healing chain
+  currentFaults.forEach(fault => {
+    if (Math.random() < 0.03) {
+      const treeKey = fault.chain;
+      const tree = healTree[treeKey];
+      if (tree && fault.activeStep > 0) {
+        const stepIdx = Math.min(fault.activeStep - 1, tree.steps.length - 2);
+        flowParticles.push(new FlowParticle(tree, stepIdx, fault.color));
+      }
+    }
+  });
+  // Also some ambient particles on active chains
+  Object.values(healTree).forEach(tree => {
+    if (Math.random() < 0.015) {
+      const stepIdx = Math.floor(Math.random() * (tree.steps.length - 1));
+      flowParticles.push(new FlowParticle(tree, stepIdx, tree.color));
+    }
+  });
+}
+
+// ── DRAWING ──
+function drawGrid(ctx, w, h) {
+  ctx.strokeStyle = C.border + '33';
+  ctx.lineWidth = 0.5;
+  const step = 40;
+  for (let x = 0; x < w; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+  for (let y = 0; y < h; y += step) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+  }
+}
+
+function drawDetector(ctx, d) {
+  const { x, y, w, h, label, icon, color, active } = d;
+  const pulse = active ? (0.5 + 0.5 * Math.sin(tick * 0.08)) : 0;
+  
+  // Background
+  ctx.fillStyle = active ? color + '12' : C.bg3;
+  ctx.strokeStyle = active ? color : C.border;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x - w/2, y - h/2, w, h, 5);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Active glow
+  if (active) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 8 * pulse;
+    ctx.beginPath();
+    ctx.roundRect(x - w/2, y - h/2, w, h, 5);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  
+  // Icon
+  ctx.fillStyle = color;
+  ctx.font = '14px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.fillText(icon, x - 30, y + 5);
+  
+  // Label
+  ctx.fillStyle = active ? C.text : C.muted;
+  ctx.font = '500 10px "JetBrains Mono"';
+  ctx.fillText(label, x + 10, y + 4);
+}
+
+function drawTreeRoot(ctx, tree) {
+  const { x, y, label, color } = tree;
+  
+  ctx.fillStyle = color + '15';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(x - 70, y - 14, 140, 28, 4);
+  ctx.fill();
+  ctx.stroke();
+  
+  ctx.fillStyle = color;
+  ctx.font = '600 11px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y);
+}
+
+function drawTreeStep(ctx, step, isActive, isCurrentFaultStep) {
+  const { x, y, w, h, label, color, status } = step;
+  
+  // Connection line from previous
+  ctx.strokeStyle = color + '33';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.moveTo(x, y - h/2 - 7);
+  ctx.lineTo(x, y - h/2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Arrow
+  ctx.fillStyle = color + '66';
+  ctx.beginPath();
+  ctx.moveTo(x - 4, y - h/2 - 2);
+  ctx.lineTo(x + 4, y - h/2 - 2);
+  ctx.lineTo(x, y - h/2 + 3);
+  ctx.closePath();
+  ctx.fill();
+  
+  // Step box
+  const bgColor = isCurrentFaultStep ? color + '20' : C.bg3;
+  ctx.fillStyle = bgColor;
+  ctx.strokeStyle = isCurrentFaultStep ? color : (isActive ? color + '88' : C.border);
+  ctx.lineWidth = isCurrentFaultStep ? 2 : 1;
+  ctx.beginPath();
+  ctx.roundRect(x - w/2, y - h/2, w, h, 4);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Active highlight pulse
+  if (isCurrentFaultStep) {
+    const p = 0.3 + 0.3 * Math.sin(tick * 0.1);
+    ctx.fillStyle = color + hexAlpha(p);
+    ctx.beginPath();
+    ctx.roundRect(x - w/2, y - h/2, w, h, 4);
+    ctx.fill();
+  }
+  
+  // Label
+  ctx.fillStyle = isCurrentFaultStep ? '#fff' : (isActive ? C.text : C.muted);
+  ctx.font = isCurrentFaultStep ? '600 10px "JetBrains Mono"' : '400 10px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y);
+  
+  // Status badge
+  if (status === 'manual') {
+    ctx.fillStyle = C.red + '22';
+    ctx.strokeStyle = C.red + '66';
+    ctx.lineWidth = 0.5;
+    const bx = x + w/2 - 18, by = y - h/2 + 3;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, 16, 12, 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = C.red;
+    ctx.font = '600 7px "JetBrains Mono"';
+    ctx.fillText('👤', bx + 8, by + 7);
+  }
+}
+
+function drawFaultStatus(ctx, fault) {
+  const { x, y, w, h, label, color, detail, activeStep } = fault;
+  
+  // Connection to tree
+  const tree = healTree[fault.chain];
+  if (tree) {
+    const targetStep = tree.steps[Math.min(activeStep, tree.steps.length - 1)];
+    ctx.strokeStyle = color + '22';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.moveTo(x, y - h/2);
+    ctx.lineTo(targetStep.x, targetStep.y + targetStep.h/2 + 8);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  
+  // Card
+  ctx.fillStyle = color + '0c';
+  ctx.strokeStyle = color + '66';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x - w/2, y - h/2, w, h, 6);
+  ctx.fill();
+  ctx.stroke();
+  
+  // Pulse border
+  const p = 0.2 + 0.3 * Math.sin(tick * 0.1);
+  ctx.strokeStyle = color + hexAlpha(p);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x - w/2, y - h/2, w, h, 6);
+  ctx.stroke();
+  
+  // Label
+  ctx.fillStyle = color;
+  ctx.font = '600 11px "JetBrains Mono"';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y - 10);
+  
+  // Detail
+  ctx.fillStyle = C.muted;
+  ctx.font = '300 8px "JetBrains Mono"';
+  ctx.fillText(detail, x, y + 6);
+  
+  // Phase indicator
+  const tree2 = healTree[fault.chain];
+  if (tree2) {
+    const stepName = tree2.steps[Math.min(activeStep, tree2.steps.length - 1)].label;
+    ctx.fillStyle = C.text;
+    ctx.font = '500 8px "JetBrains Mono"';
+    ctx.fillText(`▸ ${stepName}`, x, y + 20);
+  }
+}
+
+function drawSectionLabels(ctx, w, h) {
+  ctx.fillStyle = C.muted + '88';
+  ctx.font = '300 9px "JetBrains Mono"';
+  ctx.textAlign = 'left';
+  
+  ctx.fillText('▸ 故障检测层', 12, 30);
+  ctx.fillText('▸ 自愈决策树', 12, healTree.channel.y - 25);
+  ctx.fillText('▸ 当前故障状态', 12, H/devicePixelRatio - 95);
+}
+
+// ── TIMELINE RENDER ──
+function renderTimeline() {
+  const body = document.getElementById('timelineBody');
+  body.innerHTML = timelineData.map(t => {
+    const cls = t.type === 'error' ? 'error' : t.type === 'healing' ? 'healing' : 'resolved';
+    const tagCls = t.type === 'error' ? 'err' : t.type === 'healing' ? 'heal' : 'ok';
+    return `<div class="tl-entry ${cls}">
+      <div class="tl-time">${t.time}</div>
+      <div class="tl-msg">${t.msg}</div>
+      <span class="tl-tag ${tagCls}">${t.tag}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── MAIN LOOP ──
+function frame() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const w = rect.width, h = rect.height;
+  
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  
+  // Grid
+  drawGrid(ctx, w, h);
+  
+  // Section labels
+  drawSectionLabels(ctx, w, h);
+  
+  // Detector -> Tree connections
+  const trees = [healTree.channel, healTree.agent, healTree.datasource];
+  faultDetectors.forEach(det => {
+    trees.forEach(tree => {
+      ctx.strokeStyle = det.color + '0c';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(det.x, det.y + det.h/2);
+      ctx.lineTo(tree.x, tree.y - 14);
+      ctx.stroke();
+    });
+  });
+  
+  // Draw detectors
+  faultDetectors.forEach(d => drawDetector(ctx, d));
+  
+  // Draw healing trees
+  trees.forEach(tree => {
+    drawTreeRoot(ctx, tree);
+    // Vertical line from root to first step
+    ctx.strokeStyle = tree.color + '44';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(tree.x, tree.y + 14);
+    ctx.lineTo(tree.x, tree.steps[0].y - tree.steps[0].h/2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    tree.steps.forEach((step, i) => {
+      // Determine if this step is part of an active fault's path
+      let isCurrentFaultStep = false;
+      let isActive = false;
+      currentFaults.forEach(f => {
+        if (f.chain === Object.keys(healTree).find(k => healTree[k] === tree)) {
+          if (i <= f.activeStep) isActive = true;
+          if (i === f.activeStep) isCurrentFaultStep = true;
+        }
+      });
+      // Default: first step always active
+      if (i === 0) isActive = true;
+      drawTreeStep(ctx, step, isActive, isCurrentFaultStep);
+    });
+  });
+  
+  // Draw current faults
+  currentFaults.forEach(f => drawFaultStatus(ctx, f));
+  
+  // Flow particles
+  spawnFlowParticles();
+  flowParticles = flowParticles.filter(p => p.alive);
+  flowParticles.forEach(p => { p.update(); p.draw(ctx); });
+  
+  tick++;
+  requestAnimationFrame(frame);
+}
+
+// ── INIT ──
+window.addEventListener('resize', resize);
+resize();
+renderTimeline();
+frame();
+</script>
+</body>
+</html>

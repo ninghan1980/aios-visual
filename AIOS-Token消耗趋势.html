@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三元 AIOS · Token消耗趋势</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  background: #0a0c0f;
+  color: #e8eaed;
+  min-height: 100vh;
+  padding: 32px;
+  overflow-x: hidden;
+}
+.header {
+  margin-bottom: 32px;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #58b4ff, #bc8cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header .sub {
+  font-size: 11px;
+  color: #484f58;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.chart-container {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  padding: 32px;
+  margin-bottom: 24px;
+  position: relative;
+}
+canvas {
+  width: 100%;
+  height: 400px;
+  display: block;
+}
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+}
+.stat-card:nth-child(1)::before { background: #58b4ff; }
+.stat-card:nth-child(2)::before { background: #3fb950; }
+.stat-card:nth-child(3)::before { background: #d29922; }
+.stat-card:nth-child(4)::before { background: #bc8cff; }
+.stat-card:nth-child(5)::before { background: #f0883e; }
+.stat-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #484f58;
+  margin-bottom: 8px;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.stat-meta {
+  font-size: 11px;
+  color: #484f58;
+}
+.breakdown {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 8px;
+  padding: 24px;
+}
+.breakdown-title {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #484f58;
+  margin-bottom: 20px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.bar-label {
+  width: 80px;
+  text-align: right;
+  font-size: 12px;
+  color: #8b949e;
+  flex-shrink: 0;
+}
+.bar-track {
+  flex: 1;
+  height: 20px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 2px; height: 100%;
+  background: rgba(255,255,255,0.3);
+}
+.bar-value {
+  width: 60px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.legend {
+  display: flex;
+  gap: 24px;
+  font-size: 10px;
+  color: #484f58;
+  margin-top: 16px;
+  justify-content: center;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.legend-line {
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Token Consumption Trend</h1>
+  <div class="sub">全球Token日消耗量 · 推理成本下行曲线 · 杰文斯悖论实证</div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">当前日消耗</div>
+    <div class="stat-value" style="color:#58b4ff">140T</div>
+    <div class="stat-meta">Token/天 · 2026</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">2030预测</div>
+    <div class="stat-value" style="color:#3fb950">120E</div>
+    <div class="stat-meta">Token/月 · 3个数量级增长</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">成本降幅</div>
+    <div class="stat-value" style="color:#d29922">280×</div>
+    <div class="stat-meta">2024→2026 推理成本</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">支出增幅</div>
+    <div class="stat-value" style="color:#bc8cff">320%</div>
+    <div class="stat-meta">杰文斯悖论 · 越便宜越花</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">DS V4 单价</div>
+    <div class="stat-value" style="color:#f0883e">33元</div>
+    <div class="stat-meta">/ 亿Token · 当前基线</div>
+  </div>
+</div>
+
+<div class="chart-container">
+  <canvas id="trendChart"></canvas>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-line" style="background:#58b4ff"></span> 日消耗量 (Token)</div>
+    <div class="legend-item"><span class="legend-line" style="background:#f85149"></span> 推理成本 (元/百万Token)</div>
+    <div class="legend-item"><span class="legend-line" style="background:#3fb950"></span> 总支出规模 (指数)</div>
+  </div>
+</div>
+
+<div class="breakdown">
+  <div class="breakdown-title">场景消耗分布</div>
+  <div class="bar-row">
+    <span class="bar-label">编程辅助</span>
+    <div class="bar-track"><div class="bar-fill" style="width:52%;background:linear-gradient(90deg,#58b4ff,#3fb950)"></div></div>
+    <span class="bar-value" style="color:#58b4ff">52%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">Agent自动化</span>
+    <div class="bar-track"><div class="bar-fill" style="width:18%;background:linear-gradient(90deg,#bc8cff,#58b4ff)"></div></div>
+    <span class="bar-value" style="color:#bc8cff">18%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">AI搜索</span>
+    <div class="bar-track"><div class="bar-fill" style="width:12%;background:linear-gradient(90deg,#3fb950,#d29922)"></div></div>
+    <span class="bar-value" style="color:#3fb950">12%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">内容生成</span>
+    <div class="bar-track"><div class="bar-fill" style="width:8%;background:linear-gradient(90deg,#d29922,#f0883e)"></div></div>
+    <span class="bar-value" style="color:#d29922">8%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">商业智能</span>
+    <div class="bar-track"><div class="bar-fill" style="width:5%;background:linear-gradient(90deg,#f0883e,#f85149)"></div></div>
+    <span class="bar-value" style="color:#f0883e">5%</span>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">其他</span>
+    <div class="bar-track"><div class="bar-fill" style="width:5%;background:rgba(255,255,255,0.1)"></div></div>
+    <span class="bar-value" style="color:#484f58">5%</span>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('trendChart');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width - 64;
+  canvas.height = 400;
+}
+resize();
+window.addEventListener('resize', () => { resize(); draw(); });
+
+// Data: 2024 Q1 → 2030 Q4 (28 quarters)
+const labels = ['24Q1','24Q2','24Q3','24Q4','25Q1','25Q2','25Q3','25Q4','26Q1','26Q2','26Q3','26Q4','27Q1','27Q2','27Q3','27Q4','28Q1','28Q2','28Q3','28Q4','29Q1','29Q2','29Q3','29Q4','30Q1','30Q2','30Q3','30Q4'];
+
+// Consumption (trillion tokens/day) - exponential growth
+const consumption = [5,8,12,18,28,42,60,85,120,140,180,240,320,420,540,680,850,1050,1300,1600,1950,2400,3000,3800,4800,6000,7500,9500];
+
+// Cost (yuan per million tokens) - declining
+const cost = [120,95,75,60,48,38,30,24,18,15,12,10,8,6.5,5,4,3.2,2.6,2.1,1.7,1.4,1.1,0.9,0.7,0.6,0.5,0.4,0.3];
+
+// Total spend index (consumption * cost * 1000 for scale, then normalize)
+const spendRaw = consumption.map((c, i) => c * cost[i]);
+const spendMax = Math.max(...spendRaw);
+const spend = spendRaw.map(s => s / spendMax * 100);
+
+function draw() {
+  const W = canvas.width;
+  const H = canvas.height;
+  const padL = 60, padR = 60, padT = 20, padB = 50;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 5; i++) {
+    const y = padT + (chartH / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(padL, y);
+    ctx.lineTo(W - padR, y);
+    ctx.stroke();
+  }
+
+  // X axis labels
+  ctx.font = '10px JetBrains Mono';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#484f58';
+  labels.forEach((l, i) => {
+    if (i % 4 === 0) {
+      const x = padL + (chartW / (labels.length - 1)) * i;
+      ctx.fillText(l, x, H - padB + 20);
+    }
+  });
+
+  // Draw lines
+  function drawLine(data, maxVal, color, yLabel) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    data.forEach((d, i) => {
+      const x = padL + (chartW / (data.length - 1)) * i;
+      const y = padT + chartH - (d / maxVal) * chartH;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    grad.addColorStop(0, color.replace(')', ',0.12)').replace('rgb', 'rgba'));
+    grad.addColorStop(1, color.replace(')', ',0.00)').replace('rgb', 'rgba'));
+    ctx.lineTo(padL + chartW, padT + chartH);
+    ctx.lineTo(padL, padT + chartH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Y axis label
+    ctx.save();
+    ctx.translate(12, padT + chartH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = color;
+    ctx.font = '10px JetBrains Mono';
+    ctx.fillText(yLabel, 0, 0);
+    ctx.restore();
+  }
+
+  // Current time marker
+  const nowIdx = 8; // 26Q2
+  const nowX = padL + (chartW / (labels.length - 1)) * nowIdx;
+  ctx.strokeStyle = 'rgba(88,180,255,0.3)';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(nowX, padT);
+  ctx.lineTo(nowX, padT + chartH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = '9px JetBrains Mono';
+  ctx.fillStyle = '#58b4ff';
+  ctx.textAlign = 'center';
+  ctx.fillText('NOW', nowX, padT - 4);
+
+  drawLine(spend, 100, 'rgb(63,185,80)', '支出指数');
+  drawLine(consumption, 10000, 'rgb(88,180,255)', '日消耗(T)');
+  drawLine(cost, 130, 'rgb(248,81,73)', '成本(元/M)');
+
+  // Dots at current point
+  [
+    { data: consumption, max: 10000, color: '#58b4ff' },
+    { data: cost, max: 130, color: '#f85149' },
+    { data: spend, max: 100, color: '#3fb950' },
+  ].forEach(series => {
+    const x = padL + (chartW / (series.data.length - 1)) * nowIdx;
+    const y = padT + chartH - (series.data[nowIdx] / series.max) * chartH;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = series.color;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.strokeStyle = series.color + '44';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+
+draw();
+</script>
+</body>
+</html>

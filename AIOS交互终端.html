@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三元 AIOS · 交互终端</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0c0f;
+  --bg-secondary: #111418;
+  --bg-card: #161b22;
+  --bg-input: #0d1117;
+  --border: #1e2a3a;
+  --border-focus: #58b4ff;
+  --text-primary: #e8eaed;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --accent-cyan: #58b4ff;
+  --accent-green: #3fb950;
+  --accent-yellow: #d29922;
+  --accent-red: #f85149;
+  --accent-purple: #bc8cff;
+  --accent-orange: #f0883e;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top Bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo {
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.logo-ver { font-size: 10px; font-weight: 300; }
+.status-pills {
+  display: flex;
+  gap: 8px;
+}
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+}
+.pill-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+}
+.pill-dot.green { background: var(--accent-green); box-shadow: 0 0 4px rgba(63,185,80,0.5); }
+.pill-dot.yellow { background: var(--accent-yellow); }
+.pill-dot.red { background: var(--accent-red); }
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.top-right .time { color: var(--text-secondary); }
+
+/* Main Layout */
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Panel: Status */
+.left-panel {
+  width: 280px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.panel-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-title {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.module-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.module-row .name { color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+.module-row .name .dot { width: 5px; height: 5px; border-radius: 50%; }
+.module-row .val { font-size: 10px; }
+
+.metric-bar {
+  margin-bottom: 10px;
+}
+.metric-bar .label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.metric-bar .track {
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.metric-bar .fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s;
+}
+
+.channel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 11px;
+}
+.channel-badge {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 9px;
+}
+.channel-badge.on { background: rgba(63,185,80,0.10); color: var(--accent-green); }
+.channel-badge.off { background: rgba(248,81,73,0.08); color: var(--accent-red); }
+.channel-badge.warn { background: rgba(210,153,34,0.08); color: var(--accent-yellow); }
+
+.signal-mini {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+.sig-dot {
+  width: 6px; height: 6px;
+  border-radius: 1px;
+}
+.sig-dot.new { background: var(--accent-cyan); }
+.sig-dot.old { background: rgba(255,255,255,0.08); }
+.sig-dot.fail { background: var(--accent-red); }
+
+/* Center: Chat */
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  scroll-behavior: smooth;
+}
+.msg {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  animation: fadeIn 0.3s;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.msg-avatar {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.msg-avatar.ternary {
+  background: linear-gradient(135deg, rgba(88,180,255,0.15), rgba(188,140,255,0.15));
+  color: var(--accent-cyan);
+  border: 1px solid rgba(88,180,255,0.2);
+}
+.msg-avatar.user {
+  background: rgba(240,136,62,0.10);
+  color: var(--accent-orange);
+  border: 1px solid rgba(240,136,62,0.2);
+}
+.msg-avatar.system {
+  background: rgba(63,185,80,0.10);
+  color: var(--accent-green);
+  border: 1px solid rgba(63,185,80,0.2);
+}
+.msg-body {
+  flex: 1;
+  min-width: 0;
+}
+.msg-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.msg-name {
+  font-size: 12px;
+  font-weight: 500;
+}
+.msg-name.ternary { color: var(--accent-cyan); }
+.msg-name.user { color: var(--accent-orange); }
+.msg-name.system { color: var(--accent-green); }
+.msg-time {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.msg-content {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+.msg-content strong { color: var(--text-primary); font-weight: 500; }
+.msg-content code {
+  background: rgba(88,180,255,0.08);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: var(--accent-cyan);
+}
+.msg-content .highlight { color: var(--accent-cyan); }
+.msg-content .success { color: var(--accent-green); }
+.msg-content .warn { color: var(--accent-yellow); }
+.msg-content .danger { color: var(--accent-red); }
+
+.msg-content .card-inline {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.card-inline .ci-title {
+  font-size: 11px;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+}
+.card-inline table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.card-inline td {
+  padding: 3px 0;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.card-inline td:first-child { color: var(--text-muted); width: 40%; }
+.card-inline td:last-child { color: var(--text-secondary); }
+
+.typing-indicator {
+  display: none;
+  margin-bottom: 20px;
+  padding-left: 44px;
+}
+.typing-indicator span {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  margin-right: 4px;
+  animation: typing 1.2s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 60%, 100% { opacity: 0.2; } 30% { opacity: 1; } }
+
+/* Input */
+.chat-input-area {
+  border-top: 1px solid var(--border);
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+.input-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  gap: 12px;
+}
+.input-hint kbd {
+  background: rgba(255,255,255,0.05);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 9px;
+  border: 1px solid var(--border);
+}
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+.chat-input {
+  flex: 1;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.chat-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px rgba(88,180,255,0.08);
+}
+.chat-input::placeholder { color: var(--text-muted); }
+.send-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  border: none;
+  border-radius: 8px;
+  color: #0a0c0f;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: opacity 0.2s;
+}
+.send-btn:hover { opacity: 0.9; }
+
+/* Quick Commands */
+.quick-cmds {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.qcmd {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+.qcmd:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  background: rgba(88,180,255,0.05);
+}
+
+/* Right Panel: Activity */
+.right-panel {
+  width: 260px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.activity-entry {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 11px;
+}
+.activity-entry .a-time {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+.activity-entry .a-text {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.activity-entry .a-text .hl { color: var(--accent-cyan); }
+.activity-entry .a-text .ok { color: var(--accent-green); }
+.activity-entry .a-text .err { color: var(--accent-red); }
+.activity-entry .a-text .w { color: var(--accent-yellow); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .left-panel { display: none; }
+  .right-panel { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="top-left">
+    <div class="logo">SANYUAN AIOS <span class="logo-ver">v2.0</span></div>
+    <div class="status-pills">
+      <div class="pill"><span class="pill-dot green"></span>Ω_loop</div>
+      <div class="pill"><span class="pill-dot green"></span>AIOS</div>
+      <div class="pill"><span class="pill-dot yellow"></span>星光</div>
+      <div class="pill"><span class="pill-dot green"></span>Aether</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <span>DS V4 · 33元/亿T</span>
+    <span class="time" id="clock">--:--:--</span>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div class="panel-section">
+      <div class="panel-title">核心模块</div>
+      <div class="module-row">
+        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>Ω_loop</span>
+        <span class="val" style="color:var(--accent-green)">运行中</span>
+      </div>
+      <div class="module-row">
+        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>AIOS</span>
+        <span class="val" style="color:var(--accent-green)">25m/17t</span>
+      </div>
+      <div class="module-row">
+        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>三元引擎</span>
+        <span class="val" style="color:var(--accent-green)">DS V4</span>
+      </div>
+      <div class="module-row">
+        <span class="name"><span class="dot" style="background:var(--accent-yellow)"></span>RSI</span>
+        <span class="val" style="color:var(--accent-yellow)">待信号</span>
+      </div>
+      <div class="module-row">
+        <span class="name"><span class="dot" style="background:var(--accent-green)"></span>ima</span>
+        <span class="val" style="color:var(--accent-green)">在线</span>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">资源</div>
+      <div class="metric-bar">
+        <div class="label"><span>记忆层</span><span>74%</span></div>
+        <div class="track"><div class="fill" style="width:74%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div></div>
+      </div>
+      <div class="metric-bar">
+        <div class="label"><span>磁盘</span><span>1%</span></div>
+        <div class="track"><div class="fill" style="width:1%;background:var(--accent-green)"></div></div>
+      </div>
+      <div class="metric-bar">
+        <div class="label"><span>Aether信号库</span><span>100条</span></div>
+        <div class="track"><div class="fill" style="width:20%;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple))"></div></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">发布渠道</div>
+      <div class="channel-item">
+        <span>小红书·雪崩星河</span>
+        <span class="channel-badge on">在线</span>
+      </div>
+      <div class="channel-item">
+        <span>微博·地缘通</span>
+        <span class="channel-badge off">禁言</span>
+      </div>
+      <div class="channel-item">
+        <span>公众号</span>
+        <span class="channel-badge warn">待开通</span>
+      </div>
+      <div class="channel-item">
+        <span>飞书</span>
+        <span class="channel-badge off">失联</span>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">信号流 (C15)</div>
+      <div class="signal-mini" id="signalViz"></div>
+    </div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area">
+    <div class="chat-messages" id="chatMessages">
+
+      <div class="msg">
+        <div class="msg-avatar system">⚡</div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <span class="msg-name system">AIOS System</span>
+            <span class="msg-time">13:28</span>
+          </div>
+          <div class="msg-content">
+            系统初始化完成。25 modules / 17 tools / 22 tasks 已就绪。<br>
+            Ω_loop daemon PID 1988 正常运行。Aether感知层累计100条信号。
+          </div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="msg-avatar ternary">三</div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <span class="msg-name ternary">三元</span>
+            <span class="msg-time">13:28</span>
+          </div>
+          <div class="msg-content">
+            教授，AIOS交互终端上线了。左边看系统状态，右边看实时活动，中间聊。<br><br>
+            你可以直接对话，也可以用快捷命令：<br>
+            <code>/status</code> 系统概览 · <code>/signal</code> 感知层信号 · <code>/task</code> 任务列表 · <code>/prism</code> 三棱镜分析
+          </div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="msg-avatar user">教授</div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <span class="msg-name user">教授</span>
+            <span class="msg-time">13:29</span>
+          </div>
+          <div class="msg-content">
+            系统状态怎么样
+          </div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="msg-avatar ternary">三</div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <span class="msg-name ternary">三元</span>
+            <span class="msg-time">13:29</span>
+          </div>
+          <div class="msg-content">
+            核心系统正常运行，但发布通道<strong>跛行</strong>状态：
+            <div class="card-inline">
+              <div class="ci-title">▸ 系统健康检查</div>
+              <table>
+                <tr><td>Ω_loop</td><td style="color:var(--accent-green)">✅ 运行中 · PID 1988</td></tr>
+                <tr><td>AIOS</td><td style="color:var(--accent-green)">✅ 25 modules · 17 tools</td></tr>
+                <tr><td>Aether</td><td style="color:var(--accent-green)">✅ 100信号 · 在线率91.7%</td></tr>
+                <tr><td>星光·发布</td><td style="color:var(--accent-yellow)">⚠ 瘫痪第11天</td></tr>
+                <tr><td>微博</td><td style="color:var(--accent-red)">✗ 禁言至06-22</td></tr>
+                <tr><td>飞书</td><td style="color:var(--accent-red)">✗ 失联第11天</td></tr>
+                <tr><td>记忆层</td><td style="color:var(--accent-orange)">74% 渐进压缩中</td></tr>
+              </table>
+            </div>
+            4个渠道只有小红书勉强可用，还是手动的。三棱镜决策情报明天09:00首次执行，届时产出第一份情报。
+          </div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="msg-avatar user">教授</div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <span class="msg-name user">教授</span>
+            <span class="msg-time">13:30</span>
+          </div>
+          <div class="msg-content">
+            /prism 今日信号
+          </div>
+        </div>
+      </div>
+
+      <div class="msg">
+        <div class="msg-avatar ternary">三</div>
+        <div class="msg-body">
+          <div class="msg-header">
+            <span class="msg-name ternary">三元</span>
+            <span class="msg-time">13:30</span>
+          </div>
+          <div class="msg-content">
+            三棱镜预分析 — 基于Aether最新8条信号：
+            <div class="card-inline">
+              <div class="ci-title">▸ 断层线扫描 (L0→L4)</div>
+              <table>
+                <tr><td>L1 经济</td><td>GDELT全球事件流持续活跃，东南亚航运异常增加12%</td></tr>
+                <tr><td>L1 AI</td><td>蚂蚁集团测试"阿宝"超级Agent，入口吞并策略加速</td></tr>
+                <tr><td>L2 地缘</td><td>Anthropic出口管制扩至软件层，BIS新规7月生效</td></tr>
+                <tr><td>L3 芯片</td><td>MLCC产能紧缩信号，PCB订单周期延长</td></tr>
+              </table>
+            </div>
+            <div class="card-inline" style="margin-top:8px">
+              <div class="ci-title">▸ 涌现树 · 相变检测</div>
+              <table>
+                <tr><td>Agent入口</td><td style="color:var(--accent-yellow)">⚠ 相变前期 — 超级App抢入口阶段</td></tr>
+                <tr><td>AI管制</td><td style="color:var(--accent-red)">▲ 升温 — 出口管制从硬件扩至软件</td></tr>
+                <tr><td>Token经济</td><td style="color:var(--accent-green)">→ 稳态增长 — 成本下行+消耗指数增长</td></tr>
+              </table>
+            </div>
+            完整三棱镜分析明日09:00自动执行，首份决策情报入ima"断层线"知识库。
+          </div>
+        </div>
+      </div>
+
+      <div class="typing-indicator" id="typingIndicator">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <div class="input-hint">
+        <span><kbd>Enter</kbd> 发送</span>
+        <span><kbd>/</kbd> 快捷命令</span>
+        <span><kbd>Tab</kbd> 自动补全</span>
+      </div>
+      <div class="input-row">
+        <input type="text" class="chat-input" id="chatInput" placeholder="输入消息或 / 命令..." autocomplete="off">
+        <button class="send-btn" id="sendBtn">SEND</button>
+      </div>
+      <div class="quick-cmds">
+        <div class="qcmd" data-cmd="/status">/status</div>
+        <div class="qcmd" data-cmd="/signal">/signal</div>
+        <div class="qcmd" data-cmd="/task">/task</div>
+        <div class="qcmd" data-cmd="/prism">/prism</div>
+        <div class="qcmd" data-cmd="/token">/token</div>
+        <div class="qcmd" data-cmd="/memory">/memory</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="panel-section">
+      <div class="panel-title">实时活动</div>
+    </div>
+    <div id="activityFeed">
+      <div class="activity-entry">
+        <div class="a-time">13:30</div>
+        <div class="a-text"><span class="hl">交互终端</span> 上线 · 可视化聊天界面</div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">13:11</div>
+        <div class="a-text"><span class="hl">Aether</span> C15完成 · <span class="ok">+11信号</span> · 累计100</div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">12:48</div>
+        <div class="a-text"><span class="hl">雪崩星河</span> 发布成功 · <span class="ok">系统级AI</span></div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">12:33</div>
+        <div class="a-text"><span class="hl">深度研究</span> Token消费报告 · <span class="ok">完成</span></div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">12:11</div>
+        <div class="a-text"><span class="hl">AIOS</span> 健康检查 · <span class="ok">All OK</span></div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">12:06</div>
+        <div class="a-text"><span class="hl">三棱镜</span> 决策情报日程 · <span class="ok">创建</span></div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">11:52</div>
+        <div class="a-text"><span class="hl">Aether</span> C13 · <span class="w">在线率42%</span></div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">11:35</div>
+        <div class="a-text"><span class="hl">AICEO</span> 技能发布 · <span class="ok">skill_id:7651</span></div>
+      </div>
+      <div class="activity-entry">
+        <div class="a-time">09:26</div>
+        <div class="a-text"><span class="hl">深度研究</span> 每日日程 · <span class="ok">UID:5426</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' });
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// Signal viz
+const signalViz = document.getElementById('signalViz');
+for (let i = 0; i < 100; i++) {
+  const dot = document.createElement('span');
+  dot.className = 'sig-dot ' + (i >= 89 ? 'new' : i < 4 ? 'fail' : 'old');
+  signalViz.appendChild(dot);
+}
+
+// Chat input
+const chatInput = document.getElementById('chatInput');
+const sendBtn = document.getElementById('sendBtn');
+const chatMessages = document.getElementById('chatMessages');
+const typingIndicator = document.getElementById('typingIndicator');
+
+const responses = {
+  '/status': {
+    name: '三元',
+    content: `系统概览：<div class="card-inline"><table>
+      <tr><td>Ω_loop</td><td style="color:var(--accent-green)">✅ PID 1988 · 180s/cycle</td></tr>
+      <tr><td>AIOS</td><td style="color:var(--accent-green)">✅ 25 modules · 22 tasks</td></tr>
+      <tr><td>Aether</td><td style="color:var(--accent-green)">✅ 100信号 · 54源</td></tr>
+      <tr><td>星光</td><td style="color:var(--accent-yellow)">⚠ 瘫痪第11天</td></tr>
+      <tr><td>微博</td><td style="color:var(--accent-red)">✗ 禁言至06-22</td></tr>
+      <tr><td>飞书</td><td style="color:var(--accent-red)">✗ 失联第11天</td></tr>
+    </table></div>`
+  },
+  '/signal': {
+    name: '三元',
+    content: `Aether感知层状态：<div class="card-inline"><table>
+      <tr><td>累计信号</td><td style="color:var(--accent-cyan)">100条</td></tr>
+      <tr><td>最新在线率</td><td style="color:var(--accent-green)">91.7% (C15)</td></tr>
+      <tr><td>数据源</td><td>54源 · 9圈层</td></tr>
+      <tr><td>采集轮次</td><td>15轮</td></tr>
+      <tr><td>故障源</td><td style="color:var(--accent-red)">深圳开放数据(404) · UPI LNG(404)</td></tr>
+    </table></div>下一轮采集约40分钟后触发。`
+  },
+  '/task': {
+    name: '三元',
+    content: `AIOS 22个已注册任务（活跃Top 10）：<div class="card-inline"><table>
+      <tr><td>Aether感知层</td><td style="color:var(--accent-green)">40min/cycle</td></tr>
+      <tr><td>微博热搜+链路B</td><td style="color:var(--accent-yellow)">30min · 发布阻塞</td></tr>
+      <tr><td>RSI自优化</td><td style="color:var(--accent-yellow)">30min · 待信号</td></tr>
+      <tr><td>小红书·雪崩星河</td><td style="color:var(--accent-green)">4h/cycle</td></tr>
+      <tr><td>三棱镜决策情报</td><td style="color:var(--accent-cyan)">每日09:00 · 明日首执行</td></tr>
+      <tr><td>每日深度研究</td><td style="color:var(--accent-cyan)">每日10:00 · 明日首执行</td></tr>
+      <tr><td>AIOS健康检查</td><td style="color:var(--accent-green)">2h/cycle</td></tr>
+      <tr><td>ima知识库同步</td><td style="color:var(--accent-green)">每日09:00-09:30</td></tr>
+    </table></div>`
+  },
+  '/prism': {
+    name: '三元',
+    content: `三棱镜决策情报系统：<div class="card-inline"><div class="ci-title">▸ 框架</div><table>
+      <tr><td>断层线</td><td>信息不对称溶解追踪 L0→L4</td></tr>
+      <tr><td>涌现树</td><td>系统相变拐点检测</td></tr>
+      <tr><td>δ算子</td><td>区分论概念拆解</td></tr>
+    </table></div><div class="card-inline" style="margin-top:8px"><div class="ci-title">▸ 运行状态</div><table>
+      <tr><td>日程</td><td style="color:var(--accent-cyan)">每日09:00 · UID:3f12</td></tr>
+      <tr><td>入库</td><td>ima"断层线"知识库</td></tr>
+      <tr><td>首次执行</td><td style="color:var(--accent-yellow)">2026-06-16 09:00</td></tr>
+      <tr><td>信号源</td><td>Aether 100条信号库</td></tr>
+    </table></div>`
+  },
+  '/token': {
+    name: '三元',
+    content: `Token经济概览：<div class="card-inline"><table>
+      <tr><td>推理模型</td><td style="color:var(--accent-cyan)">DS V4</td></tr>
+      <tr><td>单价</td><td>~33元/亿Token</td></tr>
+      <tr><td>全球日消耗</td><td style="color:var(--accent-cyan)">140万亿/天</td></tr>
+      <tr><td>2030预测</td><td style="color:var(--accent-green)">120千万亿/月</td></tr>
+      <tr><td>成本趋势</td><td style="color:var(--accent-red)">280×降幅</td></tr>
+      <tr><td>杰文斯悖论</td><td style="color:var(--accent-purple)">320%支出增幅</td></tr>
+    </table></div>`
+  },
+  '/memory': {
+    name: '三元',
+    content: `记忆层状态：<div class="card-inline"><table>
+      <tr><td>即时层</td><td style="color:var(--accent-orange)">5.1K / 7.2K (74%)</td></tr>
+      <tr><td>近中期层</td><td style="color:var(--accent-green)">recent_memory/ · 索引+文件</td></tr>
+      <tr><td>语义检索</td><td style="color:var(--accent-green)">memory_search · 深层召回</td></tr>
+      <tr><td>压缩策略</td><td>渐进压缩 · urgency≥0.7保留</td></tr>
+      <tr><td>ima知识库</td><td>断层线(0) + 三元智能(27)</td></tr>
+    </table></div>`
+  }
+};
+
+function sendMessage() {
+  const text = chatInput.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+
+  // User message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg';
+  const now = new Date();
+  const time = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
+  userMsg.innerHTML = `
+    <div class="msg-avatar user">教授</div>
+    <div class="msg-body">
+      <div class="msg-header">
+        <span class="msg-name user">教授</span>
+        <span class="msg-time">${time}</span>
+      </div>
+      <div class="msg-content">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`;
+  chatMessages.insertBefore(userMsg, typingIndicator);
+  scrollToBottom();
+
+  // Show typing
+  typingIndicator.style.display = 'block';
+  scrollToBottom();
+
+  // Response
+  const cmd = text.toLowerCase().split(' ')[0];
+  const resp = responses[cmd];
+
+  setTimeout(() => {
+    typingIndicator.style.display = 'none';
+    const botMsg = document.createElement('div');
+    botMsg.className = 'msg';
+
+    let content;
+    if (resp) {
+      content = resp.content;
+    } else {
+      content = `收到。这个交互终端目前是演示版——实际接入AIOS后，你说的每句话都会直接驱动系统执行。<br><br>试试快捷命令：<code>/status</code> <code>/signal</code> <code>/prism</code> <code>/task</code> <code>/token</code> <code>/memory</code>`;
+    }
+
+    const rTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
+    botMsg.innerHTML = `
+      <div class="msg-avatar ternary">三</div>
+      <div class="msg-body">
+        <div class="msg-header">
+          <span class="msg-name ternary">三元</span>
+          <span class="msg-time">${rTime}</span>
+        </div>
+        <div class="msg-content">${content}</div>
+      </div>`;
+    chatMessages.insertBefore(botMsg, typingIndicator);
+    scrollToBottom();
+  }, 800 + Math.random() * 600);
+}
+
+function scrollToBottom() {
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+sendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// Quick commands
+document.querySelectorAll('.qcmd').forEach(btn => {
+  btn.addEventListener('click', () => {
+    chatInput.value = btn.dataset.cmd;
+    sendMessage();
+  });
+});
+
+chatInput.focus();
+</script>
+</body>
+</html>

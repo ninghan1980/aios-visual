@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三元 AIOS · 可视化导航中心</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
+  background: #0a0c0f;
+  color: #e8eaed;
+  min-height: 100vh;
+  padding: 40px;
+}
+.header { margin-bottom: 48px; }
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #58b4ff, #bc8cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+.header .sub {
+  font-size: 12px;
+  color: #484f58;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+}
+
+.card {
+  background: #161b22;
+  border: 1px solid #1e2a3a;
+  border-radius: 12px;
+  padding: 28px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.card:hover {
+  border-color: #2d3f5a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 3px;
+}
+.card.cyan::before { background: linear-gradient(90deg, #58b4ff, #3fb950); }
+.card.green::before { background: linear-gradient(90deg, #3fb950, #58b4ff); }
+.card.purple::before { background: linear-gradient(90deg, #bc8cff, #58b4ff); }
+.card.orange::before { background: linear-gradient(90deg, #f0883e, #d29922); }
+.card.yellow::before { background: linear-gradient(90deg, #d29922, #f0883e); }
+.card.red::before { background: linear-gradient(90deg, #f85149, #d29922); }
+
+.card-icon {
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #e8eaed;
+}
+.card-desc {
+  font-size: 12px;
+  color: #8b949e;
+  line-height: 1.6;
+}
+.card-tags {
+  margin-top: 14px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tag {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 9px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #484f58;
+}
+.tag.core { color: #58b4ff; border-color: rgba(88,180,255,0.15); background: rgba(88,180,255,0.05); }
+.tag.new { color: #3fb950; border-color: rgba(63,185,80,0.15); background: rgba(63,185,80,0.05); }
+
+.section-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #484f58;
+  margin-bottom: 20px;
+  margin-top: 40px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #1e2a3a;
+}
+.section-title:first-of-type { margin-top: 0; }
+
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid #1e2a3a;
+  font-size: 10px;
+  color: #484f58;
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 800px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+  body { padding: 20px; }
+}
+@media (max-width: 500px) {
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SANYUAN AIOS Visual Hub</h1>
+  <div class="sub">11 可视化面板 · 7 大架构方向 · 系统级智能体操作系统</div>
+</div>
+
+<div class="section-title">▸ 核心监控</div>
+<div class="grid">
+  <a class="card cyan" href="AIOS系统仪表盘.html">
+    <div class="card-icon">📊</div>
+    <div class="card-title">系统仪表盘</div>
+    <div class="card-desc">全局健康面板：Ω_loop/AIOS/Aether/星光/记忆层五维状态，一眼看系统哪在流血</div>
+    <div class="card-tags"><span class="tag core">核心</span><span class="tag">实时状态</span><span class="tag">5指标</span></div>
+  </a>
+  <a class="card cyan" href="AIOS交互终端.html">
+    <div class="card-icon">💬</div>
+    <div class="card-title">交互终端</div>
+    <div class="card-desc">三栏布局聊天+监控+活动流，6个快捷命令直接查询系统状态，最接近产品形态</div>
+    <div class="card-tags"><span class="tag core">核心</span><span class="tag">交互</span><span class="tag">命令</span></div>
+  </a>
+  <a class="card purple" href="AIOS信号流拓扑图.html">
+    <div class="card-icon">🕸️</div>
+    <div class="card-title">信号流拓扑图</div>
+    <div class="card-desc">54源→Aether→Ω_loop/AIOS→三棱镜/深度研究→渠道，交互式节点+粒子流</div>
+    <div class="card-tags"><span class="tag core">核心</span><span class="tag">拓扑</span><span class="tag">交互</span></div>
+  </a>
+</div>
+
+<div class="section-title">▸ 感知层</div>
+<div class="grid">
+  <a class="card green" href="AIOS-感知层在线率时序图.html">
+    <div class="card-icon">📡</div>
+    <div class="card-title">感知层在线率时序</div>
+    <div class="card-desc">15轮采集周期在线率曲线+30%告警线+信号增量柱+数据源健康度分三组展示</div>
+    <div class="card-tags"><span class="tag">Aether</span><span class="tag">时序</span><span class="tag">告警</span></div>
+  </a>
+  <a class="card green" href="AIOS信号源动态发现.html">
+    <div class="card-icon">🔍</div>
+    <div class="card-title">信号源动态发现</div>
+    <div class="card-desc">54源散点图(信噪比×时效性)+发现/淘汰流程+Top5/Bottom5排行+候选源</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">动态源</span><span class="tag">评估</span></div>
+  </a>
+</div>
+
+<div class="section-title">▸ 经济与资源</div>
+<div class="grid">
+  <a class="card orange" href="AIOS-Token消耗趋势.html">
+    <div class="card-icon">📈</div>
+    <div class="card-title">Token消耗趋势</div>
+    <div class="card-desc">日消耗/推理成本/总支出三线叠加+杰文斯悖论实证+八大场景消耗占比</div>
+    <div class="card-tags"><span class="tag">Token</span><span class="tag">趋势</span><span class="tag">杰文斯</span></div>
+  </a>
+  <a class="card orange" href="AIOS-Token经济核算.html">
+    <div class="card-icon">💰</div>
+    <div class="card-title">Token经济核算</div>
+    <div class="card-desc">22任务成本排行+7日趋势+ROI面板(高价值vs低价值)+预算告警+优化建议</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">成本</span><span class="tag">ROI</span></div>
+  </a>
+</div>
+
+<div class="section-title">▸ 架构升级</div>
+<div class="grid">
+  <a class="card purple" href="AIOS记忆共享总线.html">
+    <div class="card-icon">🧠</div>
+    <div class="card-title">记忆共享总线</div>
+    <div class="card-desc">三元/星光/Ω_loop→三层记忆总线→ima知识库，冲突仲裁面板+粒子流</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">记忆</span><span class="tag">仲裁</span></div>
+  </a>
+  <a class="card yellow" href="AIOS错误自愈链.html">
+    <div class="card-icon">🔧</div>
+    <div class="card-title">错误自愈链</div>
+    <div class="card-desc">4个故障检测器→3棵决策树→当前3个真实故障(星光/微博/飞书)的阶段标注</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">自愈</span><span class="tag">容错</span></div>
+  </a>
+  <a class="card green" href="AIOS发布渠道抽象层.html">
+    <div class="card-icon">🔀</div>
+    <div class="card-title">发布渠道抽象层</div>
+    <div class="card-desc">4内容源→4层路由→4渠道端点，离线自动重路由+Toast通知+路由规则表</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">路由</span><span class="tag">重路由</span></div>
+  </a>
+  <a class="card red" href="AIOS第三视角审计.html">
+    <div class="card-icon">🔍</div>
+    <div class="card-title">第三视角审计</div>
+    <div class="card-desc">4个被审计对象→4维度评分(逻辑82/质量91/盲区58/效率74)→问题清单+建议</div>
+    <div class="card-tags"><span class="tag new">新方向</span><span class="tag">审计</span><span class="tag">质量</span></div>
+  </a>
+</div>
+
+<div class="footer">
+  <span>三元 AIOS · 可视化导航中心 · 11 panels</span>
+  <span>2026-06-15 · DS V4 · Coze Agent Cloud</span>
+</div>
+
+</body>
+</html>
