@@ -229,7 +229,7 @@ document.querySelectorAll('.tab').forEach(tab => {
         bot_id: '7599196382645813282',
       },
       ui: {
-        asstBtn: false,
+        asstBtn: { isNeed: false },
         header: { isShow: false },
         footer: { isShow: false, text: '' },
         chatBot: {
@@ -238,6 +238,7 @@ document.querySelectorAll('.tab').forEach(tab => {
         },
       },
     });
+    client.showChatBot && client.showChatBot();
     console.log('Chat SDK initialized');
   } catch(e) {
     console.error('Chat SDK init error:', e);
