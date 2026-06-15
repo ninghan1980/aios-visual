@@ -1,0 +1,35 @@
+{
+  "updated_at": "2026-06-15T14:15:36+08:00",
+  "activities": [
+    {
+      "time": "weibo hot 20260615 ",
+      "task": "weibo_hot",
+      "status": "unknown"
+    },
+    {
+      "time": "weibo hot 20260615 ",
+      "task": "weibo_hot",
+      "status": "unknown"
+    },
+    {
+      "time": "weibo hot 20260615 ",
+      "task": "weibo_hot",
+      "status": "unknown"
+    },
+    {
+      "time": "weibo hot 20260614 ",
+      "task": "weibo_hot",
+      "status": "unknown"
+    },
+    {
+      "time": "rsi autotrain 20260",
+      "task": "rsi",
+      "status": "completed"
+    },
+    {
+      "time": "rsi autotrain 20260",
+      "task": "rsi",
+      "status": "skipped"
+    }
+  ]
+}

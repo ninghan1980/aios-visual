@@ -1,0 +1,89 @@
+{
+  "updated_at": "2026-06-15T14:15:36+08:00",
+  "daily": {
+    "tokens_used": 2400000,
+    "cost_cny": 18.5,
+    "tasks_count": 22
+  },
+  "trend_7d": [
+    {
+      "date": "06-09",
+      "tokens": 1800000,
+      "cost": 13.8
+    },
+    {
+      "date": "06-10",
+      "tokens": 2100000,
+      "cost": 16.2
+    },
+    {
+      "date": "06-11",
+      "tokens": 1950000,
+      "cost": 15.0
+    },
+    {
+      "date": "06-12",
+      "tokens": 2300000,
+      "cost": 17.7
+    },
+    {
+      "date": "06-13",
+      "tokens": 2600000,
+      "cost": 20.0
+    },
+    {
+      "date": "06-14",
+      "tokens": 2200000,
+      "cost": 16.9
+    },
+    {
+      "date": "06-15",
+      "tokens": 2400000,
+      "cost": 18.5
+    }
+  ],
+  "top_tasks": [
+    {
+      "name": "三棱镜决策情报",
+      "tokens": 520000,
+      "roi": "4.2x",
+      "grade": "A"
+    },
+    {
+      "name": "深度研究",
+      "tokens": 480000,
+      "roi": "3.8x",
+      "grade": "A"
+    },
+    {
+      "name": "小红书创作",
+      "tokens": 360000,
+      "roi": "3.2x",
+      "grade": "A"
+    },
+    {
+      "name": "Aether感知采集",
+      "tokens": 280000,
+      "roi": "2.5x",
+      "grade": "B"
+    },
+    {
+      "name": "微博热搜",
+      "tokens": 150000,
+      "roi": "2.0x",
+      "grade": "B"
+    },
+    {
+      "name": "心跳检查",
+      "tokens": 120000,
+      "roi": "1.5x",
+      "grade": "B"
+    },
+    {
+      "name": "RSI续训",
+      "tokens": 80000,
+      "roi": "0.2x",
+      "grade": "C"
+    }
+  ]
+}

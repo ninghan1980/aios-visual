@@ -1,0 +1,57 @@
+{
+  "updated_at": "2026-06-15T14:15:36+08:00",
+  "health_score": 83.3,
+  "modules": {
+    "omega_loop": {
+      "status": "online",
+      "runs": 256,
+      "errors": 0
+    },
+    "aios": {
+      "status": "online",
+      "runs": 256,
+      "errors": 0
+    },
+    "aether": {
+      "status": "online",
+      "cycle": 16
+    },
+    "starlight": {
+      "status": "offline",
+      "reason": "errCode 4000004",
+      "down_since": "2025-06-05"
+    },
+    "rsi": {
+      "status": "training",
+      "samples": 337,
+      "best_acc": 1.0
+    }
+  },
+  "memory": {
+    "healthy_modules": 30,
+    "total_modules": 30,
+    "phi": 0.323,
+    "integral": 2703678841.67,
+    "emergence": 20,
+    "diversity": 0.99
+  },
+  "channels": {
+    "xiaohongshu": {
+      "status": "online",
+      "account": "雪崩星河"
+    },
+    "weibo": {
+      "status": "banned",
+      "account": "地缘通",
+      "until": "2026-06-22"
+    },
+    "wechat_mp": {
+      "status": "manual_only",
+      "account": "公众号"
+    },
+    "feishu": {
+      "status": "offline",
+      "down_since": "2025-06-05"
+    }
+  }
+}
