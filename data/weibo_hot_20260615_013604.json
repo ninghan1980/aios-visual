@@ -1,0 +1,14 @@
+{
+  "task_name": "weibo_hot",
+  "task_id": "disp_weibo_hot_20260615_013604",
+  "dispatched_at": "2026-06-15T01:36:04+08:00",
+  "exec_status": "ok",
+  "collection_method": "mobile_use(星光)",
+  "mobile_thread_id": "Thread_7647006180057039197_260615_52cdf",
+  "post_process": {
+    "chain_b": "triggered_but_skipped",
+    "matched_topics": ["大国外交里的文化遗产（置顶·外交）"],
+    "detail": "命中外交关键词，但为官方宣传类内容。微博地缘通禁言至06-22，小红书雪崩星河人设不匹配官媒外交话题。无实质发布动作，不通知。"
+  },
+  "summary": "置顶'大国外交里的文化遗产'命中外交关键词。地缘通禁言中（至06-22），雪崩星河人设不匹配。跳过发布。"
+}

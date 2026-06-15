@@ -1,0 +1,13 @@
+{
+  "task_name": "weibo_hot",
+  "task_id": "disp_weibo_hot_20260615_110549",
+  "dispatched_at": "2026-06-15T11:05:49+08:00",
+  "exec_status": "ok",
+  "collection_method": "aios_dispatcher",
+  "post_process": {
+    "chain_b": "triggered",
+    "matched_topics": ["大国外交里的文化遗产", "什么是系统级AI"],
+    "detail": "命中外交+AI关键词。微博地缘通禁言至06-22，星光停摆无法发小红书雪崩星河。无实质发布动作。",
+    "summary": "未通知教授"
+  }
+}

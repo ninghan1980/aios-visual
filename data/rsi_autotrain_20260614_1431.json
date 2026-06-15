@@ -1,0 +1,15 @@
+{
+  "task": "rsi_autotrain",
+  "timestamp": "2026-06-14T14:31:46+08:00",
+  "status": "skipped",
+  "reason": "no_new_signals",
+  "details": {
+    "last_run": "2026-06-11T10:12:36",
+    "total_signals": 15,
+    "last_acc": 0.769,
+    "daemon_alive": true,
+    "daemon_pid": 205,
+    "daemon_last_log": "2026-06-11T08:11:25",
+    "plateau_check": "unknown_no_history"
+  }
+}

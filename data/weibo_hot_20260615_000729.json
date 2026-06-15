@@ -1,0 +1,13 @@
+{
+  "task_name": "weibo_hot",
+  "task_id": "disp_weibo_hot_20260615_000729",
+  "dispatched_at": "2026-06-15T00:07:29.982097",
+  "exec_status": "ok",
+  "collection_method": "mobile_use(星光)",
+  "mobile_thread_id": "Thread_7647006180057039197_260615_6550e",
+  "post_process": {
+    "chain_b": "not_triggered",
+    "matched_topics": [],
+    "summary": "TOP15以娱乐(微博电影之夜/明星/剧集)+体育(世界杯)+社会民生为主，无地缘政治/AI/科技关键词命中"
+  }
+}
