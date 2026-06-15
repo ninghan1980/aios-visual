@@ -4,25 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三元 AIOS · 交互终端</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="aios-data.js"></script>
 <style>
 :root {
   --bg-primary: #0a0c0f;
   --bg-secondary: #111418;
   --bg-card: #161b22;
-  --bg-input: #0d1117;
   --border: #1e2a3a;
   --border-focus: #58b4ff;
   --text-primary: #e8eaed;
   --text-secondary: #8b949e;
-  --text-muted: #484f58;
   --accent-cyan: #58b4ff;
   --accent-green: #3fb950;
-  --accent-yellow: #d29922;
   --accent-red: #f85149;
-  --accent-purple: #bc8cff;
-  --accent-orange: #f0883e;
+  --accent-yellow: #d29922;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -37,906 +32,384 @@ body {
 
 /* Top Bar */
 .top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-secondary);
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px; border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary); flex-shrink: 0;
 }
-.top-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.logo {
-  font-size: 16px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.logo-ver { font-size: 10px; font-weight: 300; }
-.status-pills {
-  display: flex;
-  gap: 8px;
-}
+.top-left { display: flex; align-items: center; gap: 16px; }
+.top-title { font-size: 16px; font-weight: 600; }
+.top-title span { color: var(--accent-cyan); }
+.pills { display: flex; gap: 8px; }
 .pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 10px;
-  font-size: 10px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 12px;
+  background: rgba(255,255,255,0.05); font-size: 11px;
 }
-.pill-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-}
-.pill-dot.green { background: var(--accent-green); box-shadow: 0 0 4px rgba(63,185,80,0.5); }
-.pill-dot.yellow { background: var(--accent-yellow); }
-.pill-dot.red { background: var(--accent-red); }
-.top-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 11px;
-  color: var(--text-muted);
-}
-.top-right .time { color: var(--text-secondary); }
-
-/* Main Layout */
-.main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+.pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+.green { background: var(--accent-green); }
+.red { background: var(--accent-red); }
+.yellow { background: var(--accent-yellow); }
+.health-badge {
+  padding: 4px 12px; border-radius: 12px;
+  background: rgba(88,180,255,0.1); border: 1px solid rgba(88,180,255,0.3);
+  font-size: 12px; font-weight: 600;
 }
 
-/* Left Panel: Status */
-.left-panel {
-  width: 280px;
-  border-right: 1px solid var(--border);
-  background: var(--bg-secondary);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  flex-shrink: 0;
+/* Tab Bar */
+.tab-bar {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary); flex-shrink: 0;
 }
-.panel-section {
-  padding: 16px;
-  border-bottom: 1px solid var(--border);
-}
-.panel-title {
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
-.module-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 11px;
-}
-.module-row .name { color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
-.module-row .name .dot { width: 5px; height: 5px; border-radius: 50%; }
-.module-row .val { font-size: 10px; }
-
-.metric-bar {
-  margin-bottom: 10px;
-}
-.metric-bar .label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-.metric-bar .track {
-  height: 3px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.metric-bar .fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 1s;
-}
-
-.channel-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 11px;
-}
-.channel-badge {
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 9px;
-}
-.channel-badge.on { background: rgba(63,185,80,0.10); color: var(--accent-green); }
-.channel-badge.off { background: rgba(248,81,73,0.08); color: var(--accent-red); }
-.channel-badge.warn { background: rgba(210,153,34,0.08); color: var(--accent-yellow); }
-
-.signal-mini {
-  display: flex;
-  gap: 2px;
-  flex-wrap: wrap;
-}
-.sig-dot {
-  width: 6px; height: 6px;
-  border-radius: 1px;
-}
-.sig-dot.new { background: var(--accent-cyan); }
-.sig-dot.old { background: rgba(255,255,255,0.08); }
-.sig-dot.fail { background: var(--accent-red); }
-
-/* Center: Chat */
-.chat-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-primary);
-}
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px;
-  scroll-behavior: smooth;
-}
-.msg {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 12px;
-  animation: fadeIn 0.3s;
-}
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-.msg-avatar {
-  width: 32px; height: 32px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-.msg-avatar.ternary {
-  background: linear-gradient(135deg, rgba(88,180,255,0.15), rgba(188,140,255,0.15));
-  color: var(--accent-cyan);
-  border: 1px solid rgba(88,180,255,0.2);
-}
-.msg-avatar.user {
-  background: rgba(240,136,62,0.10);
-  color: var(--accent-orange);
-  border: 1px solid rgba(240,136,62,0.2);
-}
-.msg-avatar.system {
-  background: rgba(63,185,80,0.10);
-  color: var(--accent-green);
-  border: 1px solid rgba(63,185,80,0.2);
-}
-.msg-body {
-  flex: 1;
-  min-width: 0;
-}
-.msg-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.msg-name {
-  font-size: 12px;
-  font-weight: 500;
-}
-.msg-name.ternary { color: var(--accent-cyan); }
-.msg-name.user { color: var(--accent-orange); }
-.msg-name.system { color: var(--accent-green); }
-.msg-time {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-.msg-content {
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--text-secondary);
-}
-.msg-content strong { color: var(--text-primary); font-weight: 500; }
-.msg-content code {
-  background: rgba(88,180,255,0.08);
-  padding: 1px 6px;
-  border-radius: 3px;
-  font-size: 12px;
-  color: var(--accent-cyan);
-}
-.msg-content .highlight { color: var(--accent-cyan); }
-.msg-content .success { color: var(--accent-green); }
-.msg-content .warn { color: var(--accent-yellow); }
-.msg-content .danger { color: var(--accent-red); }
-
-.msg-content .card-inline {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 12px 16px;
-  margin-top: 8px;
-  font-size: 12px;
-}
-.card-inline .ci-title {
-  font-size: 11px;
-  color: var(--accent-cyan);
-  margin-bottom: 6px;
-}
-.card-inline table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.card-inline td {
-  padding: 3px 0;
-  font-size: 11px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-}
-.card-inline td:first-child { color: var(--text-muted); width: 40%; }
-.card-inline td:last-child { color: var(--text-secondary); }
-
-.typing-indicator {
-  display: none;
-  margin-bottom: 20px;
-  padding-left: 44px;
-}
-.typing-indicator span {
-  display: inline-block;
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--accent-cyan);
-  margin-right: 4px;
-  animation: typing 1.2s infinite;
-}
-.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes typing { 0%, 60%, 100% { opacity: 0.2; } 30% { opacity: 1; } }
-
-/* Input */
-.chat-input-area {
-  border-top: 1px solid var(--border);
-  padding: 16px 20px;
-  background: var(--bg-secondary);
-  flex-shrink: 0;
-}
-.input-hint {
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  display: flex;
-  gap: 12px;
-}
-.input-hint kbd {
-  background: rgba(255,255,255,0.05);
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: 9px;
-  border: 1px solid var(--border);
-}
-.input-row {
-  display: flex;
-  gap: 10px;
-}
-.chat-input {
-  flex: 1;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: var(--text-primary);
-  font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.chat-input:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px rgba(88,180,255,0.08);
-}
-.chat-input::placeholder { color: var(--text-muted); }
-.send-btn {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-  border: none;
-  border-radius: 8px;
-  color: #0a0c0f;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: opacity 0.2s;
-}
-.send-btn:hover { opacity: 0.9; }
-
-/* Quick Commands */
-.quick-cmds {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-}
-.qcmd {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 10px;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.02);
-  color: var(--text-muted);
+.tab {
+  padding: 8px 20px; cursor: pointer; font-size: 13px;
+  color: var(--text-secondary); border-bottom: 2px solid transparent;
   transition: all 0.2s;
 }
-.qcmd:hover {
-  border-color: var(--accent-cyan);
-  color: var(--accent-cyan);
-  background: rgba(88,180,255,0.05);
-}
+.tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+.tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
 
-/* Right Panel: Activity */
-.right-panel {
-  width: 260px;
-  border-left: 1px solid var(--border);
+/* Content */
+.content { flex: 1; display: flex; overflow: hidden; }
+.panel { display: none; flex: 1; overflow: hidden; }
+.panel.active { display: flex; }
+
+/* Chat Panel — iframe */
+.chat-panel { flex-direction: column; }
+.chat-panel iframe {
+  flex: 1; width: 100%; border: none; background: #fff;
+}
+.chat-fallback {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; height: 100%; gap: 16px; color: var(--text-secondary);
+}
+.chat-fallback a {
+  padding: 12px 24px; background: var(--accent-cyan); color: #000;
+  border-radius: 8px; text-decoration: none; font-weight: 600;
+  transition: opacity 0.2s;
+}
+.chat-fallback a:hover { opacity: 0.85; }
+
+/* Command Panel */
+.cmd-panel { flex-direction: column; }
+.cmd-sidebar {
+  width: 220px; border-right: 1px solid var(--border);
+  padding: 16px; overflow-y: auto; flex-shrink: 0;
   background: var(--bg-secondary);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  flex-shrink: 0;
 }
-.activity-entry {
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  font-size: 11px;
+.cmd-section { margin-bottom: 20px; }
+.cmd-section-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-secondary); margin-bottom: 8px;
 }
-.activity-entry .a-time {
-  font-size: 9px;
-  color: var(--text-muted);
-  margin-bottom: 3px;
+.cmd-btn {
+  display: block; width: 100%; padding: 6px 10px; margin-bottom: 4px;
+  background: transparent; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--accent-cyan); font-family: inherit; font-size: 12px;
+  cursor: pointer; text-align: left; transition: all 0.15s;
 }
-.activity-entry .a-text {
-  color: var(--text-secondary);
-  line-height: 1.5;
+.cmd-btn:hover { background: rgba(88,180,255,0.1); border-color: var(--accent-cyan); }
+.cmd-main { flex: 1; display: flex; flex-direction: column; }
+.cmd-messages {
+  flex: 1; overflow-y: auto; padding: 16px; display: flex;
+  flex-direction: column; gap: 10px;
 }
-.activity-entry .a-text .hl { color: var(--accent-cyan); }
-.activity-entry .a-text .ok { color: var(--accent-green); }
-.activity-entry .a-text .err { color: var(--accent-red); }
-.activity-entry .a-text .w { color: var(--accent-yellow); }
+.msg { max-width: 80%; }
+.msg.user { align-self: flex-end; }
+.msg.user .msg-bubble { background: rgba(88,180,255,0.15); border: 1px solid rgba(88,180,255,0.3); }
+.msg.bot .msg-bubble { background: var(--bg-card); border: 1px solid var(--border); }
+.msg-bubble {
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; line-height: 1.6;
+}
+.cmd-input-row {
+  display: flex; padding: 12px; border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+.cmd-input {
+  flex: 1; padding: 8px 12px; background: var(--bg-primary);
+  border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-primary); font-family: inherit; font-size: 13px;
+  outline: none;
+}
+.cmd-input:focus { border-color: var(--accent-cyan); }
+.cmd-send {
+  margin-left: 8px; padding: 8px 16px; background: var(--accent-cyan);
+  border: none; border-radius: 6px; color: #000; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+}
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
-
-/* Responsive */
-@media (max-width: 1000px) {
-  .left-panel { display: none; }
-  .right-panel { display: none; }
+/* Status Panel */
+.status-panel { padding: 20px; overflow-y: auto; }
+.status-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 }
+.status-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px;
+}
+.status-card h3 { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+.status-row {
+  display: flex; justify-content: space-between; padding: 4px 0;
+  font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.status-row:last-child { border-bottom: none; }
+.status-val { font-weight: 600; }
+.ok { color: var(--accent-green); }
+.warn { color: var(--accent-yellow); }
+.err { color: var(--accent-red); }
 </style>
 </head>
 <body>
-
-<!-- Top Bar -->
 <div class="top-bar">
   <div class="top-left">
-    <div class="logo">SANYUAN AIOS <span class="logo-ver">v2.0</span></div>
-    <div class="status-pills" id="topPills">
-      <div class="pill"><span class="pill-dot green" id="pill-omega-dot"></span>Ω_loop</div>
-      <div class="pill"><span class="pill-dot green" id="pill-aios-dot"></span>AIOS</div>
-      <div class="pill"><span class="pill-dot yellow" id="pill-starlight-dot"></span>星光</div>
-      <div class="pill"><span class="pill-dot green" id="pill-aether-dot"></span>Aether</div>
-    </div>
+    <div class="top-title"><span>三元</span> AIOS · 交互终端</div>
+    <div class="pills" id="topPills"></div>
   </div>
-  <div class="top-right">
-    <span>DS V4 · 33元/亿T</span>
-    <span class="time" id="clock">--:--:--</span>
-  </div>
+  <div class="health-badge" id="healthBadge">健康分: --</div>
 </div>
 
-<!-- Main -->
-<div class="main">
+<div class="tab-bar">
+  <div class="tab active" data-tab="chat">💬 对话</div>
+  <div class="tab" data-tab="cmd">⌨️ 命令</div>
+  <div class="tab" data-tab="status">📊 状态</div>
+</div>
 
-  <!-- Left Panel -->
-  <div class="left-panel">
-    <div class="panel-section">
-      <div class="panel-title">核心模块</div>
-      <div id="leftModules">
-        <div class="module-row">
-          <span class="name"><span class="dot" style="background:var(--accent-green)"></span>Ω_loop</span>
-          <span class="val" style="color:var(--accent-green)">加载中</span>
-        </div>
-        <div class="module-row">
-          <span class="name"><span class="dot" style="background:var(--accent-green)"></span>AIOS</span>
-          <span class="val" style="color:var(--accent-green)">加载中</span>
-        </div>
-        <div class="module-row">
-          <span class="name"><span class="dot" style="background:var(--accent-green)"></span>Aether</span>
-          <span class="val" style="color:var(--accent-green)">加载中</span>
-        </div>
-        <div class="module-row">
-          <span class="name"><span class="dot" style="background:var(--accent-yellow)"></span>星光</span>
-          <span class="val" style="color:var(--accent-yellow)">加载中</span>
-        </div>
-        <div class="module-row">
-          <span class="name"><span class="dot" style="background:var(--accent-yellow)"></span>RSI</span>
-          <span class="val" style="color:var(--accent-yellow)">加载中</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-title">资源</div>
-      <div class="metric-bar">
-        <div class="label"><span>记忆层</span><span id="res-memory-pct">--%</span></div>
-        <div class="track"><div class="fill" id="res-memory-bar" style="width:74%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div></div>
-      </div>
-      <div class="metric-bar">
-        <div class="label"><span>磁盘</span><span>1%</span></div>
-        <div class="track"><div class="fill" style="width:1%;background:var(--accent-green)"></div></div>
-      </div>
-      <div class="metric-bar">
-        <div class="label"><span>Aether信号库</span><span id="res-signal-count">--条</span></div>
-        <div class="track"><div class="fill" id="res-signal-bar" style="width:20%;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple))"></div></div>
-      </div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-title">发布渠道</div>
-      <div id="leftChannels">
-        <div class="channel-item">
-          <span>小红书·雪崩星河</span>
-          <span class="channel-badge on">加载中</span>
-        </div>
-        <div class="channel-item">
-          <span>微博·地缘通</span>
-          <span class="channel-badge off">加载中</span>
-        </div>
-        <div class="channel-item">
-          <span>公众号</span>
-          <span class="channel-badge warn">加载中</span>
-        </div>
-        <div class="channel-item">
-          <span>飞书</span>
-          <span class="channel-badge off">加载中</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel-section">
-      <div class="panel-title">信号流 (C--)</div>
-      <div class="signal-mini" id="signalViz"></div>
+<div class="content">
+  <!-- 对话Tab — 嵌入扣子对话 -->
+  <div class="panel chat-panel active" id="panelChat">
+    <iframe id="chatFrame" src="" allow="clipboard-read; clipboard-write"></iframe>
+    <div class="chat-fallback" id="chatFallback" style="display:none">
+      <div style="font-size:48px">💬</div>
+      <div>iframe被浏览器安全策略阻止</div>
+      <a href="https://www.coze.cn/session/7639304045676724526" target="_blank">在新标签页打开对话 →</a>
     </div>
   </div>
 
-  <!-- Chat Area -->
-  <div class="chat-area">
-    <div class="chat-messages" id="chatMessages">
-
-      <div class="msg">
-        <div class="msg-avatar system">⚡</div>
-        <div class="msg-body">
-          <div class="msg-header">
-            <span class="msg-name system">AIOS System</span>
-            <span class="msg-time">--:--</span>
-          </div>
-          <div class="msg-content">
-            系统初始化完成。数据加载中...
-          </div>
-        </div>
+  <!-- 命令Tab -->
+  <div class="panel cmd-panel" id="panelCmd">
+    <div class="cmd-sidebar">
+      <div class="cmd-section">
+        <div class="cmd-section-title">系统</div>
+        <button class="cmd-btn">/status</button>
+        <button class="cmd-btn">/health</button>
+        <button class="cmd-btn">/token</button>
       </div>
-
-      <div class="msg">
-        <div class="msg-avatar ternary">三</div>
-        <div class="msg-body">
-          <div class="msg-header">
-            <span class="msg-name ternary">三元</span>
-            <span class="msg-time">--:--</span>
-          </div>
-          <div class="msg-content">
-            教授，AIOS交互终端已接入实时数据。左边看系统状态，右边看实时活动，中间聊。<br><br>
-            你可以直接对话，也可以用快捷命令：<br>
-            <code>/status</code> 系统概览 · <code>/signal</code> 感知层信号 · <code>/task</code> 任务列表 · <code>/prism</code> 三棱镜分析
-          </div>
-        </div>
+      <div class="cmd-section">
+        <div class="cmd-section-title">感知</div>
+        <button class="cmd-btn">/aether</button>
+        <button class="cmd-btn">/hot</button>
       </div>
-
-      <div class="typing-indicator" id="typingIndicator">
-        <span></span><span></span><span></span>
+      <div class="cmd-section">
+        <div class="cmd-section-title">渠道</div>
+        <button class="cmd-btn">/channels</button>
       </div>
     </div>
-
-    <!-- Input -->
-    <div class="chat-input-area">
-      <div class="input-hint">
-        <span><kbd>Enter</kbd> 发送</span>
-        <span><kbd>/</kbd> 快捷命令</span>
-        <span><kbd>Tab</kbd> 自动补全</span>
-      </div>
-      <div class="input-row">
-        <input type="text" class="chat-input" id="chatInput" placeholder="输入消息或 / 命令..." autocomplete="off">
-        <button class="send-btn" id="sendBtn">SEND</button>
-      </div>
-      <div class="quick-cmds">
-        <div class="qcmd" data-cmd="/status">/status</div>
-        <div class="qcmd" data-cmd="/signal">/signal</div>
-        <div class="qcmd" data-cmd="/task">/task</div>
-        <div class="qcmd" data-cmd="/prism">/prism</div>
-        <div class="qcmd" data-cmd="/token">/token</div>
-        <div class="qcmd" data-cmd="/memory">/memory</div>
+    <div class="cmd-main">
+      <div class="cmd-messages" id="cmdMessages"></div>
+      <div class="cmd-input-row">
+        <input class="cmd-input" id="cmdInput" placeholder="输入命令或消息..." />
+        <button class="cmd-send" id="cmdSend">发送</button>
       </div>
     </div>
   </div>
 
-  <!-- Right Panel -->
-  <div class="right-panel">
-    <div class="panel-section">
-      <div class="panel-title">实时活动</div>
-    </div>
-    <div id="activityFeed">
-      <div class="activity-entry">
-        <div class="a-time">--:--</div>
-        <div class="a-text">加载中...</div>
-      </div>
-    </div>
+  <!-- 状态Tab -->
+  <div class="panel status-panel" id="panelStatus">
+    <div class="status-grid" id="statusGrid"></div>
   </div>
 </div>
 
 <script>
-// ====== Real-time data state ======
-let _sys = null, _aether = null, _token = null, _activities = null;
-
-// ====== Clock ======
-function updateClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false, timeZone: 'Asia/Shanghai' });
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-// ====== Helper ======
-function dotColor(status) {
-  if (status === 'online') return 'var(--accent-green)';
-  if (status === 'offline' || status === 'banned') return 'var(--accent-red)';
-  return 'var(--accent-yellow)';
-}
-function valColor(status) {
-  if (status === 'online') return 'var(--accent-green)';
-  if (status === 'offline' || status === 'banned') return 'var(--accent-red)';
-  return 'var(--accent-yellow)';
-}
-function statusLabel(status) {
-  const m = { online: '运行中', offline: '离线', banned: '封禁', idle: '待信号', degraded: '降级' };
-  return m[status] || status;
-}
-function pillDotClass(status) {
-  if (status === 'online') return 'green';
-  if (status === 'offline' || status === 'banned') return 'red';
-  return 'yellow';
-}
-function channelBadgeClass(status) {
-  if (status === 'online') return 'on';
-  if (status === 'offline' || status === 'banned') return 'off';
-  return 'warn';
-}
-function channelLabel(ch) {
-  if (ch.status === 'online' && ch.account) return ch.account;
-  if (ch.status === 'banned') return '禁言';
-  if (ch.status === 'offline') return '失联';
-  return '待开通';
-}
-function channelName(key) {
-  const m = { xiaohongshu: '小红书', weibo: '微博', feishu: '飞书', gzh: '公众号' };
-  return m[key] || key;
-}
-
-// ====== Left panel: modules ======
-function renderLeftModules() {
-  const el = document.getElementById('leftModules');
-  if (!_sys || !_sys.modules) return;
-  const mods = _sys.modules;
-  const defs = [
-    { key: 'omega_loop', label: 'Ω_loop', valFn: m => m.runs ? m.runs + ' runs' : '' },
-    { key: 'aios', label: 'AIOS', valFn: () => '在线' },
-    { key: 'aether', label: 'Aether', valFn: m => m.cycle ? 'C' + m.cycle : '' },
-    { key: 'starlight', label: '星光', valFn: m => m.reason ? '⚠' : '' },
-    { key: 'rsi', label: 'RSI', valFn: m => m.samples != null ? 's=' + m.samples : '' },
-  ];
-  el.innerHTML = defs.map(d => {
-    const m = mods[d.key] || { status: 'offline' };
-    return `<div class="module-row">
-      <span class="name"><span class="dot" style="background:${dotColor(m.status)}"></span>${d.label}</span>
-      <span class="val" style="color:${valColor(m.status)}">${statusLabel(m.status)} ${d.valFn(m)}</span>
-    </div>`;
-  }).join('');
-
-  // Update top pills
-  const pillDefs = [
-    { id: 'pill-omega-dot', key: 'omega_loop' },
-    { id: 'pill-aios-dot', key: 'aios' },
-    { id: 'pill-starlight-dot', key: 'starlight' },
-    { id: 'pill-aether-dot', key: 'aether' },
-  ];
-  pillDefs.forEach(p => {
-    const m = mods[p.key] || { status: 'offline' };
-    const dot = document.getElementById(p.id);
-    if (dot) dot.className = 'pill-dot ' + pillDotClass(m.status);
+// ========== Tab Switching ==========
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
   });
-}
+});
 
-// ====== Left panel: resources ======
-function renderLeftResources() {
-  if (_aether) {
-    const sig = _aether.total_signals || 0;
-    document.getElementById('res-signal-count').textContent = sig + '条';
-    document.getElementById('res-signal-bar').style.width = Math.min(sig / 500 * 100, 100) + '%';
-  }
-}
+// ========== Chat iframe ==========
+const chatFrame = document.getElementById('chatFrame');
+const chatFallback = document.getElementById('chatFallback');
 
-// ====== Left panel: channels ======
-function renderLeftChannels() {
-  const el = document.getElementById('leftChannels');
-  if (!_sys || !_sys.channels) return;
-  el.innerHTML = Object.entries(_sys.channels).map(([k, ch]) => {
-    const acct = ch.account || '';
-    const display = channelName(k) + (acct ? '·' + acct : '');
-    return `<div class="channel-item">
-      <span>${display}</span>
-      <span class="channel-badge ${channelBadgeClass(ch.status)}">${channelLabel(ch)}</span>
-    </div>`;
-  }).join('');
-}
-
-// ====== Signal viz ======
-function renderSignalViz() {
-  const el = document.getElementById('signalViz');
-  const total = _aether ? (_aether.total_signals || 0) : 0;
-  el.innerHTML = '';
-  for (let i = 0; i < Math.min(total, 100); i++) {
-    const dot = document.createElement('span');
-    dot.className = 'sig-dot ' + (i >= total - 11 ? 'new' : i < 4 ? 'fail' : 'old');
-    el.appendChild(dot);
-  }
-  // Update section title
-  const section = el.closest('.panel-section');
-  if (section && _aether) {
-    section.querySelector('.panel-title').textContent = '信号流 (C' + (_aether.cycle || '--') + ')';
-  }
-}
-
-// ====== Right panel: activities ======
-function renderActivityFeed() {
-  const el = document.getElementById('activityFeed');
-  if (!_activities || !_activities.activities || _activities.activities.length === 0) {
-    el.innerHTML = '<div class="activity-entry"><div class="a-time">--:--</div><div class="a-text">暂无活动</div></div>';
-    return;
-  }
-  el.innerHTML = _activities.activities.slice(0, 20).map(a => {
-    const time = a.time || '--:--';
-    const text = (a.content || a.text || a.message || '')
-      .replace(/\[([^\]]+)\]/g, '<span class="hl">$1</span>');
-    return `<div class="activity-entry">
-      <div class="a-time">${time}</div>
-      <div class="a-text">${text}</div>
-    </div>`;
-  }).join('');
-}
-
-// ====== /status command with live data ======
-function buildStatusResponse() {
-  if (!_sys) return '系统数据加载中，请稍候...';
-  const m = _sys.modules || {};
-  const ch = _sys.channels || {};
-  const getRow = (label, obj, okText, errText) => {
-    const color = obj.status === 'online' ? 'var(--accent-green)' : obj.status === 'offline' || obj.status === 'banned' ? 'var(--accent-red)' : 'var(--accent-yellow)';
-    const icon = obj.status === 'online' ? '✅' : obj.status === 'offline' || obj.status === 'banned' ? '✗' : '⚠';
-    const detail = okText || errText;
-    return `<tr><td>${label}</td><td style="color:${color}">${icon} ${detail}</td></tr>`;
+function initChat() {
+  // Try embedding the coze session page
+  chatFrame.src = 'https://www.coze.cn/session/7639304045676724526';
+  
+  // Detect if iframe failed to load (X-Frame-Options / CSP)
+  chatFrame.onload = function() {
+    try {
+      // If we can access the iframe content, it loaded successfully
+      const doc = chatFrame.contentDocument || chatFrame.contentWindow.document;
+      // If we get here, same-origin — it worked
+    } catch(e) {
+      // Cross-origin — iframe might still be showing content
+      // We can't easily detect if it shows a blank page
+    }
   };
+  
+  chatFrame.onerror = function() {
+    chatFrame.style.display = 'none';
+    chatFallback.style.display = 'flex';
+  };
+}
+initChat();
 
-  const omega = m.omega_loop || {};
-  const aios = m.aios || {};
-  const aether = m.aether || {};
-  const star = m.starlight || {};
-  const rsi = m.rsi || {};
+// ========== Live Data ==========
+let liveData = {};
+async function loadLiveData() {
+  liveData = await AIOSData.all();
+  updateTopBar();
+  updateStatusPanel();
+}
 
-  const rows = [
-    getRow('Ω_loop', omega, '运行中' + (omega.runs ? ' · ' + omega.runs + ' runs' : ''), '离线'),
-    getRow('AIOS', aios, '在线', '离线'),
-    getRow('Aether', aether, aether.cycle ? (aether.total_signals || '--') + '信号 · C' + aether.cycle : '在线', '离线'),
-    getRow('星光', star, '正常', star.reason || '瘫痪'),
-    getRow('RSI', rsi, rsi.samples != null ? 'samples=' + rsi.samples : '待信号', '离线'),
-  ];
+function updateTopBar() {
+  const sys = liveData.sys;
+  if (!sys) return;
+  
+  // Pills
+  const mods = sys.modules || {};
+  const pillsHtml = [
+    { name: 'Ω_loop', s: mods.omega_loop?.status },
+    { name: 'AIOS', s: mods.aios?.status },
+    { name: 'Aether', s: mods.aether?.status },
+    { name: '星光', s: mods.starlight?.status },
+  ].map(p => {
+    const c = p.s === 'online' ? 'green' : p.s === 'offline' ? 'red' : 'yellow';
+    return `<div class="pill"><span class="pill-dot ${c}"></span>${p.name}</div>`;
+  }).join('');
+  document.getElementById('topPills').innerHTML = pillsHtml;
+  
+  // Health
+  const badge = document.getElementById('healthBadge');
+  badge.textContent = '健康分: ' + (sys.health_score || '--');
+  badge.style.color = sys.health_score > 70 ? 'var(--accent-green)' : 'var(--accent-red)';
+}
 
-  // Channel rows
-  Object.entries(ch).forEach(([k, c]) => {
-    const label = channelName(k);
-    if (c.status === 'online') rows.push(getRow(label, c, c.account || '在线', '离线'));
-    else if (c.status === 'banned') rows.push(getRow(label, c, '', '禁言至' + (c.until || '')));
-    else rows.push(getRow(label, c, '', '失联'));
+// ========== Status Panel ==========
+function updateStatusPanel() {
+  const sys = liveData.sys;
+  const aether = liveData.aether;
+  const token = liveData.token;
+  if (!sys) return;
+  
+  const mods = sys.modules || {};
+  const channels = sys.channels || {};
+  
+  let html = '';
+  
+  // Modules card
+  html += '<div class="status-card"><h3>🔧 核心模块</h3>';
+  Object.entries(mods).forEach(([k, v]) => {
+    const s = v.status === 'online' ? 'ok' : v.status === 'offline' ? 'err' : 'warn';
+    html += `<div class="status-row"><span>${k}</span><span class="status-val ${s}">${v.status}${v.reason ? ' · ' + v.reason : ''}</span></div>`;
   });
-
-  // Health score
-  if (_sys.health_score != null) {
-    const hsColor = _sys.health_score >= 80 ? 'var(--accent-green)' : _sys.health_score >= 50 ? 'var(--accent-yellow)' : 'var(--accent-red)';
-    rows.push(`<tr><td>健康分</td><td style="color:${hsColor}">${_sys.health_score.toFixed(1)}</td></tr>`);
+  html += '</div>';
+  
+  // Channels card
+  html += '<div class="status-card"><h3>📢 发布渠道</h3>';
+  Object.entries(channels).forEach(([k, v]) => {
+    const s = v.status === 'online' ? 'ok' : v.status === 'banned' ? 'err' : 'warn';
+    html += `<div class="status-row"><span>${k}</span><span class="status-val ${s}">${v.status}${v.until ? ' → ' + v.until : ''}</span></div>`;
+  });
+  html += '</div>';
+  
+  // Aether card
+  if (aether) {
+    html += `<div class="status-card"><h3>📡 Aether感知层</h3>
+      <div class="status-row"><span>轮次</span><span class="status-val ok">C${aether.cycle || '?'}</span></div>
+      <div class="status-row"><span>在线率</span><span class="status-val ok">${Math.round((aether.online_rate || 0) * 100)}%</span></div>
+      <div class="status-row"><span>信号总数</span><span class="status-val ok">${aether.total_signals || 0}</span></div>
+      <div class="status-row"><span>数据源</span><span class="status-val ok">${aether.sources_total || 0}</span></div>
+    </div>`;
   }
-
-  return `系统概览（实时数据）：<div class="card-inline"><div class="ci-title">▸ 系统健康检查</div><table>${rows.join('')}</table></div>`;
+  
+  // Token card
+  if (token) {
+    const d = token.daily || {};
+    html += `<div class="status-card"><h3>💰 Token消耗</h3>
+      <div class="status-row"><span>今日Token</span><span class="status-val">${AIOSData.fmtNum(d.tokens_used || 0)}</span></div>
+      <div class="status-row"><span>今日成本</span><span class="status-val">¥${d.cost_cny || 0}</span></div>
+      <div class="status-row"><span>今日任务</span><span class="status-val">${d.tasks_count || 0}</span></div>
+    </div>`;
+  }
+  
+  document.getElementById('statusGrid').innerHTML = html;
 }
 
-function buildSignalResponse() {
-  if (!_aether) return 'Aether数据加载中，请稍候...';
-  const rate = _aether.online_rate != null ? (_aether.online_rate * 100).toFixed(1) + '%' : '--%';
-  return `Aether感知层状态（实时）：<div class="card-inline"><table>
-    <tr><td>累计信号</td><td style="color:var(--accent-cyan)">${_aether.total_signals || '--'}条</td></tr>
-    <tr><td>最新在线率</td><td style="color:var(--accent-green)">${rate} (C${_aether.cycle || '--'})</td></tr>
-    <tr><td>数据源</td><td>${_aether.sources_total || '--'}源</td></tr>
-    <tr><td>采集轮次</td><td>${_aether.cycle || '--'}轮</td></tr>
-  </table></div>`;
-}
+// ========== Command Panel ==========
+const cmdMessages = document.getElementById('cmdMessages');
+const cmdInput = document.getElementById('cmdInput');
 
-// ====== Chat logic ======
-const chatInput = document.getElementById('chatInput');
-const sendBtn = document.getElementById('sendBtn');
-const chatMessages = document.getElementById('chatMessages');
-const typingIndicator = document.getElementById('typingIndicator');
-
-const staticResponses = {
-  '/task': {
-    name: '三元',
-    content: `AIOS 任务列表（静态演示）：<div class="card-inline"><table>
-      <tr><td>Aether感知层</td><td style="color:var(--accent-green)">40min/cycle</td></tr>
-      <tr><td>微博热搜+链路B</td><td style="color:var(--accent-yellow)">30min · 发布阻塞</td></tr>
-      <tr><td>RSI自优化</td><td style="color:var(--accent-yellow)">30min · 待信号</td></tr>
-      <tr><td>小红书·雪崩星河</td><td style="color:var(--accent-green)">4h/cycle</td></tr>
-      <tr><td>三棱镜决策情报</td><td style="color:var(--accent-cyan)">每日09:00</td></tr>
-    </table></div>`
+const commands = {
+  '/status': () => {
+    const sys = liveData.sys;
+    if (!sys) return '⏳ 数据加载中...';
+    const m = sys.modules || {}; const ch = sys.channels || {};
+    const rows = [
+      ['Ω_loop', m.omega_loop?.status === 'online' ? '✅ 在线' : '❌ 离线'],
+      ['AIOS', m.aios?.status === 'online' ? '✅ 在线' : '❌ 离线'],
+      ['Aether', `✅ C${m.aether?.cycle || '?'} · ${Math.round((liveData.aether?.online_rate || 0) * 100)}%`],
+      ['星光', m.starlight?.status === 'online' ? '✅ 在线' : '❌ 离线'],
+      ['小红书', ch.xiaohongshu?.status === 'online' ? '✅' : '⚠ ' + ch.xiaohongshu?.status],
+      ['微博', ch.weibo?.status === 'online' ? '✅' : '🔒 ' + (ch.weibo?.until || '禁言中')],
+    ];
+    return '📊 <b>系统状态</b>\n' + rows.map(r => `${r[0]}：${r[1]}`).join('\n');
   },
-  '/prism': {
-    name: '三元',
-    content: `三棱镜决策情报系统：<div class="card-inline"><div class="ci-title">▸ 框架</div><table>
-      <tr><td>断层线</td><td>信息不对称溶解追踪 L0→L4</td></tr>
-      <tr><td>涌现树</td><td>系统相变拐点检测</td></tr>
-      <tr><td>δ算子</td><td>区分论概念拆解</td></tr>
-    </table></div><div class="card-inline" style="margin-top:8px"><div class="ci-title">▸ 运行状态</div><table>
-      <tr><td>日程</td><td style="color:var(--accent-cyan)">每日09:00 · UID:3f12</td></tr>
-      <tr><td>入库</td><td>ima"断层线"知识库</td></tr>
-    </table></div>`
+  '/health': () => {
+    const score = liveData.sys?.health_score || 0;
+    return `❤️ <b>健康评分</b>：${score}/100\n${'█'.repeat(Math.round(score / 5))}${'░'.repeat(20 - Math.round(score / 5))}`;
   },
-  '/token': {
-    name: '三元',
-    content: `Token经济概览：<div class="card-inline"><table>
-      <tr><td>推理模型</td><td style="color:var(--accent-cyan)">DS V4</td></tr>
-      <tr><td>单价</td><td>~33元/亿Token</td></tr>
-      <tr><td>全球日消耗</td><td style="color:var(--accent-cyan)">140万亿/天</td></tr>
-      <tr><td>成本趋势</td><td style="color:var(--accent-red)">280×降幅</td></tr>
-    </table></div>`
+  '/token': () => {
+    const d = liveData.token?.daily || {};
+    return `💰 <b>Token消耗</b>\n今日：${AIOSData.fmtNum(d.tokens_used || 0)}\n成本：¥${d.cost_cny || 0}\n任务：${d.tasks_count || 0}`;
   },
-  '/memory': {
-    name: '三元',
-    content: `记忆层状态：<div class="card-inline"><table>
-      <tr><td>即时层</td><td style="color:var(--accent-orange)">渐进压缩中</td></tr>
-      <tr><td>近中期层</td><td style="color:var(--accent-green)">recent_memory/ · 索引+文件</td></tr>
-      <tr><td>语义检索</td><td style="color:var(--accent-green)">memory_search · 深层召回</td></tr>
-      <tr><td>压缩策略</td><td>渐进压缩 · urgency≥0.7保留</td></tr>
-    </table></div>`
-  }
+  '/aether': () => {
+    const a = liveData.aether;
+    if (!a) return '⏳ 数据加载中...';
+    return `📡 <b>Aether</b>\nC${a.cycle} · 在线${Math.round((a.online_rate || 0) * 100)}%\n信号：${a.total_signals} · 源：${a.sources_total}`;
+  },
+  '/hot': () => {
+    const h = liveData.aether?.weibo_hot;
+    if (!h) return '⏳ 暂无热搜数据';
+    return '🔥 <b>微博热搜</b>\n' + h.slice(0, 5).map(w => `#${w.rank + 1} ${w.title}`).join('\n');
+  },
+  '/channels': () => {
+    const ch = liveData.sys?.channels || {};
+    return '📢 <b>发布渠道</b>\n' + Object.entries(ch).map(([k, v]) => `${k}：${v.status}${v.until ? ' → ' + v.until : ''}`).join('\n');
+  },
 };
 
-function sendMessage() {
-  const text = chatInput.value.trim();
+function addCmdMsg(text, isUser = false) {
+  const div = document.createElement('div');
+  div.className = `msg ${isUser ? 'user' : 'bot'}`;
+  div.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g, '<br>')}</div>`;
+  cmdMessages.appendChild(div);
+  cmdMessages.scrollTop = cmdMessages.scrollHeight;
+}
+
+function handleCmd() {
+  const text = cmdInput.value.trim();
   if (!text) return;
-  chatInput.value = '';
-
-  // User message
-  const userMsg = document.createElement('div');
-  userMsg.className = 'msg';
-  const now = new Date();
-  const time = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
-  userMsg.innerHTML = `
-    <div class="msg-avatar user">教授</div>
-    <div class="msg-body">
-      <div class="msg-header">
-        <span class="msg-name user">教授</span>
-        <span class="msg-time">${time}</span>
-      </div>
-      <div class="msg-content">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-    </div>`;
-  chatMessages.insertBefore(userMsg, typingIndicator);
-  scrollToBottom();
-
-  // Show typing
-  typingIndicator.style.display = 'block';
-  scrollToBottom();
-
-  // Response
-  const cmd = text.toLowerCase().split(' ')[0];
-
-  setTimeout(() => {
-    typingIndicator.style.display = 'none';
-    const botMsg = document.createElement('div');
-    botMsg.className = 'msg';
-
-    let content;
-    if (cmd === '/status') {
-      content = buildStatusResponse();
-    } else if (cmd === '/signal') {
-      content = buildSignalResponse();
-    } else if (staticResponses[cmd]) {
-      content = staticResponses[cmd].content;
-    } else {
-      content = `收到。试试快捷命令：<code>/status</code> <code>/signal</code> <code>/prism</code> <code>/task</code> <code>/token</code> <code>/memory</code>`;
-    }
-
-    const rTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Shanghai' });
-    botMsg.innerHTML = `
-      <div class="msg-avatar ternary">三</div>
-      <div class="msg-body">
-        <div class="msg-header">
-          <span class="msg-name ternary">三元</span>
-          <span class="msg-time">${rTime}</span>
-        </div>
-        <div class="msg-content">${content}</div>
-      </div>`;
-    chatMessages.insertBefore(botMsg, typingIndicator);
-    scrollToBottom();
-  }, 800 + Math.random() * 600);
+  addCmdMsg(text, true);
+  cmdInput.value = '';
+  const cmd = text.startsWith('/') ? text.split(' ')[0] : null;
+  setTimeout(() => addCmdMsg(cmd && commands[cmd] ? commands[cmd]() : '收到。输入 /status /token /aether /hot /channels /health 查看实时数据。'), 200);
 }
 
-function scrollToBottom() {
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-sendBtn.addEventListener('click', sendMessage);
-chatInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
+cmdInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleCmd(); });
+document.getElementById('cmdSend').addEventListener('click', handleCmd);
+document.querySelectorAll('.cmd-btn').forEach(btn => {
+  btn.addEventListener('click', () => { cmdInput.value = btn.textContent.trim(); handleCmd(); });
 });
 
-// Quick commands
-document.querySelectorAll('.qcmd').forEach(btn => {
-  btn.addEventListener('click', () => {
-    chatInput.value = btn.dataset.cmd;
-    sendMessage();
-  });
-});
+addCmdMsg('🟢 三元 AIOS 交互终端 v2.0\n<b>对话Tab</b>：直接跟三元聊天\n<b>命令Tab</b>：快捷查看系统状态\n<b>状态Tab</b>：完整状态面板');
 
-chatInput.focus();
-
-// ====== Auto-refresh data ======
-async function refreshTerminal() {
-  try {
-    const [sys, aether, token, activities] = await Promise.all([
-      AIOSData.system(),
-      AIOSData.aether(),
-      AIOSData.token(),
-      AIOSData.activities()
-    ]);
-    if (sys) { _sys = sys; renderLeftModules(); renderLeftChannels(); }
-    if (aether) { _aether = aether; renderLeftResources(); renderSignalViz(); }
-    if (token) { _token = token; }
-    if (activities) { _activities = activities; renderActivityFeed(); }
-  } catch(e) {
-    console.warn('Terminal refresh failed:', e);
-  }
-}
-
-autoRefresh(refreshTerminal, 60000);
+// Init
+autoRefresh(loadLiveData, 60000);
+loadLiveData();
 </script>
 </body>
 </html>
