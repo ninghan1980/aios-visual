@@ -458,23 +458,23 @@ body {
 <div class="summary-row">
   <div class="summary-card sc-total">
     <div class="sc-label">今日总消耗</div>
-    <div class="sc-value" id="totalTokens">0<span class="sc-unit">K tokens</span></div>
-    <div class="sc-delta up">▲ 12.3% vs 昨日</div>
+    <div class="sc-value" id="totalTokens">--<span class="sc-unit">tokens</span></div>
+    <div class="sc-delta" id="totalTokensDelta" style="color:var(--text-dim)">加载中…</div>
   </div>
   <div class="summary-card sc-cost">
     <div class="sc-label">今日总成本</div>
-    <div class="sc-value" id="totalCost">$0.00</div>
-    <div class="sc-delta up">▲ 8.7% vs 昨日</div>
+    <div class="sc-value" id="totalCost">--</div>
+    <div class="sc-delta" id="totalCostDelta" style="color:var(--text-dim)">加载中…</div>
   </div>
   <div class="summary-card sc-avg">
-    <div class="sc-label">平均单任务成本</div>
-    <div class="sc-value" id="avgCost">$0.00</div>
-    <div class="sc-delta down">▼ 3.2% vs 昨日</div>
+    <div class="sc-label">任务数</div>
+    <div class="sc-value" id="taskCount">--</div>
+    <div class="sc-delta" id="taskCountDelta" style="color:var(--text-dim)">今日执行</div>
   </div>
   <div class="summary-card sc-max">
     <div class="sc-label">最贵任务</div>
-    <div class="sc-value" id="maxTask" style="font-size:16px;">—</div>
-    <div class="sc-delta" style="color:var(--text-dim)">Token: <span id="maxToken">0</span>K</div>
+    <div class="sc-value" id="maxTask" style="font-size:16px;">--</div>
+    <div class="sc-delta" style="color:var(--text-dim)">Token: <span id="maxToken">--</span></div>
   </div>
 </div>
 
@@ -535,49 +535,15 @@ body {
     <div class="panel-body">
       <div class="roi-grid">
         <div class="roi-column roi-high">
-          <div class="roi-title">高价值任务</div>
-          <div class="roi-item">
-            <span>三棱镜决策情报</span>
-            <span class="roi-val">ROI 4.2x</span>
-          </div>
-          <div class="roi-item">
-            <span>深度研究</span>
-            <span class="roi-val">ROI 3.8x</span>
-          </div>
-          <div class="roi-item">
-            <span>断层线每日快报</span>
-            <span class="roi-val">ROI 3.5x</span>
-          </div>
-          <div class="roi-item">
-            <span>Aether感知层采集</span>
-            <span class="roi-val">ROI 2.9x</span>
-          </div>
-          <div class="roi-item">
-            <span>社媒内容发布</span>
-            <span class="roi-val">ROI 2.6x</span>
+          <div class="roi-title">高价值任务 (A)</div>
+          <div id="roiHigh">
+            <!-- Rendered by JS -->
           </div>
         </div>
         <div class="roi-column roi-low">
-          <div class="roi-title">低价值任务</div>
-          <div class="roi-item">
-            <span>RSI跳过/空转</span>
-            <span class="roi-val">ROI 0.2x</span>
-          </div>
-          <div class="roi-item">
-            <span>失败重试(平均3次)</span>
-            <span class="roi-val">ROI 0.3x</span>
-          </div>
-          <div class="roi-item">
-            <span>心跳日志冗余</span>
-            <span class="roi-val">ROI 0.5x</span>
-          </div>
-          <div class="roi-item">
-            <span>重复感知采集</span>
-            <span class="roi-val">ROI 0.6x</span>
-          </div>
-          <div class="roi-item">
-            <span>闲置状态轮询</span>
-            <span class="roi-val">ROI 0.4x</span>
+          <div class="roi-title">低价值任务 (C)</div>
+          <div id="roiLow">
+            <!-- Rendered by JS -->
           </div>
         </div>
       </div>

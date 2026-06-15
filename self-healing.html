@@ -202,6 +202,7 @@
   </div>
 </div>
 
+<script src="aios-data.js"></script>
 <script>
 const C = {
   bg:'#0a0c0f', bg2:'#111318', bg3:'#181b22',
@@ -252,9 +253,12 @@ const healTree = {
 
 // ── CURRENT FAULT STATUS (bottom) ──
 const currentFaults = [
-  { id:'xg4000004', label:'星光 4000004', type:'agent', chain:'agent', activeStep:1, color: C.red, detail:'session创建失败·自动重启中' },
-  { id:'weibo_ban', label:'微博禁言', type:'channel', chain:'channel', activeStep:2, color: C.yellow, detail:'API返回403·已降级为tophub源' },
-  { id:'feishu_lost', label:'飞书失联', type:'channel', chain:'channel', activeStep:3, color: C.red, detail:'lark-cli超时·需人工检查OAuth' }
+  { id:'xg4000004', label:'星光 4000004', type:'agent', chain:'agent', activeStep:1, color: C.red, detail:'session创建失败·自动重启中',
+    channelKey:null, moduleKey:'starlight' },
+  { id:'weibo_ban', label:'微博禁言', type:'channel', chain:'channel', activeStep:2, color: C.yellow, detail:'API返回403·已降级为tophub源',
+    channelKey:'weibo', moduleKey:null },
+  { id:'feishu_lost', label:'飞书失联', type:'channel', chain:'channel', activeStep:3, color: C.red, detail:'lark-cli超时·需人工检查OAuth',
+    channelKey:'feishu', moduleKey:null }
 ];
 
 // ── TIMELINE DATA ──
@@ -685,10 +689,81 @@ function frame() {
   requestAnimationFrame(frame);
 }
 
+// ── LIVE DATA REFRESH ──
+async function refreshHealData() {
+  try {
+    const sys = await AIOSData.system();
+    if (!sys) return;
+    
+    // Update current fault cards from real data
+    currentFaults.forEach(f => {
+      let liveStatus = null;
+      if (f.channelKey && sys.channels) {
+        liveStatus = sys.channels[f.channelKey];
+      } else if (f.moduleKey && sys.modules) {
+        liveStatus = sys.modules[f.moduleKey];
+      }
+      if (liveStatus) {
+        const st = liveStatus.status;
+        // Update active step based on status
+        if (st === 'online') {
+          f.activeStep = -1; // resolved
+          f.color = C.green;
+          f.detail = '已恢复在线';
+        } else if (st === 'offline') {
+          f.activeStep = 1;
+          f.color = C.red;
+          f.detail = '检测中·' + (liveStatus.reason || '连接失败');
+        } else if (st === 'banned') {
+          f.activeStep = 2;
+          f.color = C.yellow;
+          f.detail = '等待恢复·至' + (liveStatus.until || '未知');
+        } else if (st === 'manual_only') {
+          f.activeStep = 3;
+          f.color = C.yellow;
+          f.detail = '仅手动模式';
+        }
+      }
+    });
+    
+    // Dynamic fault statistics
+    const faultCount = currentFaults.filter(f => f.activeStep >= 0).length;
+    const healingCount = currentFaults.filter(f => f.activeStep > 0 && f.activeStep < 3).length;
+    const manualCount = currentFaults.filter(f => f.activeStep === 3).length;
+    const resolvedCount = currentFaults.filter(f => f.activeStep === -1).length;
+    
+    // Update header live-status
+    const liveEl = document.querySelector('.live-status');
+    if (liveEl) {
+      liveEl.innerHTML = `
+        <div class="ls-item"><div class="ls-dot ok"></div><span style="color:var(--green)">心跳正常</span></div>
+        <div class="ls-item"><div class="ls-dot ${faultCount > 0 ? 'err' : 'ok'}"></div><span style="color:${faultCount > 0 ? 'var(--red)' : 'var(--green)'}">${faultCount} 故障</span></div>
+        <div class="ls-item"><div class="ls-dot ${healingCount > 0 ? 'warn' : 'ok'}"></div><span style="color:${healingCount > 0 ? 'var(--yellow)' : 'var(--green)'}">${healingCount} 自愈中</span></div>
+      `;
+    }
+    
+    // Update footer stats
+    const footer = document.querySelector('.tp-footer');
+    if (footer) {
+      footer.innerHTML = `
+        <div class="stat-row"><span class="stat-label">当前故障数</span><span class="stat-val" style="color:var(--red)">${faultCount}</span></div>
+        <div class="stat-row"><span class="stat-label">已自愈</span><span class="stat-val" style="color:var(--green)">${resolvedCount}</span></div>
+        <div class="stat-row"><span class="stat-label">自愈中</span><span class="stat-val" style="color:var(--yellow)">${healingCount}</span></div>
+        <div class="stat-row"><span class="stat-label">需人工介入</span><span class="stat-val" style="color:var(--red)">${manualCount}</span></div>
+        <div class="stat-row"><span class="stat-label">平均恢复时间</span><span class="stat-val" style="color:var(--cyan)">47s</span></div>
+      `;
+    }
+  } catch(e) {
+    console.warn('refreshHealData failed:', e);
+  }
+}
+
 // ── INIT ──
 window.addEventListener('resize', resize);
 resize();
 renderTimeline();
+refreshHealData();
+autoRefresh(refreshHealData, 60000);
 frame();
 </script>
 </body>

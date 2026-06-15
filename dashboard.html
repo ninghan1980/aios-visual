@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三元 AIOS 系统仪表盘</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="aios-data.js"></script>
 <style>
   :root {
     --bg-primary: #0a0c0f;
@@ -518,36 +519,36 @@
     </div>
     <div class="header-time">
       <div id="live-time">--:--:--</div>
-      <div class="date">UTC+8 · Last sync: 2026-06-15 13:11</div>
+      <div class="date" id="header-date">UTC+8 · Last sync: --</div>
     </div>
   </div>
 
   <!-- Status Bar -->
-  <div class="status-bar">
-    <div class="status-item online">
+  <div class="status-bar" id="statusBar">
+    <div class="status-item online" id="sb-omega">
       <div class="status-label">Ω_loop Daemon</div>
-      <div class="status-value green">● ONLINE</div>
-      <div class="status-meta">PID 1988 · 10min/cycle · 正常运行</div>
+      <div class="status-value green" id="sb-omega-val">● --</div>
+      <div class="status-meta" id="sb-omega-meta">加载中...</div>
     </div>
-    <div class="status-item online">
+    <div class="status-item online" id="sb-aios">
       <div class="status-label">AIOS Core</div>
-      <div class="status-value green">● ONLINE</div>
-      <div class="status-meta">25 modules · 17 tools · 22 tasks</div>
+      <div class="status-value green" id="sb-aios-val">● --</div>
+      <div class="status-meta" id="sb-aios-meta">加载中...</div>
     </div>
-    <div class="status-item online">
+    <div class="status-item online" id="sb-aether">
       <div class="status-label">Aether 感知层</div>
-      <div class="status-value cyan">66.7%</div>
-      <div class="status-meta">100 signals · 54 sources · 9 layers</div>
+      <div class="status-value cyan" id="sb-aether-val">--%</div>
+      <div class="status-meta" id="sb-aether-meta">加载中...</div>
     </div>
-    <div class="status-item warning">
+    <div class="status-item warning" id="sb-starlight">
       <div class="status-label">星光·发布通道</div>
-      <div class="status-value yellow">⚠ DEGRADED</div>
-      <div class="status-meta">第11天瘫痪 · errCode 4000004</div>
+      <div class="status-value yellow" id="sb-starlight-val">● --</div>
+      <div class="status-meta" id="sb-starlight-meta">加载中...</div>
     </div>
-    <div class="status-item warning">
-      <div class="status-label">Memory 层</div>
-      <div class="status-value orange">74%</div>
-      <div class="status-meta">即时层 5.1K / 7.2K · 渐进压缩中</div>
+    <div class="status-item warning" id="sb-health">
+      <div class="status-label">系统健康分</div>
+      <div class="status-value orange" id="sb-health-val">--</div>
+      <div class="status-meta" id="sb-health-meta">加载中...</div>
     </div>
   </div>
 
@@ -556,101 +557,23 @@
     <!-- Core Modules -->
     <div class="card">
       <div class="card-title"><span class="dot cyan"></span> 核心模块状态</div>
-      <div class="module-list">
-        <div class="module-item">
-          <div class="module-left">
-            <span class="module-icon green"></span>
-            <div>
-              <div class="module-name">Ω_loop Daemon</div>
-              <div class="module-detail">PID 1988 · 180s/cycle · watchdog ✅</div>
-            </div>
-          </div>
-          <div class="module-right">
-            <div class="module-status green">运行中</div>
-          </div>
-        </div>
-        <div class="module-item">
-          <div class="module-left">
-            <span class="module-icon green"></span>
-            <div>
-              <div class="module-name">AIOS Dispatcher</div>
-              <div class="module-detail">22 tasks · EventBus → Scheduler → ToolRouter</div>
-            </div>
-          </div>
-          <div class="module-right">
-            <div class="module-status green">运行中</div>
-          </div>
-        </div>
-        <div class="module-item">
-          <div class="module-left">
-            <span class="module-icon green"></span>
-            <div>
-              <div class="module-name">三元推理引擎</div>
-              <div class="module-detail">DS V4 · ~33元/亿Token · 全自主驱动</div>
-            </div>
-          </div>
-          <div class="module-right">
-            <div class="module-status green">运行中</div>
-          </div>
-        </div>
-        <div class="module-item">
-          <div class="module-left">
-            <span class="module-icon yellow"></span>
-            <div>
-              <div class="module-name">RSI 自优化</div>
-              <div class="module-detail">30min/cycle · samples=0 · 跳过续训</div>
-            </div>
-          </div>
-          <div class="module-right">
-            <div class="module-status yellow">待信号</div>
-          </div>
-        </div>
-        <div class="module-item">
-          <div class="module-left">
-            <span class="module-icon green"></span>
-            <div>
-              <div class="module-name">ima 知识库</div>
-              <div class="module-detail">三元智能(27条) + 断层线(0条·待填充)</div>
-            </div>
-          </div>
-          <div class="module-right">
-            <div class="module-status green">在线</div>
-          </div>
-        </div>
+      <div class="module-list" id="moduleList">
+        <!-- Dynamic: filled by JS -->
       </div>
     </div>
 
     <!-- Channels -->
     <div class="card">
       <div class="card-title"><span class="dot orange"></span> 发布渠道状态</div>
-      <div class="channel-grid">
-        <div class="channel-item">
-          <div class="channel-name">小红书</div>
-          <div><span class="channel-status-badge online">雪崩星河</span></div>
-          <div class="channel-meta">14篇草稿 · 1篇已发<br>星光依赖 · 需手动发布</div>
-        </div>
-        <div class="channel-item">
-          <div class="channel-name">微博</div>
-          <div><span class="channel-status-badge offline">地缘通</span></div>
-          <div class="channel-meta">禁言至06-22 14:19<br>还剩7天</div>
-        </div>
-        <div class="channel-item">
-          <div class="channel-name">公众号</div>
-          <div><span class="channel-status-badge pending">待开通</span></div>
-          <div class="channel-meta">已有内容能力<br>无自动化发布通道</div>
-        </div>
-        <div class="channel-item">
-          <div class="channel-name">飞书</div>
-          <div><span class="channel-status-badge offline">失联</span></div>
-          <div class="channel-meta">最后活跃06-05<br>第11天</div>
-        </div>
+      <div class="channel-grid" id="channelGrid">
+        <!-- Dynamic: filled by JS -->
       </div>
       <div class="progress-bar" style="margin-top:20px">
-        <div class="progress-fill" style="width:25%"></div>
+        <div class="progress-fill" id="channelProgress" style="width:25%"></div>
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-muted)">
         <span>渠道可用率</span>
-        <span>1/4 在线</span>
+        <span id="channelAvail">--/-- 在线</span>
       </div>
     </div>
   </div>
@@ -662,68 +585,63 @@
       <div class="card-title"><span class="dot purple"></span> Aether 感知层 · 信号流</div>
       <div class="metrics-grid" style="margin-bottom:20px">
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-cyan)">100</div>
+          <div class="metric-value" style="color:var(--accent-cyan)" id="aether-signals">--</div>
           <div class="metric-label">累计信号</div>
         </div>
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-green)">15</div>
+          <div class="metric-value" style="color:var(--accent-green)" id="aether-cycle">--</div>
           <div class="metric-label">采集轮次</div>
         </div>
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-purple)">66.7%</div>
+          <div class="metric-value" style="color:var(--accent-purple)" id="aether-rate">--%</div>
           <div class="metric-label">平均在线率</div>
         </div>
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-yellow)">54</div>
+          <div class="metric-value" style="color:var(--accent-yellow)" id="aether-sources">--</div>
           <div class="metric-label">数据源</div>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">最新信号批次 (Cycle 15 · 13:11)</div>
-      <div class="signal-flow">
-        <span class="signal-dot new" data-tooltip="AI行业">N</span>
-        <span class="signal-dot new" data-tooltip="AI行业">...</span>
-        <span class="signal-dot new" data-tooltip="信息知识">K</span>
-        <span class="signal-dot accumulated" data-tooltip="已累积信号">+89</span>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px" id="aether-cycle-label">最新信号批次 · 加载中</div>
+      <div class="signal-flow" id="signalFlow">
+        <span class="signal-dot new">...</span>
       </div>
-      <div style="display:flex;gap:16px;margin-top:12px;font-size:10px;color:var(--text-muted)">
-        <span>● 本轮新增: <span style="color:var(--accent-cyan)">11条</span></span>
-        <span>● 失败: <span style="color:var(--accent-red)">1源</span></span>
-        <span>● 在线率: <span style="color:var(--accent-green)">91.7%</span></span>
+      <div style="display:flex;gap:16px;margin-top:12px;font-size:10px;color:var(--text-muted)" id="aether-summary">
+        <span>● 加载中...</span>
       </div>
     </div>
 
     <!-- Token & Memory -->
     <div class="card">
       <div class="card-title"><span class="dot green"></span> 资源消耗</div>
-      <div class="metrics-grid">
+      <div class="metrics-grid" id="tokenMetrics">
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-cyan)">DS V4</div>
+          <div class="metric-value" style="color:var(--accent-cyan)" id="tk-model">DS V4</div>
           <div class="metric-label">推理模型</div>
         </div>
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-yellow)">33元</div>
-          <div class="metric-label">亿Token成本</div>
+          <div class="metric-value" style="color:var(--accent-yellow)" id="tk-cost">--元</div>
+          <div class="metric-label">今日成本</div>
         </div>
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-purple)">22</div>
-          <div class="metric-label">已注册任务</div>
+          <div class="metric-value" style="color:var(--accent-purple)" id="tk-tokens">--</div>
+          <div class="metric-label">今日Token</div>
         </div>
         <div class="metric-item">
-          <div class="metric-value" style="color:var(--accent-green)">93</div>
-          <div class="metric-label">可用Skill</div>
+          <div class="metric-value" style="color:var(--accent-green)" id="tk-tasks">--</div>
+          <div class="metric-label">今日任务</div>
         </div>
       </div>
       <div style="margin-top:20px">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:6px">
           <span>记忆层使用</span>
-          <span>5.1K / 7.2K (74%)</span>
+          <span id="memory-usage">-- / -- (--%)</span>
         </div>
         <div class="progress-bar" style="margin-top:0">
-          <div class="progress-fill" style="width:74%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div>
+          <div class="progress-fill" id="memory-progress" style="width:74%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-yellow))"></div>
         </div>
       </div>
       <div style="margin-top:16px;font-size:11px;color:var(--text-muted)">
-        记忆分层: 即时层(5.1K) → 近中期层(索引+文件) → 语义检索
+        记忆分层: 即时层 → 近中期层(索引+文件) → 语义检索
       </div>
     </div>
   </div>
@@ -731,38 +649,10 @@
   <!-- Activity Log -->
   <div class="card grid-full">
     <div class="card-title"><span class="dot yellow"></span> 最近活动日志</div>
-    <div class="activity-log">
+    <div class="activity-log" id="activityLog">
       <div class="log-entry">
-        <span class="log-time">13:11</span>
-        <span class="log-content"><span class="highlight">Aether</span> Cycle 15 完成 · 11条新信号 · 累计 <span class="success">100条</span> · 在线率 91.7%</span>
-      </div>
-      <div class="log-entry">
-        <span class="log-time">13:06</span>
-        <span class="log-content"><span class="highlight">微博热搜</span> 链路B触发 · 命中"系统级AI" · <span class="warn">星光发布失败</span> → pending_queue</span>
-      </div>
-      <div class="log-entry">
-        <span class="log-time">12:48</span>
-        <span class="log-content"><span class="highlight">雪崩星河</span> 小红书发布成功 · 《系统级AI这个热搜，其实是在说我》</span>
-      </div>
-      <div class="log-entry">
-        <span class="log-time">12:33</span>
-        <span class="log-content"><span class="highlight">深度研究</span> Token消费分析报告完成 · 交付 [Token消费-未来必备消费分析报告.md]</span>
-      </div>
-      <div class="log-entry">
-        <span class="log-time">12:30</span>
-        <span class="log-content"><span class="highlight">RSI</span> 续训跳过 · samples=0 · 零开销</span>
-      </div>
-      <div class="log-entry">
-        <span class="log-time">12:11</span>
-        <span class="log-content"><span class="highlight">AIOS</span> 健康检查通过 · 25 modules · 17 tools · 全部正常</span>
-      </div>
-      <div class="log-entry">
-        <span class="log-time">12:06</span>
-        <span class="log-content"><span class="highlight">决策</span> 三棱镜决策情报日程创建 · 每日09:00 · ima断层线知识库</span>
-      </div>
-      <div class="log-entry">
-        <span class="log-time">11:35</span>
-        <span class="log-content"><span class="highlight">技能</span> AICEO CEO技能自动发布 · skill_id: 7651445785602654254</span>
+        <span class="log-time">--:--</span>
+        <span class="log-content" style="color:var(--text-muted)">加载中...</span>
       </div>
     </div>
   </div>
@@ -784,6 +674,247 @@
   }
   updateTime();
   setInterval(updateTime, 1000);
+
+  // Status class mapping
+  function statusClass(status) {
+    if (status === 'online') return 'online';
+    if (status === 'offline' || status === 'banned') return 'offline';
+    if (status === 'idle') return 'warning';
+    return 'warning'; // degraded etc
+  }
+
+  function statusText(status) {
+    const map = { online: '● ONLINE', offline: '● OFFLINE', banned: '● BANNED', idle: '● IDLE', degraded: '⚠ DEGRADED' };
+    return map[status] || '⚠ ' + status.toUpperCase();
+  }
+
+  function statusColorClass(status) {
+    if (status === 'online') return 'green';
+    if (status === 'offline' || status === 'banned') return 'red';
+    if (status === 'idle') return 'yellow';
+    return 'yellow';
+  }
+
+  function iconColorClass(status) {
+    if (status === 'online') return 'green';
+    if (status === 'offline' || status === 'banned') return 'red';
+    if (status === 'idle') return 'yellow';
+    return 'yellow';
+  }
+
+  function moduleStatusLabel(status) {
+    const map = { online: '运行中', offline: '离线', banned: '封禁', idle: '待信号', degraded: '降级' };
+    return map[status] || status;
+  }
+
+  function channelBadgeClass(status) {
+    if (status === 'online') return 'online';
+    if (status === 'offline' || status === 'banned') return 'offline';
+    return 'pending';
+  }
+
+  function channelBadgeText(ch) {
+    if (ch.status === 'online' && ch.account) return ch.account;
+    if (ch.status === 'banned') return '禁言';
+    if (ch.status === 'offline') return '失联';
+    return '待开通';
+  }
+
+  // Render status bar (5 items: omega, aios, aether, starlight, health)
+  function renderStatusBar(sys, aether) {
+    const modules = sys ? sys.modules : {};
+    const m = (key) => modules[key] || { status: 'offline' };
+
+    // Ω_loop
+    const omega = m('omega_loop');
+    const sbOmega = document.getElementById('sb-omega');
+    sbOmega.className = 'status-item ' + statusClass(omega.status);
+    document.getElementById('sb-omega-val').className = 'status-value ' + statusColorClass(omega.status);
+    document.getElementById('sb-omega-val').textContent = statusText(omega.status);
+    document.getElementById('sb-omega-meta').textContent = (omega.runs ? omega.runs + ' runs' : '') +
+      (omega.errors ? ' · ' + omega.errors + ' errors' : '') +
+      (omega.status === 'online' ? ' · 正常运行' : '');
+
+    // AIOS
+    const aios = m('aios');
+    const sbAios = document.getElementById('sb-aios');
+    sbAios.className = 'status-item ' + statusClass(aios.status);
+    document.getElementById('sb-aios-val').className = 'status-value ' + statusColorClass(aios.status);
+    document.getElementById('sb-aios-val').textContent = statusText(aios.status);
+    document.getElementById('sb-aios-meta').textContent = aios.status === 'online' ? '核心调度正常运行' : '异常';
+
+    // Aether
+    const aeth = m('aether');
+    const sbAether = document.getElementById('sb-aether');
+    sbAether.className = 'status-item ' + statusClass(aeth.status);
+    const aetherRate = aether ? (aether.online_rate != null ? (aether.online_rate * 100).toFixed(1) + '%' : '--%') : '--%';
+    document.getElementById('sb-aether-val').textContent = aetherRate;
+    document.getElementById('sb-aether-meta').textContent =
+      (aeth.cycle ? 'C' + aeth.cycle : '') +
+      (aether && aether.total_signals ? ' · ' + aether.total_signals + ' signals' : '') +
+      (aether && aether.sources_total ? ' · ' + aether.sources_total + ' sources' : '');
+
+    // Starlight
+    const star = m('starlight');
+    const sbStar = document.getElementById('sb-starlight');
+    sbStar.className = 'status-item ' + (star.status === 'offline' ? 'offline' : statusClass(star.status));
+    document.getElementById('sb-starlight-val').className = 'status-value ' + statusColorClass(star.status);
+    document.getElementById('sb-starlight-val').textContent = statusText(star.status);
+    document.getElementById('sb-starlight-meta').textContent = star.reason ? star.reason : (star.status === 'online' ? '正常' : '故障');
+
+    // Health score
+    const hs = sys ? sys.health_score : null;
+    const sbHealth = document.getElementById('sb-health');
+    const hsClass = hs >= 80 ? 'green' : hs >= 50 ? 'yellow' : 'red';
+    sbHealth.className = 'status-item ' + (hs >= 80 ? 'online' : hs >= 50 ? 'warning' : 'offline');
+    document.getElementById('sb-health-val').className = 'status-value ' + hsClass;
+    document.getElementById('sb-health-val').textContent = hs != null ? hs.toFixed(1) : '--';
+    document.getElementById('sb-health-meta').textContent = hs != null ? (hs >= 80 ? '系统健康' : hs >= 50 ? '需要关注' : '严重异常') : '加载中';
+  }
+
+  // Render module list
+  function renderModules(sys) {
+    const list = document.getElementById('moduleList');
+    if (!sys || !sys.modules) { list.innerHTML = '<div class="empty-state">数据加载失败</div>'; return; }
+
+    const moduleDefs = [
+      { key: 'omega_loop', name: 'Ω_loop Daemon', detailFn: (m) => m.runs ? m.runs + ' runs · ' + m.errors + ' errors' : '' },
+      { key: 'aios', name: 'AIOS Dispatcher', detailFn: () => 'EventBus → Scheduler → ToolRouter' },
+      { key: 'aether', name: 'Aether 感知层', detailFn: (m) => m.cycle ? 'Cycle ' + m.cycle : '' },
+      { key: 'starlight', name: '星光·发布通道', detailFn: (m) => m.reason || '' },
+      { key: 'rsi', name: 'RSI 自优化', detailFn: (m) => m.samples != null ? 'samples=' + m.samples : '' },
+    ];
+
+    list.innerHTML = moduleDefs.map(def => {
+      const m = sys.modules[def.key] || { status: 'offline' };
+      const color = iconColorClass(m.status);
+      const sColor = statusColorClass(m.status);
+      return `
+        <div class="module-item">
+          <div class="module-left">
+            <span class="module-icon ${color}"></span>
+            <div>
+              <div class="module-name">${def.name}</div>
+              <div class="module-detail">${def.detailFn(m)}</div>
+            </div>
+          </div>
+          <div class="module-right">
+            <div class="module-status ${sColor}">${moduleStatusLabel(m.status)}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Render channels
+  function renderChannels(sys) {
+    const grid = document.getElementById('channelGrid');
+    if (!sys || !sys.channels) { grid.innerHTML = '<div class="empty-state">数据加载失败</div>'; return; }
+
+    const channels = sys.channels;
+    let onlineCount = 0;
+    const total = Object.keys(channels).length;
+
+    grid.innerHTML = Object.entries(channels).map(([name, ch]) => {
+      const badge = channelBadgeClass(ch.status);
+      const badgeText = channelBadgeText(ch);
+      if (ch.status === 'online') onlineCount++;
+      let meta = '';
+      if (ch.account) meta += ch.account;
+      if (ch.until) meta += '禁言至' + ch.until;
+      if (ch.status === 'offline') meta += '失联';
+      return `
+        <div class="channel-item">
+          <div class="channel-name">${name === 'xiaohongshu' ? '小红书' : name === 'weibo' ? '微博' : name === 'feishu' ? '飞书' : name}</div>
+          <div><span class="channel-status-badge ${badge}">${badgeText}</span></div>
+          <div class="channel-meta">${meta}</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('channelProgress').style.width = total ? (onlineCount / total * 100) + '%' : '0%';
+    document.getElementById('channelAvail').textContent = onlineCount + '/' + total + ' 在线';
+  }
+
+  // Render Aether section
+  function renderAether(aether) {
+    if (!aether) return;
+    document.getElementById('aether-signals').textContent = aether.total_signals || '--';
+    document.getElementById('aether-cycle').textContent = aether.cycle || '--';
+    document.getElementById('aether-rate').textContent = aether.online_rate != null ? (aether.online_rate * 100).toFixed(1) + '%' : '--%';
+    document.getElementById('aether-sources').textContent = aether.sources_total || '--';
+    document.getElementById('aether-cycle-label').textContent = '最新信号批次 (Cycle ' + (aether.cycle || '--') + ')';
+
+    // Weibo hot as signal dots
+    const flow = document.getElementById('signalFlow');
+    if (aether.weibo_hot && aether.weibo_hot.length > 0) {
+      flow.innerHTML = aether.weibo_hot.slice(0, 8).map(h =>
+        `<span class="signal-dot new" data-tooltip="${h.title}">${(h.title || '').charAt(0)}</span>`
+      ).join('') + `<span class="signal-dot accumulated" data-tooltip="更多信号">+${Math.max(0, (aether.total_signals || 0) - 8)}</span>`;
+    }
+  }
+
+  // Render Token section
+  function renderToken(token) {
+    if (!token) return;
+    const d = token.daily || {};
+    document.getElementById('tk-cost').textContent = d.cost_cny != null ? d.cost_cny + '元' : '--元';
+    document.getElementById('tk-tokens').textContent = d.tokens_used ? AIOSData.fmtNum(d.tokens_used) : '--';
+    document.getElementById('tk-tasks').textContent = d.tasks_count != null ? d.tasks_count : '--';
+  }
+
+  // Render activity log
+  function renderActivities(activities) {
+    const log = document.getElementById('activityLog');
+    if (!activities || !activities.activities || activities.activities.length === 0) {
+      log.innerHTML = '<div class="log-entry"><span class="log-time">--:--</span><span class="log-content" style="color:var(--text-muted)">暂无活动记录</span></div>';
+      return;
+    }
+    log.innerHTML = activities.activities.slice(0, 10).map(a => {
+      const time = a.time || '--:--';
+      const content = a.content || a.text || a.message || '';
+      // Parse content for highlights
+      const html = content
+        .replace(/\[([^\]]+)\]/g, '<span class="highlight">$1</span>')
+        .replace(/✅/g, '<span class="success">✅</span>')
+        .replace(/⚠/g, '<span class="warn">⚠</span>')
+        .replace(/✗/g, '<span class="fail">✗</span>');
+      return `<div class="log-entry"><span class="log-time">${time}</span><span class="log-content">${html}</span></div>`;
+    }).join('');
+  }
+
+  // Main refresh function
+  async function refreshDashboard() {
+    try {
+      const [sys, aether, token, activities] = await Promise.all([
+        AIOSData.system(),
+        AIOSData.aether(),
+        AIOSData.token(),
+        AIOSData.activities()
+      ]);
+
+      if (sys) {
+        renderStatusBar(sys, aether);
+        renderModules(sys);
+        renderChannels(sys);
+        if (sys.updated_at) {
+          document.getElementById('header-date').textContent = 'UTC+8 · Last sync: ' + sys.updated_at;
+        }
+      }
+      if (aether) {
+        renderAether(aether);
+      }
+      if (token) {
+        renderToken(token);
+      }
+      if (activities) {
+        renderActivities(activities);
+      }
+    } catch(e) {
+      console.warn('Dashboard refresh failed:', e);
+    }
+  }
+
+  // Auto-refresh every 60s
+  autoRefresh(refreshDashboard, 60000);
 </script>
 </body>
 </html>

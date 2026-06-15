@@ -640,6 +640,7 @@ body {
   </table>
 </div>
 
+<script src="aios-data.js"></script>
 <script>
 // === CLOCK ===
 function updateClock() {
@@ -649,12 +650,12 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// === CHANNEL STATE ===
+// === CHANNEL STATE (initial defaults, overridden by live data) ===
 const channels = {
-  xhs:    { online: true,  weight: 0.40, fallback: 'weibo' },
-  weibo:  { online: true,  weight: 0.30, fallback: 'gzh' },
-  gzh:    { online: true,  weight: 0.20, fallback: 'feishu' },
-  feishu: { online: true,  weight: 0.10, fallback: null }
+  xhs:    { online: true,  weight: 0.40, fallback: 'weibo', status: 'online' },
+  weibo:  { online: true,  weight: 0.30, fallback: 'gzh', status: 'online' },
+  gzh:    { online: true,  weight: 0.20, fallback: 'feishu', status: 'manual_only' },
+  feishu: { online: true,  weight: 0.10, fallback: null, status: 'online' }
 };
 
 const sources = ['prism', 'research', 'social', 'rsi'];
@@ -672,41 +673,92 @@ const sourceChannelMap = {
   rsi:     ['feishu', 'gzh']
 };
 
-// === TOGGLE CHANNEL ONLINE/OFFLINE periodically ===
-let offlineCycle = 0;
-function toggleChannels() {
-  const chKeys = Object.keys(channels);
-  // Rotate one channel offline periodically
-  const targetIdx = offlineCycle % chKeys.length;
-  const targetKey = chKeys[targetIdx];
+// === LIVE DATA REFRESH ===
+const channelNameMap = { xhs:'小红书·雪崩星河', weibo:'微博·地缘通', gzh:'公众号', feishu:'飞书推送' };
 
-  // Set previous offline back to online
-  chKeys.forEach(k => {
-    channels[k].online = true;
-    const el = document.getElementById('ch-' + k);
-    el.classList.remove('offline');
+function updateChannelDOM(chKey, ch) {
+  const el = document.getElementById('ch-' + chKey);
+  if (!el) return;
+  const statusText = el.querySelector('.ch-status-text');
+  const dotEl = el.querySelector('.ch-dot');
+
+  el.classList.remove('online', 'offline');
+
+  if (ch.status === 'online') {
+    ch.online = true;
     el.classList.add('online');
-    el.querySelector('.ch-status-text').textContent = '● ONLINE';
-  });
-
-  // Set target offline
-  channels[targetKey].online = false;
-  const targetEl = document.getElementById('ch-' + targetKey);
-  targetEl.classList.remove('online');
-  targetEl.classList.add('offline');
-  targetEl.querySelector('.ch-status-text').textContent = '● OFFLINE';
-
-  // Show toast
-  const toast = document.getElementById('rerouteToast');
-  const names = { xhs:'小红书·雪崩星河', weibo:'微博·地缘通', gzh:'公众号', feishu:'飞书推送' };
-  toast.textContent = '⚡ 渠道故障: ' + names[targetKey] + ' 已离线 — 内容自动路由至 ' + names[channels[targetKey].fallback];
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-
-  offlineCycle++;
+    if (statusText) statusText.textContent = '● ONLINE';
+    if (statusText) statusText.style.color = 'var(--green)';
+  } else if (ch.status === 'offline' || ch.status === 'banned') {
+    ch.online = false;
+    el.classList.add('offline');
+    const label = ch.status === 'banned' ? '● BANNED' : '● OFFLINE';
+    if (statusText) statusText.textContent = label;
+    if (statusText) statusText.style.color = 'var(--red)';
+  } else if (ch.status === 'manual_only') {
+    ch.online = true;
+    el.classList.add('online');
+    el.style.borderColor = 'rgba(210,153,34,0.3)';
+    if (statusText) statusText.textContent = '● MANUAL ONLY';
+    if (statusText) statusText.style.color = 'var(--yellow)';
+    if (dotEl) { dotEl.style.background = 'var(--yellow)'; dotEl.style.boxShadow = '0 0 8px rgba(210,153,34,0.6)'; }
+  }
 }
-setInterval(toggleChannels, 8000);
-setTimeout(toggleChannels, 3000);
+
+async function refreshChannelData() {
+  try {
+    const sys = await AIOSData.system();
+    if (!sys || !sys.channels) return;
+
+    const channelKeyMap = { xhs:'xiaohongshu', weibo:'weibo', gzh:'wechat_mp', feishu:'feishu' };
+
+    Object.keys(channelKeyMap).forEach(chKey => {
+      const apiKey = channelKeyMap[chKey];
+      const liveCh = sys.channels[apiKey];
+      if (liveCh) {
+        channels[chKey].status = liveCh.status;
+        channels[chKey].online = liveCh.status === 'online' || liveCh.status === 'manual_only';
+        updateChannelDOM(chKey, channels[chKey]);
+      }
+    });
+
+    // Show reroute toast for offline channels
+    Object.keys(channels).forEach(k => {
+      if (!channels[k].online && channels[k].fallback) {
+        const toast = document.getElementById('rerouteToast');
+        if (toast) {
+          toast.textContent = '⚡ 路由重定向: ' + channelNameMap[k] + ' 已离线 — 内容自动路由至 ' + channelNameMap[channels[k].fallback];
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+      }
+    });
+  } catch(e) {
+    console.warn('refreshChannelData failed:', e);
+  }
+}
+
+// Periodic demo: cycle one channel offline for reroute demo (keeps existing demo behavior)
+let offlineCycle = 0;
+let demoTimer = null;
+function toggleChannels() {
+  // Reset all to live data state first
+  Object.keys(channels).forEach(k => {
+    const el = document.getElementById('ch-' + k);
+    if (el) {
+      el.style.borderColor = '';
+      const dotEl = el.querySelector('.ch-dot');
+      if (dotEl) { dotEl.style.background = ''; dotEl.style.boxShadow = ''; }
+    }
+  });
+  refreshChannelData();
+}
+// Keep the existing demo cycle but longer interval, and also auto-refresh
+setInterval(toggleChannels, 30000);
+
+// Initial load
+refreshChannelData();
+autoRefresh(refreshChannelData, 60000);
 
 // === CANVAS ANIMATION ===
 const canvas = document.getElementById('routerCanvas');

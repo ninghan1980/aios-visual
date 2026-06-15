@@ -442,37 +442,38 @@
   <div class="left-panel">
     <div class="panel-title">⟐ 被审计对象</div>
 
-    <div class="audit-object active" data-obj="ternary" onclick="selectObject(this)">
+    <div class="audit-object active" data-obj="ternary" data-module="aios" onclick="selectObject(this)">
       <div class="obj-icon" style="color:var(--cyan);">◉</div>
       <div class="obj-name">三元决策链</div>
       <div class="obj-desc">感知→分析→决策 三级链路完整性审计</div>
-      <span class="obj-status status-auditing">审计中</span>
+      <span class="obj-status status-auditing" id="status-aios">审计中</span>
     </div>
 
-    <div class="audit-object" data-obj="starlight" onclick="selectObject(this)">
+    <div class="audit-object" data-obj="starlight" data-module="starlight" onclick="selectObject(this)">
       <div class="obj-icon" style="color:var(--green);">✦</div>
       <div class="obj-name">星光执行链</div>
       <div class="obj-desc">战略→战术→执行 下达链路审计</div>
-      <span class="obj-status status-passed">已通过</span>
+      <span class="obj-status status-passed" id="status-starlight">已通过</span>
     </div>
 
-    <div class="audit-object" data-obj="omega" onclick="selectObject(this)">
+    <div class="audit-object" data-obj="omega" data-module="omega_loop" onclick="selectObject(this)">
       <div class="obj-icon" style="color:var(--purple);">Ω</div>
       <div class="obj-name">Ω_loop 认知链</div>
       <div class="obj-desc">感知→反思→进化 闭环审计</div>
-      <span class="obj-status status-flagged">有问题</span>
+      <span class="obj-status status-flagged" id="status-omega_loop">有问题</span>
     </div>
 
-    <div class="audit-object" data-obj="aios" onclick="selectObject(this)">
+    <div class="audit-object" data-obj="aios" data-module="aios" onclick="selectObject(this)">
       <div class="obj-icon" style="color:var(--orange);">⬡</div>
       <div class="obj-name">AIOS 调度链</div>
       <div class="obj-desc">21任务调度+看门狗+心跳审计</div>
-      <span class="obj-status status-auditing">审计中</span>
+      <span class="obj-status status-auditing" id="status-aios-dispatch">审计中</span>
     </div>
 
     <div style="margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
       <div class="panel-title" style="margin-bottom:8px;">审计统计</div>
       <div style="font-size:10px; color:var(--text2); line-height:2;">
+        系统健康分: <span style="color:var(--cyan);" id="health-score">--</span><br>
         总审计次数: <span style="color:var(--cyan);">147</span><br>
         本周审计: <span style="color:var(--green);">12</span><br>
         发现问题: <span style="color:var(--red);">23</span><br>
@@ -702,6 +703,7 @@
   </div>
 </div>
 
+<script src="aios-data.js"></script>
 <script>
 // ─── Object Selection ───
 function selectObject(el) {
@@ -944,6 +946,62 @@ drawGauge('gauge4', 74, '#f0883e');
   }
   animate();
 })();
+
+// ─── LIVE DATA REFRESH ───
+const moduleStatusMap = {
+  'aios': { elId: 'status-aios', dispatchId: 'status-aios-dispatch' },
+  'starlight': { elId: 'status-starlight' },
+  'omega_loop': { elId: 'status-omega_loop' },
+  'aether': null,
+  'rsi': null
+};
+
+async function refreshAuditData() {
+  try {
+    const sys = await AIOSData.system();
+    if (!sys) return;
+
+    // Update health score
+    if (sys.health_score !== undefined) {
+      const el = document.getElementById('health-score');
+      if (el) el.textContent = sys.health_score.toFixed(1);
+    }
+
+    // Update module status badges
+    if (sys.modules) {
+      Object.keys(moduleStatusMap).forEach(modKey => {
+        const mapping = moduleStatusMap[modKey];
+        if (!mapping) return;
+        const mod = sys.modules[modKey];
+        if (!mod) return;
+
+        const status = mod.status;
+        const statusLabel = status === 'online' ? '在线' :
+                            status === 'offline' ? '已离线' :
+                            status === 'idle' ? '空闲' :
+                            status === 'banned' ? '被禁' : status;
+        const statusClass = status === 'online' ? 'status-passed' :
+                            status === 'offline' ? 'status-flagged' :
+                            'status-auditing';
+
+        // Update the main status element
+        const elIds = [mapping.elId, mapping.dispatchId].filter(Boolean);
+        elIds.forEach(elId => {
+          const el = document.getElementById(elId);
+          if (el) {
+            el.textContent = statusLabel;
+            el.className = 'obj-status ' + statusClass;
+          }
+        });
+      });
+    }
+  } catch(e) {
+    console.warn('refreshAuditData failed:', e);
+  }
+}
+
+refreshAuditData();
+autoRefresh(refreshAuditData, 60000);
 
 // ─── Animate dimension bars on load ───
 window.addEventListener('load', () => {

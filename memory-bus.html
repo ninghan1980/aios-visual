@@ -273,6 +273,7 @@
   <div class="capacity-bar" id="capacityBar"></div>
 </div>
 
+<script src="aios-data.js"></script>
 <script>
 // ── CONFIG ──
 const C = {
@@ -284,11 +285,14 @@ const C = {
 
 // ── NODE DEFINITIONS ──
 const agents = [
-  { id:'sanyuan', label:'三元', sub:'主Agent', color: C.cyan, x:0, y:0, w:110, h:70,
+  { id:'sanyuan', label:'三元', sub:'主Agent', color: C.cyan, x:0, y:0, w:110, h:70, status:'online',
+    moduleKey:'aios',
     detail: { role:'决策中枢', write:'USER.md / MEMORY.md / SOUL.md', read:'全部层', uptime:'99.7%', writes:'2,847' }},
-  { id:'xingguang', label:'星光', sub:'内务Agent', color: C.green, x:0, y:0, w:110, h:70,
+  { id:'xingguang', label:'星光', sub:'内务Agent', color: C.green, x:0, y:0, w:110, h:70, status:'online',
+    moduleKey:'starlight',
     detail: { role:'内务调度', write:'recent_memory/', read:'即时层+近中期', uptime:'94.2%', writes:'1,563' }},
-  { id:'omega', label:'Ω_loop', sub:'感知Agent', color: C.purple, x:0, y:0, w:110, h:70,
+  { id:'omega', label:'Ω_loop', sub:'感知Agent', color: C.purple, x:0, y:0, w:110, h:70, status:'online',
+    moduleKey:'omega_loop',
     detail: { role:'感知采集', write:'aether_signal_log', read:'语义检索层', uptime:'91.8%', writes:'4,221' }}
 ];
 
@@ -519,12 +523,14 @@ function drawNode(ctx, node, type) {
     ctx.fillText(sub, x, y + 10);
   }
   
-  // Activity indicator (small blinking dot)
+  // Activity indicator (small blinking dot — green=online, red=offline, yellow=other)
   if (type === 'agent') {
+    const st = node.status || 'online';
+    const stColor = st === 'online' ? C.green : st === 'offline' ? C.red : C.yellow;
     const blink = Math.sin(tick * 0.1) > 0;
     ctx.beginPath();
     ctx.arc(x + w/2 - 10, y - h/2 + 10, 3, 0, Math.PI * 2);
-    ctx.fillStyle = blink ? C.green : C.green + '44';
+    ctx.fillStyle = blink ? stColor : stColor + '44';
     ctx.fill();
   }
 }
@@ -687,11 +693,35 @@ function frame() {
   requestAnimationFrame(frame);
 }
 
+// ── LIVE DATA REFRESH ──
+async function refreshBusData() {
+  try {
+    const sys = await AIOSData.system();
+    if (!sys || !sys.modules) return;
+    agents.forEach(a => {
+      const mod = sys.modules[a.moduleKey];
+      if (mod) {
+        a.status = mod.status;
+        // Update detail for tooltip
+        if (a.detail) {
+          if (mod.reason) a.detail.状态 = mod.status + ' (' + mod.reason + ')';
+          else a.detail.状态 = mod.status;
+          if (mod.down_since) a.detail.离线时间 = mod.down_since;
+        }
+      }
+    });
+  } catch(e) {
+    console.warn('refreshBusData failed:', e);
+  }
+}
+
 // ── INIT ──
 window.addEventListener('resize', resize);
 resize();
 renderCapacityBar();
 renderConflicts();
+refreshBusData();
+autoRefresh(refreshBusData, 60000);
 frame();
 </script>
 </body>

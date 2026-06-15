@@ -98,6 +98,7 @@ canvas { display: block; }
 <div id="tooltip"></div>
 <canvas id="canvas"></canvas>
 
+<script src="aios-data.js"></script>
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
@@ -111,7 +112,7 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-// Node definitions
+// Node definitions — status/sub will be dynamically updated
 const nodes = [
   // Layer 0: Aether Sources
   { id: 'aether', label: 'Aether', sub: '54源·9圈层', x: 0.12, y: 0.5, r: 28, color: '#bc8cff', status: 'online', pulse: true },
@@ -130,18 +131,18 @@ const nodes = [
   // Layer 2: Analysis
   { id: 'prism', label: '三棱镜', sub: '断层线+涌现树+δ', x: 0.52, y: 0.30, r: 24, color: '#bc8cff', status: 'online', pulse: true },
   { id: 'deep_research', label: '深度研究', sub: '5方向轮换', x: 0.52, y: 0.55, r: 20, color: '#3fb950', status: 'online' },
-  { id: 'rsi', label: 'RSI自优化', sub: '30min/cycle', x: 0.52, y: 0.78, r: 16, color: '#d29922', status: 'degraded' },
+  { id: 'rsi', label: 'RSI自优化', sub: '30min/cycle', x: 0.52, y: 0.78, r: 16, color: '#d29922', status: 'idle' },
 
   // Layer 3: Output
   { id: 'ima', label: 'ima知识库', sub: '断层线+三元智能', x: 0.72, y: 0.30, r: 20, color: '#3fb950', status: 'online' },
   { id: 'report', label: '报告产出', sub: '.md/.docx', x: 0.72, y: 0.55, r: 18, color: '#3fb950', status: 'online' },
-  { id: 'social', label: '社媒分发', sub: '待恢复', x: 0.72, y: 0.78, r: 20, color: '#d29922', status: 'degraded' },
+  { id: 'social', label: '社媒分发', sub: '待恢复', x: 0.72, y: 0.78, r: 20, color: '#d29922', status: 'idle' },
 
   // Layer 4: Channels
   { id: 'xhs', label: '小红书', sub: '雪崩星河·手动发', x: 0.92, y: 0.20, r: 16, color: '#3fb950', status: 'online' },
-  { id: 'weibo', label: '微博', sub: '禁言至06-22', x: 0.92, y: 0.40, r: 16, color: '#f85149', status: 'offline' },
-  { id: 'gzh', label: '公众号', sub: '待开通发布', x: 0.92, y: 0.60, r: 16, color: '#d29922', status: 'degraded' },
-  { id: 'feishu', label: '飞书', sub: '失联第11天', x: 0.92, y: 0.80, r: 16, color: '#f85149', status: 'offline' },
+  { id: 'weibo', label: '微博', sub: '禁言至06-22', x: 0.92, y: 0.40, r: 16, color: '#f85149', status: 'banned' },
+  { id: 'gzh', label: '公众号', sub: '待开通发布', x: 0.92, y: 0.60, r: 16, color: '#d29922', status: 'idle' },
+  { id: 'feishu', label: '飞书', sub: '失联', x: 0.92, y: 0.80, r: 16, color: '#f85149', status: 'offline' },
 ];
 
 const edges = [
@@ -180,6 +181,69 @@ const edges = [
 const nodeMap = {};
 nodes.forEach(n => nodeMap[n.id] = n);
 
+// ── Live data update ──
+async function loadLiveData() {
+  try {
+    const [sys, aether] = await Promise.all([AIOSData.system(), AIOSData.aether()]);
+
+    if (sys && sys.modules) {
+      // Module nodes mapping
+      const moduleMap = {
+        'aether': 'aether',
+        'omega_loop': 'omega',
+        'aios': 'aios',
+        'rsi': 'rsi',
+        'starlight': null // no direct node
+      };
+      for (const [modKey, nodeId] of Object.entries(moduleMap)) {
+        if (!nodeId || !sys.modules[modKey]) continue;
+        const mod = sys.modules[modKey];
+        const node = nodeMap[nodeId];
+        if (!node) continue;
+        node.status = mod.status;
+        node.color = AIOSData.statusColor(mod.status);
+        // Update sub labels with real data
+        if (nodeId === 'omega' && mod.runs) node.sub = `PID·${mod.runs}次运行`;
+        if (nodeId === 'aether' && mod.cycle !== undefined) node.sub = `Cycle ${mod.cycle}·感知层`;
+        if (nodeId === 'rsi' && mod.samples !== undefined) node.sub = `样本${mod.samples}`;
+      }
+    }
+
+    if (sys && sys.channels) {
+      const channelMap = {
+        'xiaohongshu': 'xhs',
+        'weibo': 'weibo',
+        'feishu': 'feishu'
+      };
+      for (const [chKey, nodeId] of Object.entries(channelMap)) {
+        if (!sys.channels[chKey]) continue;
+        const ch = sys.channels[chKey];
+        const node = nodeMap[nodeId];
+        if (!node) continue;
+        node.status = ch.status;
+        node.color = AIOSData.statusColor(ch.status);
+        if (chKey === 'weibo' && ch.status === 'banned') node.sub = '禁言中';
+        if (chKey === 'feishu' && ch.status === 'offline') node.sub = '离线';
+        if (chKey === 'xiaohongshu' && ch.status === 'online') node.sub = '在线运营';
+      }
+    }
+
+    if (aether) {
+      // Update Aether node with real data
+      const aNode = nodeMap['aether'];
+      if (aNode) {
+        if (aether.cycle !== undefined) aNode.sub = `Cycle ${aether.cycle}·在线率${aether.online_rate || '--'}%`;
+        aNode.status = 'online';
+        aNode.color = '#bc8cff';
+      }
+    }
+  } catch(e) {
+    console.warn('Signal topology live data load failed, using defaults:', e);
+  }
+}
+
+autoRefresh(loadLiveData, 60000);
+
 // Flowing particles
 class Particle {
   constructor(edge) {
@@ -208,7 +272,7 @@ class Particle {
 
 const particles = [];
 edges.forEach(e => {
-  const count = e.from === 'weibo' || e.to === 'feishu' ? 0 : 3;
+  const count = (e.from === 'weibo' || e.to === 'feishu' || e.from === 'feishu' || e.to === 'weibo') ? 0 : 3;
   for (let i = 0; i < count; i++) particles.push(new Particle(e));
 });
 
@@ -231,8 +295,8 @@ canvas.addEventListener('mousemove', e => {
     tooltip.style.display = 'block';
     tooltip.style.left = (mouseX + 16) + 'px';
     tooltip.style.top = (mouseY - 10) + 'px';
-    const statusClass = hovered.status === 'online' ? 'tt-value' : hovered.status === 'degraded' ? 'tt-warn' : 'tt-err';
-    const statusText = hovered.status === 'online' ? '在线' : hovered.status === 'degraded' ? '降级' : '离线';
+    const statusClass = hovered.status === 'online' ? 'tt-value' : hovered.status === 'idle' || hovered.status === 'degraded' ? 'tt-warn' : 'tt-err';
+    const statusText = hovered.status === 'online' ? '在线' : hovered.status === 'idle' ? '空闲' : hovered.status === 'degraded' ? '降级' : hovered.status === 'banned' ? '封禁' : '离线';
     tooltip.innerHTML = `<div class="tt-title">${hovered.label}</div><div>${hovered.sub}</div><div class="${statusClass}">状态: ${statusText}</div>`;
   } else {
     tooltip.style.display = 'none';
@@ -254,7 +318,7 @@ function draw() {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.quadraticCurveTo(cx, cy, x2, y2);
-    const isDead = from.status === 'offline' || to.status === 'offline';
+    const isDead = from.status === 'offline' || from.status === 'banned' || to.status === 'offline' || to.status === 'banned';
     ctx.strokeStyle = isDead ? 'rgba(248,81,73,0.08)' : 'rgba(88,180,255,0.06)';
     ctx.lineWidth = 1;
     ctx.stroke();
@@ -266,7 +330,7 @@ function draw() {
     const pos = p.getPos();
     const fromNode = nodeMap[p.edge.from];
     const toNode = nodeMap[p.edge.to];
-    const isDead = fromNode.status === 'offline' || toNode.status === 'offline';
+    const isDead = fromNode.status === 'offline' || fromNode.status === 'banned' || toNode.status === 'offline' || toNode.status === 'banned';
     if (isDead) return;
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, p.size, 0, Math.PI * 2);
@@ -293,8 +357,8 @@ function draw() {
       ctx.fill();
     }
 
-    // Offline glow
-    if (n.status === 'offline') {
+    // Offline/banned glow
+    if (n.status === 'offline' || n.status === 'banned') {
       const glowR = r + 8;
       const grad = ctx.createRadialGradient(nx, ny, r, nx, ny, glowR);
       grad.addColorStop(0, 'rgba(248,81,73,0.10)');
@@ -308,7 +372,7 @@ function draw() {
     // Circle
     ctx.beginPath();
     ctx.arc(nx, ny, r, 0, Math.PI * 2);
-    const fillAlpha = n.status === 'offline' ? '0a' : '1a';
+    const fillAlpha = (n.status === 'offline' || n.status === 'banned') ? '0a' : '1a';
     ctx.fillStyle = n.color + fillAlpha;
     ctx.fill();
     ctx.strokeStyle = isHover ? n.color : n.color + '66';
@@ -318,7 +382,7 @@ function draw() {
     // Label
     ctx.font = `${n.r > 20 ? 11 : 9}px 'JetBrains Mono', monospace`;
     ctx.textAlign = 'center';
-    ctx.fillStyle = n.status === 'offline' ? '#484f58' : '#e8eaed';
+    ctx.fillStyle = (n.status === 'offline' || n.status === 'banned') ? '#484f58' : '#e8eaed';
     ctx.fillText(n.label, nx, ny + r + 14);
 
     // Sub label
@@ -329,7 +393,7 @@ function draw() {
     }
 
     // Status dot inside
-    const dotColor = n.status === 'online' ? '#3fb950' : n.status === 'degraded' ? '#d29922' : '#f85149';
+    const dotColor = n.status === 'online' ? '#3fb950' : n.status === 'idle' || n.status === 'degraded' ? '#d29922' : '#f85149';
     ctx.beginPath();
     ctx.arc(nx, ny, 3, 0, Math.PI * 2);
     ctx.fillStyle = dotColor;
