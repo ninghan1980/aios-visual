@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三元 AIOS · 交互终端</title>
 <script src="aios-data.js"></script>
+<script src="https://lf-coze-web-sdk.coze.cn/obj/coze-web-sdk/1.2.0-beta.20/ChatSDK.js"></script>
 <style>
 :root {
   --bg-primary: #0a0c0f;
@@ -73,21 +74,12 @@ body {
 .panel { display: none; flex: 1; overflow: hidden; }
 .panel.active { display: flex; }
 
-/* Chat Panel — iframe */
-.chat-panel { flex-direction: column; }
-.chat-panel iframe {
-  flex: 1; width: 100%; border: none; background: #fff;
+/* Chat Panel — Chat SDK */
+.chat-panel { flex-direction: column; background: var(--bg-primary); }
+#chatContainer {
+  flex: 1; width: 100%; overflow: hidden;
+  position: relative;
 }
-.chat-fallback {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; height: 100%; gap: 16px; color: var(--text-secondary);
-}
-.chat-fallback a {
-  padding: 12px 24px; background: var(--accent-cyan); color: #000;
-  border-radius: 8px; text-decoration: none; font-weight: 600;
-  transition: opacity 0.2s;
-}
-.chat-fallback a:hover { opacity: 0.85; }
 
 /* Command Panel */
 .cmd-panel { flex-direction: column; }
@@ -162,7 +154,7 @@ body {
 <body>
 <div class="top-bar">
   <div class="top-left">
-    <div class="top-title"><span>三元</span> AIOS · 交互终端</div>
+    <div class="top-title"><span>三元</span> AIOS · 交互终端 v3</div>
     <div class="pills" id="topPills"></div>
   </div>
   <div class="health-badge" id="healthBadge">健康分: --</div>
@@ -175,14 +167,9 @@ body {
 </div>
 
 <div class="content">
-  <!-- 对话Tab — 嵌入扣子对话 -->
+  <!-- 对话Tab — Chat SDK -->
   <div class="panel chat-panel active" id="panelChat">
-    <iframe id="chatFrame" src="" allow="clipboard-read; clipboard-write"></iframe>
-    <div class="chat-fallback" id="chatFallback" style="display:none">
-      <div style="font-size:48px">💬</div>
-      <div>iframe被浏览器安全策略阻止</div>
-      <a href="https://www.coze.cn/session/7639304045676724526" target="_blank">在新标签页打开对话 →</a>
-    </div>
+    <div id="chatContainer"></div>
   </div>
 
   <!-- 命令Tab -->
@@ -230,32 +217,32 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-// ========== Chat iframe ==========
-const chatFrame = document.getElementById('chatFrame');
-const chatFallback = document.getElementById('chatFallback');
-
-function initChat() {
-  // Try embedding the coze session page
-  chatFrame.src = 'https://www.coze.cn/session/7639304045676724526';
-  
-  // Detect if iframe failed to load (X-Frame-Options / CSP)
-  chatFrame.onload = function() {
-    try {
-      // If we can access the iframe content, it loaded successfully
-      const doc = chatFrame.contentDocument || chatFrame.contentWindow.document;
-      // If we get here, same-origin — it worked
-    } catch(e) {
-      // Cross-origin — iframe might still be showing content
-      // We can't easily detect if it shows a blank page
-    }
-  };
-  
-  chatFrame.onerror = function() {
-    chatFrame.style.display = 'none';
-    chatFallback.style.display = 'flex';
-  };
-}
-initChat();
+// ========== Chat SDK Init ==========
+(function initChatSDK() {
+  if (typeof CozeWebSDK === 'undefined') {
+    console.error('Chat SDK not loaded');
+    return;
+  }
+  try {
+    const client = new CozeWebSDK.WebChatClient({
+      config: {
+        bot_id: '7599196382645813282',
+      },
+      ui: {
+        asstBtn: false,
+        header: { isShow: false },
+        footer: { isShow: false, text: '' },
+        chatBot: {
+          el: document.getElementById('chatContainer'),
+          title: '三元终端',
+        },
+      },
+    });
+    console.log('Chat SDK initialized');
+  } catch(e) {
+    console.error('Chat SDK init error:', e);
+  }
+})();
 
 // ========== Live Data ==========
 let liveData = {};
@@ -269,7 +256,6 @@ function updateTopBar() {
   const sys = liveData.sys;
   if (!sys) return;
   
-  // Pills
   const mods = sys.modules || {};
   const pillsHtml = [
     { name: 'Ω_loop', s: mods.omega_loop?.status },
@@ -282,7 +268,6 @@ function updateTopBar() {
   }).join('');
   document.getElementById('topPills').innerHTML = pillsHtml;
   
-  // Health
   const badge = document.getElementById('healthBadge');
   badge.textContent = '健康分: ' + (sys.health_score || '--');
   badge.style.color = sys.health_score > 70 ? 'var(--accent-green)' : 'var(--accent-red)';
@@ -300,7 +285,6 @@ function updateStatusPanel() {
   
   let html = '';
   
-  // Modules card
   html += '<div class="status-card"><h3>🔧 核心模块</h3>';
   Object.entries(mods).forEach(([k, v]) => {
     const s = v.status === 'online' ? 'ok' : v.status === 'offline' ? 'err' : 'warn';
@@ -308,7 +292,6 @@ function updateStatusPanel() {
   });
   html += '</div>';
   
-  // Channels card
   html += '<div class="status-card"><h3>📢 发布渠道</h3>';
   Object.entries(channels).forEach(([k, v]) => {
     const s = v.status === 'online' ? 'ok' : v.status === 'banned' ? 'err' : 'warn';
@@ -316,7 +299,6 @@ function updateStatusPanel() {
   });
   html += '</div>';
   
-  // Aether card
   if (aether) {
     html += `<div class="status-card"><h3>📡 Aether感知层</h3>
       <div class="status-row"><span>轮次</span><span class="status-val ok">C${aether.cycle || '?'}</span></div>
@@ -326,7 +308,6 @@ function updateStatusPanel() {
     </div>`;
   }
   
-  // Token card
   if (token) {
     const d = token.daily || {};
     html += `<div class="status-card"><h3>💰 Token消耗</h3>
@@ -405,7 +386,7 @@ document.querySelectorAll('.cmd-btn').forEach(btn => {
   btn.addEventListener('click', () => { cmdInput.value = btn.textContent.trim(); handleCmd(); });
 });
 
-addCmdMsg('🟢 三元 AIOS 交互终端 v2.0\n<b>对话Tab</b>：直接跟三元聊天\n<b>命令Tab</b>：快捷查看系统状态\n<b>状态Tab</b>：完整状态面板');
+addCmdMsg('🟢 三元 AIOS 交互终端 v3.0\n<b>对话Tab</b>：Chat SDK嵌入，可以直接跟三元对话\n<b>命令Tab</b>：快捷查看系统状态\n<b>状态Tab</b>：完整状态面板');
 
 // Init
 autoRefresh(loadLiveData, 60000);
