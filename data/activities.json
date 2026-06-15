@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-16T01:01:08+08:00",
+  "updated_at": "2026-06-16T03:00:17+08:00",
   "activities": [
     {
       "time": "weibo hot 20260615 ",
@@ -40,6 +40,16 @@
       "time": "weibo hot 20260614 ",
       "task": "weibo_hot",
       "status": "unknown"
+    },
+    {
+      "time": "rsi autotrain 20260",
+      "task": "rsi",
+      "status": "completed"
+    },
+    {
+      "time": "rsi autotrain 20260",
+      "task": "rsi",
+      "status": "completed"
     },
     {
       "time": "rsi autotrain 20260",
