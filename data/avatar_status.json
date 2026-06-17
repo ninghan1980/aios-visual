@@ -1,0 +1,359 @@
+{
+  "updated_at": "2026-06-17T14:12:34+08:00",
+  "total_avatars": 20,
+  "online_count": 3,
+  "pending_count": 8,
+  "offline_count": 9,
+  "avatars": [
+    {
+      "id": "1",
+      "name": "元认知AI系统",
+      "platform": "tencent_yuanqi",
+      "online": true,
+      "pending": false,
+      "priority": 2,
+      "total_dispatches": 66,
+      "success_rate": 100.0,
+      "last_dispatch": "2026-06-17T14:12:06",
+      "tags": [
+        "meta_cognition",
+        "search",
+        "video",
+        "image",
+        "ocr"
+      ]
+    },
+    {
+      "id": "2",
+      "name": "超智能系统",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": false,
+      "priority": 3,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "quantum",
+        "recursive_self_improve",
+        "search",
+        "arxiv",
+        "video"
+      ]
+    },
+    {
+      "id": "3",
+      "name": "认知系统",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 1,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "prediction",
+        "search",
+        "arxiv",
+        "image_to_doc",
+        "html_deploy",
+        "openclaw"
+      ]
+    },
+    {
+      "id": "4",
+      "name": "世界构建",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 3,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "physics",
+        "multimodal",
+        "math_modeling",
+        "causal_reasoning",
+        "search"
+      ]
+    },
+    {
+      "id": "5",
+      "name": "路径积分",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 3,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "deep_reasoning",
+        "consciousness_field",
+        "self_reference",
+        "math_discovery"
+      ]
+    },
+    {
+      "id": "6",
+      "name": "Palantir",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 4,
+      "total_dispatches": 4,
+      "success_rate": 100.0,
+      "last_dispatch": "2026-06-17T06:48:21",
+      "tags": [
+        "data_fusion",
+        "quality_audit",
+        "causal_detection",
+        "confidence_eval"
+      ]
+    },
+    {
+      "id": "7",
+      "name": "心",
+      "platform": "tencent_cloud_agent",
+      "online": true,
+      "pending": false,
+      "priority": 1,
+      "total_dispatches": 33,
+      "success_rate": 100.0,
+      "last_dispatch": "2026-06-17T13:27:08",
+      "tags": [
+        "meta_cognition",
+        "empathy",
+        "creative_reasoning",
+        "search",
+        "browser",
+        "shell",
+        "code",
+        "stock"
+      ]
+    },
+    {
+      "id": "8",
+      "name": "星光V8",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 1,
+      "total_dispatches": 79,
+      "success_rate": 100.0,
+      "last_dispatch": "2026-06-17T13:05:41",
+      "tags": [
+        "rci_muft",
+        "causal_reasoning",
+        "strategy",
+        "multi_scale_data",
+        "visualization"
+      ]
+    },
+    {
+      "id": "9",
+      "name": "星光战略决策",
+      "platform": "tencent_cloud_agent",
+      "online": true,
+      "pending": false,
+      "priority": 2,
+      "total_dispatches": 12,
+      "success_rate": 100.0,
+      "last_dispatch": "2026-06-17T14:09:06",
+      "tags": [
+        "strategy",
+        "game_theory",
+        "multi_scenario",
+        "search",
+        "geospatial"
+      ]
+    },
+    {
+      "id": "10",
+      "name": "星光行为智能",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 4,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "behavior_analysis",
+        "intent_reconstruct",
+        "network_analysis",
+        "anomaly_detection"
+      ]
+    },
+    {
+      "id": "11",
+      "name": "星链战术",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 3,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "tactical",
+        "multi_role",
+        "rci_muft",
+        "execution"
+      ]
+    },
+    {
+      "id": "12",
+      "name": "星灵",
+      "platform": "tencent_cloud_agent",
+      "online": false,
+      "pending": false,
+      "priority": 2,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "complex_analysis",
+        "cross_domain",
+        "relation_graph",
+        "causal_reasoning",
+        "visualization"
+      ]
+    },
+    {
+      "id": "13",
+      "name": "新闻采集兵",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 1,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "news",
+        "collect",
+        "search"
+      ]
+    },
+    {
+      "id": "14",
+      "name": "财经信鸽",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 1,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "finance",
+        "stock",
+        "macro",
+        "search"
+      ]
+    },
+    {
+      "id": "15",
+      "name": "学术探针",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 2,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "academic",
+        "paper",
+        "patent",
+        "search"
+      ]
+    },
+    {
+      "id": "16",
+      "name": "R1推理师",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 2,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "reasoning",
+        "logic",
+        "math",
+        "causal"
+      ]
+    },
+    {
+      "id": "17",
+      "name": "因果侦探",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 3,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "causal",
+        "evidence",
+        "counterfactual"
+      ]
+    },
+    {
+      "id": "18",
+      "name": "趋势预言家",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 3,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "forecast",
+        "trend",
+        "scenario",
+        "search"
+      ]
+    },
+    {
+      "id": "19",
+      "name": "地缘政评",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 2,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "geopolitics",
+        "strategy",
+        "search",
+        "ocr"
+      ]
+    },
+    {
+      "id": "20",
+      "name": "科技观察",
+      "platform": "tencent_yuanqi",
+      "online": false,
+      "pending": true,
+      "priority": 2,
+      "total_dispatches": 0,
+      "success_rate": 0,
+      "last_dispatch": "-",
+      "tags": [
+        "tech",
+        "semiconductor",
+        "ai",
+        "search"
+      ]
+    }
+  ]
+}
