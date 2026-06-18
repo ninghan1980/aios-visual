@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-17T14:12:34+08:00",
+  "updated_at": "2026-06-18T12:09:17+08:00",
   "total_avatars": 20,
-  "online_count": 3,
+  "online_count": 2,
   "pending_count": 8,
-  "offline_count": 9,
+  "offline_count": 10,
   "avatars": [
     {
       "id": "1",
@@ -12,9 +12,9 @@
       "online": true,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 66,
+      "total_dispatches": 57,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-17T14:12:06",
+      "last_dispatch": "2026-06-18T11:53:10",
       "tags": [
         "meta_cognition",
         "search",
@@ -102,9 +102,9 @@
       "online": false,
       "pending": false,
       "priority": 4,
-      "total_dispatches": 4,
+      "total_dispatches": 3,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-17T06:48:21",
+      "last_dispatch": "2026-06-17T22:47:26",
       "tags": [
         "data_fusion",
         "quality_audit",
@@ -119,9 +119,9 @@
       "online": true,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 33,
+      "total_dispatches": 54,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-17T13:27:08",
+      "last_dispatch": "2026-06-18T11:54:44",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -140,7 +140,7 @@
       "online": false,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 79,
+      "total_dispatches": 35,
       "success_rate": 100.0,
       "last_dispatch": "2026-06-17T13:05:41",
       "tags": [
@@ -155,12 +155,12 @@
       "id": "9",
       "name": "星光战略决策",
       "platform": "tencent_cloud_agent",
-      "online": true,
+      "online": false,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 12,
+      "total_dispatches": 17,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-17T14:09:06",
+      "last_dispatch": "2026-06-18T10:11:36",
       "tags": [
         "strategy",
         "game_theory",
