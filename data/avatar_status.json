@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-19T08:09:18+08:00",
+  "updated_at": "2026-06-19T12:09:20+08:00",
   "total_avatars": 20,
   "online_count": 2,
   "pending_count": 8,
@@ -12,9 +12,9 @@
       "online": true,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 49,
+      "total_dispatches": 47,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-19T07:53:33",
+      "last_dispatch": "2026-06-19T12:01:29",
       "tags": [
         "meta_cognition",
         "search",
@@ -102,7 +102,7 @@
       "online": false,
       "pending": false,
       "priority": 4,
-      "total_dispatches": 4,
+      "total_dispatches": 3,
       "success_rate": 100.0,
       "last_dispatch": "2026-06-18T22:48:34",
       "tags": [
@@ -121,7 +121,7 @@
       "priority": 1,
       "total_dispatches": 53,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-19T07:54:11",
+      "last_dispatch": "2026-06-19T12:05:43",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -140,9 +140,9 @@
       "online": false,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 3,
+      "total_dispatches": 1,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-17T13:05:41",
+      "last_dispatch": "2026-06-15T04:05:00",
       "tags": [
         "rci_muft",
         "causal_reasoning",
@@ -158,9 +158,9 @@
       "online": false,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 19,
+      "total_dispatches": 20,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-19T06:09:49",
+      "last_dispatch": "2026-06-19T10:11:44",
       "tags": [
         "strategy",
         "game_theory",
