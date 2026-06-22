@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-23T02:11:33+08:00",
+  "updated_at": "2026-06-23T04:09:31+08:00",
   "total_avatars": 20,
-  "online_count": 3,
+  "online_count": 2,
   "pending_count": 8,
-  "offline_count": 9,
+  "offline_count": 10,
   "avatars": [
     {
       "id": "1",
@@ -14,7 +14,7 @@
       "priority": 1,
       "total_dispatches": 75,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-23T02:00:11",
+      "last_dispatch": "2026-06-23T03:39:38",
       "tags": [
         "meta_cognition",
         "search",
@@ -121,7 +121,7 @@
       "priority": 1,
       "total_dispatches": 37,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-23T01:54:54",
+      "last_dispatch": "2026-06-23T03:34:07",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -155,10 +155,10 @@
       "id": "9",
       "name": "星光战略决策",
       "platform": "tencent_cloud_agent",
-      "online": true,
+      "online": false,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 16,
+      "total_dispatches": 15,
       "success_rate": 100.0,
       "last_dispatch": "2026-06-23T02:09:36",
       "tags": [
