@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-22T22:09:57+08:00",
+  "updated_at": "2026-06-23T00:09:56+08:00",
   "total_avatars": 20,
-  "online_count": 1,
+  "online_count": 2,
   "pending_count": 8,
-  "offline_count": 11,
+  "offline_count": 10,
   "avatars": [
     {
       "id": "1",
@@ -12,9 +12,9 @@
       "online": true,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 78,
+      "total_dispatches": 75,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-22T21:50:33",
+      "last_dispatch": "2026-06-22T23:30:36",
       "tags": [
         "meta_cognition",
         "search",
@@ -102,9 +102,9 @@
       "online": false,
       "pending": false,
       "priority": 4,
-      "total_dispatches": 3,
+      "total_dispatches": 4,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-22T14:48:25",
+      "last_dispatch": "2026-06-22T22:48:05",
       "tags": [
         "data_fusion",
         "quality_audit",
@@ -116,12 +116,12 @@
       "id": "7",
       "name": "心",
       "platform": "tencent_cloud_agent",
-      "online": false,
+      "online": true,
       "pending": false,
       "priority": 1,
       "total_dispatches": 38,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-22T20:56:01",
+      "last_dispatch": "2026-06-22T23:24:47",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -158,7 +158,7 @@
       "online": false,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 17,
+      "total_dispatches": 15,
       "success_rate": 100.0,
       "last_dispatch": "2026-06-22T20:10:08",
       "tags": [
