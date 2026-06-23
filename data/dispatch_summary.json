@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-24T00:09:10+08:00",
-  "total_logs": 1093,
+  "updated_at": "2026-06-24T02:09:12+08:00",
+  "total_logs": 1100,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 205,
-      "today_count": 0,
-      "success_count": 205,
+      "total_count": 208,
+      "today_count": 3,
+      "success_count": 208,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T22:46:52",
+      "last_run": "2026-06-24T02:04:28",
       "last_status": "ok"
     },
     {
@@ -64,12 +64,12 @@
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 35,
-      "today_count": 0,
-      "success_count": 35,
+      "total_count": 36,
+      "today_count": 1,
+      "success_count": 36,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T16:26:18",
+      "last_run": "2026-06-24T00:29:11",
       "last_status": "ok"
     },
     {
@@ -84,12 +84,12 @@
     },
     {
       "task_name": "avatar_dispatch",
-      "total_count": 39,
-      "today_count": 0,
-      "success_count": 39,
+      "total_count": 40,
+      "today_count": 1,
+      "success_count": 40,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T20:13:17",
+      "last_run": "2026-06-24T00:10:54",
       "last_status": "ok"
     },
     {
@@ -204,22 +204,22 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 359,
-      "today_count": 0,
-      "success_count": 359,
+      "total_count": 360,
+      "today_count": 1,
+      "success_count": 360,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T23:39:55",
+      "last_run": "2026-06-24T00:29:41",
       "last_status": "ok"
     },
     {
       "task_name": "state_export",
-      "total_count": 84,
-      "today_count": 0,
-      "success_count": 84,
+      "total_count": 85,
+      "today_count": 1,
+      "success_count": 85,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T22:10:20",
+      "last_run": "2026-06-24T00:09:21",
       "last_status": "ok"
     },
     {
