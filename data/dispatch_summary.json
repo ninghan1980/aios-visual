@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-23T12:11:07+08:00",
-  "total_logs": 1036,
+  "updated_at": "2026-06-23T14:10:33+08:00",
+  "total_logs": 1044,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 196,
-      "today_count": 13,
-      "success_count": 196,
+      "total_count": 197,
+      "today_count": 14,
+      "success_count": 197,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T11:55:00",
+      "last_run": "2026-06-23T13:35:42",
       "last_status": "ok"
     },
     {
@@ -64,12 +64,12 @@
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 33,
-      "today_count": 2,
-      "success_count": 33,
+      "total_count": 34,
+      "today_count": 3,
+      "success_count": 34,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T04:26:02",
+      "last_run": "2026-06-23T12:25:37",
       "last_status": "ok"
     },
     {
@@ -84,12 +84,12 @@
     },
     {
       "task_name": "avatar_dispatch",
-      "total_count": 35,
-      "today_count": 3,
-      "success_count": 35,
+      "total_count": 36,
+      "today_count": 4,
+      "success_count": 36,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T08:11:00",
+      "last_run": "2026-06-23T12:12:45",
       "last_status": "ok"
     },
     {
@@ -124,12 +124,12 @@
     },
     {
       "task_name": "avatar_tactical",
-      "total_count": 10,
-      "today_count": 1,
-      "success_count": 10,
+      "total_count": 11,
+      "today_count": 2,
+      "success_count": 11,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T01:10:44",
+      "last_run": "2026-06-23T13:11:38",
       "last_status": "ok"
     },
     {
@@ -194,12 +194,12 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 340,
-      "today_count": 20,
-      "success_count": 340,
+      "total_count": 344,
+      "today_count": 24,
+      "success_count": 344,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T11:59:57",
+      "last_run": "2026-06-23T14:03:01",
       "last_status": "ok"
     },
     {
