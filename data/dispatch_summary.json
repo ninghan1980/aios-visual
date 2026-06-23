@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-23T08:09:58+08:00",
-  "total_logs": 1022,
+  "updated_at": "2026-06-23T10:12:25+08:00",
+  "total_logs": 1029,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 192,
-      "today_count": 9,
-      "success_count": 192,
+      "total_count": 193,
+      "today_count": 10,
+      "success_count": 193,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T07:44:18",
+      "last_run": "2026-06-23T08:34:32",
       "last_status": "ok"
     },
     {
@@ -44,12 +44,12 @@
     },
     {
       "task_name": "avatar_creative",
-      "total_count": 20,
-      "today_count": 1,
-      "success_count": 20,
+      "total_count": 21,
+      "today_count": 2,
+      "success_count": 21,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T03:40:22",
+      "last_run": "2026-06-23T09:40:19",
       "last_status": "ok"
     },
     {
@@ -74,22 +74,22 @@
     },
     {
       "task_name": "avatar_deep_analysis",
-      "total_count": 21,
-      "today_count": 2,
-      "success_count": 21,
+      "total_count": 22,
+      "today_count": 3,
+      "success_count": 22,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T03:18:03",
+      "last_run": "2026-06-23T09:12:54",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_dispatch",
-      "total_count": 34,
-      "today_count": 2,
-      "success_count": 34,
+      "total_count": 35,
+      "today_count": 3,
+      "success_count": 35,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T04:11:20",
+      "last_run": "2026-06-23T08:11:00",
       "last_status": "ok"
     },
     {
@@ -134,12 +134,12 @@
     },
     {
       "task_name": "heartbeat",
-      "total_count": 20,
-      "today_count": 1,
-      "success_count": 20,
+      "total_count": 21,
+      "today_count": 2,
+      "success_count": 21,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T02:08:28",
+      "last_run": "2026-06-23T10:10:36",
       "last_status": "ok"
     },
     {
@@ -194,22 +194,22 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 336,
-      "today_count": 16,
-      "success_count": 336,
+      "total_count": 337,
+      "today_count": 17,
+      "success_count": 337,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T07:51:48",
+      "last_run": "2026-06-23T08:39:50",
       "last_status": "ok"
     },
     {
       "task_name": "state_export",
-      "total_count": 77,
-      "today_count": 6,
-      "success_count": 77,
+      "total_count": 78,
+      "today_count": 7,
+      "success_count": 78,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-23T06:11:43",
+      "last_run": "2026-06-23T08:10:08",
       "last_status": "ok"
     },
     {
