@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-26T20:09:15+08:00",
+  "updated_at": "2026-06-27T00:08:47+08:00",
   "health_score": 83.3,
   "modules": {
     "omega_loop": {
@@ -23,8 +23,8 @@
     },
     "rsi": {
       "status": "training",
-      "samples": 1630,
-      "best_acc": 0.23943930864334106
+      "samples": 1634,
+      "best_acc": 0.23879899084568024
     }
   },
   "memory": {
