@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-06-29T06:10:33+08:00",
+  "updated_at": "2026-06-29T06:11:09+08:00",
   "total_avatars": 36,
-  "online_count": 2,
+  "online_count": 3,
   "pending_count": 8,
-  "offline_count": 26,
+  "offline_count": 25,
   "avatars": [
     {
       "id": "1",
@@ -155,12 +155,12 @@
       "id": "9",
       "name": "星光战略决策",
       "platform": "tencent_cloud_agent",
-      "online": false,
+      "online": true,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 19,
+      "total_dispatches": 20,
       "success_rate": 100.0,
-      "last_dispatch": "2026-06-29T04:11:36",
+      "last_dispatch": "2026-06-29T06:10:36",
       "tags": [
         "strategy",
         "game_theory",

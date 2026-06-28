@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-29T06:10:28+08:00",
-  "total_logs": 1820,
+  "updated_at": "2026-06-29T06:11:00+08:00",
+  "total_logs": 1821,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -94,12 +94,12 @@
     },
     {
       "task_name": "avatar_meta_cognition",
-      "total_count": 30,
-      "today_count": 0,
-      "success_count": 30,
+      "total_count": 31,
+      "today_count": 1,
+      "success_count": 31,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-28T06:12:08",
+      "last_run": "2026-06-29T06:10:15",
       "last_status": "ok"
     },
     {
