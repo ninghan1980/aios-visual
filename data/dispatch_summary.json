@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-29T18:10:42+08:00",
-  "total_logs": 1861,
+  "updated_at": "2026-06-29T20:10:04+08:00",
+  "total_logs": 1869,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -114,12 +114,12 @@
     },
     {
       "task_name": "avatar_strategy_wargame",
-      "total_count": 20,
-      "today_count": 1,
-      "success_count": 20,
+      "total_count": 21,
+      "today_count": 2,
+      "success_count": 21,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-29T06:07:03",
+      "last_run": "2026-06-29T18:10:07",
       "last_status": "ok"
     },
     {
@@ -254,9 +254,9 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 710,
-      "today_count": 17,
-      "success_count": 708,
+      "total_count": 716,
+      "today_count": 23,
+      "success_count": 714,
       "error_count": 2,
       "success_rate": 99.7,
       "last_run": "2026-06-24T19:39:41",
@@ -264,12 +264,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 145,
-      "today_count": 9,
-      "success_count": 145,
+      "total_count": 146,
+      "today_count": 10,
+      "success_count": 146,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-29T16:11:30",
+      "last_run": "2026-06-29T18:10:52",
       "last_status": "ok"
     },
     {
