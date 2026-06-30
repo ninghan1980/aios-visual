@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-06-30T10:14:15+08:00",
-  "total_logs": 1947,
+  "updated_at": "2026-06-30T12:12:35+08:00",
+  "total_logs": 1954,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 355,
-      "today_count": 9,
-      "success_count": 355,
+      "total_count": 357,
+      "today_count": 11,
+      "success_count": 357,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-30T08:53:52",
+      "last_run": "2026-06-30T11:25:37",
       "last_status": "ok"
     },
     {
@@ -264,22 +264,22 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 741,
-      "today_count": 21,
-      "success_count": 739,
-      "error_count": 2,
-      "success_rate": 99.7,
-      "last_run": "2026-06-24T19:39:41",
-      "last_status": "unknown"
+      "total_count": 745,
+      "today_count": 25,
+      "success_count": 742,
+      "error_count": 3,
+      "success_rate": 99.6,
+      "last_run": "2026-06-30T10:27:34",
+      "last_status": "skipped_timeout"
     },
     {
       "task_name": "state_export",
-      "total_count": 153,
-      "today_count": 6,
-      "success_count": 153,
+      "total_count": 154,
+      "today_count": 7,
+      "success_count": 154,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-30T08:10:40",
+      "last_run": "2026-06-30T10:14:29",
       "last_status": "ok"
     },
     {
