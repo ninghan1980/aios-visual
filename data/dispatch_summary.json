@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-01T04:09:28+08:00",
-  "total_logs": 2085,
+  "updated_at": "2026-07-01T06:08:39+08:00",
+  "total_logs": 2100,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 378,
-      "today_count": 5,
-      "success_count": 378,
+      "total_count": 380,
+      "today_count": 7,
+      "success_count": 380,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-01T04:03:40",
+      "last_run": "2026-07-01T05:44:14",
       "last_status": "ok"
     },
     {
@@ -64,12 +64,12 @@
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 74,
-      "today_count": 1,
-      "success_count": 74,
+      "total_count": 75,
+      "today_count": 2,
+      "success_count": 75,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-01T00:25:17",
+      "last_run": "2026-07-01T04:25:01",
       "last_status": "ok"
     },
     {
@@ -114,12 +114,12 @@
     },
     {
       "task_name": "avatar_strategy_wargame",
-      "total_count": 22,
-      "today_count": 0,
-      "success_count": 22,
+      "total_count": 23,
+      "today_count": 1,
+      "success_count": 23,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-06-30T18:07:45",
+      "last_run": "2026-07-01T06:06:53",
       "last_status": "ok"
     },
     {
@@ -264,9 +264,9 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 813,
-      "today_count": 21,
-      "success_count": 810,
+      "total_count": 822,
+      "today_count": 30,
+      "success_count": 819,
       "error_count": 3,
       "success_rate": 99.6,
       "last_run": "2026-06-30T10:27:34",
@@ -274,12 +274,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 163,
-      "today_count": 2,
-      "success_count": 163,
+      "total_count": 164,
+      "today_count": 3,
+      "success_count": 164,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-01T02:09:07",
+      "last_run": "2026-07-01T04:09:34",
       "last_status": "ok"
     },
     {
@@ -294,10 +294,10 @@
     },
     {
       "task_name": "unknown",
-      "total_count": 3,
+      "total_count": 4,
       "today_count": 0,
       "success_count": 0,
-      "error_count": 3,
+      "error_count": 4,
       "success_rate": 0.0,
       "last_run": "",
       "last_status": "unknown"
