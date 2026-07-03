@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-04T02:11:19+08:00",
-  "total_logs": 2406,
+  "updated_at": "2026-07-04T02:11:35+08:00",
+  "total_logs": 2407,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -274,12 +274,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 196,
-      "today_count": 1,
-      "success_count": 196,
+      "total_count": 197,
+      "today_count": 2,
+      "success_count": 197,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T00:10:17",
+      "last_run": "2026-07-04T02:11:23",
       "last_status": "ok"
     },
     {
