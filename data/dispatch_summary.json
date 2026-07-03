@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-03T16:10:05+08:00",
-  "total_logs": 2361,
+  "updated_at": "2026-07-03T18:10:28+08:00",
+  "total_logs": 2368,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 453,
-      "today_count": 27,
-      "success_count": 453,
+      "total_count": 455,
+      "today_count": 29,
+      "success_count": 455,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-03T16:05:21",
+      "last_run": "2026-07-03T17:44:26",
       "last_status": "ok"
     },
     {
@@ -64,12 +64,12 @@
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 88,
-      "today_count": 3,
-      "success_count": 88,
+      "total_count": 89,
+      "today_count": 4,
+      "success_count": 89,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-03T12:25:32",
+      "last_run": "2026-07-03T16:25:30",
       "last_status": "ok"
     },
     {
@@ -84,12 +84,12 @@
     },
     {
       "task_name": "avatar_dispatch",
-      "total_count": 86,
-      "today_count": 4,
-      "success_count": 86,
+      "total_count": 87,
+      "today_count": 5,
+      "success_count": 87,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-03T12:10:39",
+      "last_run": "2026-07-03T16:10:46",
       "last_status": "ok"
     },
     {
@@ -114,12 +114,12 @@
     },
     {
       "task_name": "avatar_strategy_wargame",
-      "total_count": 25,
-      "today_count": 0,
-      "success_count": 25,
+      "total_count": 26,
+      "today_count": 1,
+      "success_count": 26,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-02T18:13:21",
+      "last_run": "2026-07-03T18:04:24",
       "last_status": "ok"
     },
     {
@@ -154,12 +154,12 @@
     },
     {
       "task_name": "heartbeat",
-      "total_count": 41,
-      "today_count": 2,
-      "success_count": 41,
+      "total_count": 42,
+      "today_count": 3,
+      "success_count": 42,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-03T10:09:30",
+      "last_run": "2026-07-03T18:08:41",
       "last_status": "ok"
     },
     {
@@ -274,12 +274,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 191,
-      "today_count": 7,
-      "success_count": 191,
+      "total_count": 192,
+      "today_count": 8,
+      "success_count": 192,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-03T14:10:34",
+      "last_run": "2026-07-03T16:10:11",
       "last_status": "ok"
     },
     {
