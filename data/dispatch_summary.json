@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-04T20:08:33+08:00",
-  "total_logs": 2496,
+  "updated_at": "2026-07-04T22:10:27+08:00",
+  "total_logs": 2510,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 484,
-      "today_count": 22,
-      "success_count": 484,
+      "total_count": 487,
+      "today_count": 25,
+      "success_count": 487,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T19:35:37",
+      "last_run": "2026-07-04T22:05:15",
       "last_status": "ok"
     },
     {
@@ -44,52 +44,52 @@
     },
     {
       "task_name": "avatar_creative",
-      "total_count": 57,
-      "today_count": 3,
-      "success_count": 57,
+      "total_count": 58,
+      "today_count": 4,
+      "success_count": 58,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T15:38:52",
+      "last_run": "2026-07-04T21:38:58",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_cross_validation",
-      "total_count": 63,
-      "today_count": 3,
-      "success_count": 63,
+      "total_count": 64,
+      "today_count": 4,
+      "success_count": 64,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T15:23:53",
+      "last_run": "2026-07-04T21:24:06",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 95,
-      "today_count": 5,
-      "success_count": 95,
+      "total_count": 96,
+      "today_count": 6,
+      "success_count": 96,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T16:25:40",
+      "last_run": "2026-07-04T20:25:38",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_deep_analysis",
-      "total_count": 59,
-      "today_count": 3,
-      "success_count": 59,
+      "total_count": 60,
+      "today_count": 4,
+      "success_count": 60,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T15:09:23",
+      "last_run": "2026-07-04T21:09:23",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_dispatch",
-      "total_count": 93,
-      "today_count": 5,
-      "success_count": 93,
+      "total_count": 94,
+      "today_count": 6,
+      "success_count": 94,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T16:10:22",
+      "last_run": "2026-07-04T20:09:57",
       "last_status": "ok"
     },
     {
@@ -274,9 +274,9 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 916,
-      "today_count": 20,
-      "success_count": 913,
+      "total_count": 919,
+      "today_count": 23,
+      "success_count": 916,
       "error_count": 3,
       "success_rate": 99.7,
       "last_run": "2026-06-30T10:27:34",
@@ -284,12 +284,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 207,
-      "today_count": 12,
-      "success_count": 207,
+      "total_count": 208,
+      "today_count": 13,
+      "success_count": 208,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T18:11:53",
+      "last_run": "2026-07-04T20:08:37",
       "last_status": "ok"
     },
     {
@@ -334,12 +334,12 @@
     },
     {
       "task_name": "world_sim_v21",
-      "total_count": 9,
-      "today_count": 9,
-      "success_count": 9,
+      "total_count": 11,
+      "today_count": 11,
+      "success_count": 11,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T19:41:27",
+      "last_run": "2026-07-04T20:49:45",
       "last_status": "ok"
     },
     {
