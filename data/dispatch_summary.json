@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-04T18:11:48+08:00",
-  "total_logs": 2489,
+  "updated_at": "2026-07-04T20:08:33+08:00",
+  "total_logs": 2496,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 482,
-      "today_count": 20,
-      "success_count": 482,
+      "total_count": 484,
+      "today_count": 22,
+      "success_count": 484,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T17:54:52",
+      "last_run": "2026-07-04T19:35:37",
       "last_status": "ok"
     },
     {
@@ -274,9 +274,9 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 915,
-      "today_count": 19,
-      "success_count": 912,
+      "total_count": 916,
+      "today_count": 20,
+      "success_count": 913,
       "error_count": 3,
       "success_rate": 99.7,
       "last_run": "2026-06-30T10:27:34",
@@ -284,12 +284,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 206,
-      "today_count": 11,
-      "success_count": 206,
+      "total_count": 207,
+      "today_count": 12,
+      "success_count": 207,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T18:11:23",
+      "last_run": "2026-07-04T18:11:53",
       "last_status": "ok"
     },
     {
@@ -334,12 +334,12 @@
     },
     {
       "task_name": "world_sim_v21",
-      "total_count": 6,
-      "today_count": 6,
-      "success_count": 6,
+      "total_count": 9,
+      "today_count": 9,
+      "success_count": 9,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-04T14:53:01",
+      "last_run": "2026-07-04T19:41:27",
       "last_status": "ok"
     },
     {
