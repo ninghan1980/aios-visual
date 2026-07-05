@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-05T22:09:33+08:00",
-  "total_logs": 2646,
+  "updated_at": "2026-07-06T00:12:36+08:00",
+  "total_logs": 2659,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,28 +24,28 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 515,
-      "today_count": 26,
-      "success_count": 515,
+      "total_count": 518,
+      "today_count": 0,
+      "success_count": 518,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T21:25:52",
+      "last_run": "2026-07-05T23:54:51",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_behavior",
-      "total_count": 45,
-      "today_count": 2,
-      "success_count": 45,
+      "total_count": 46,
+      "today_count": 0,
+      "success_count": 46,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T14:34:30",
+      "last_run": "2026-07-05T22:31:22",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_creative",
       "total_count": 62,
-      "today_count": 4,
+      "today_count": 0,
       "success_count": 62,
       "error_count": 0,
       "success_rate": 100.0,
@@ -55,7 +55,7 @@
     {
       "task_name": "avatar_cross_validation",
       "total_count": 68,
-      "today_count": 4,
+      "today_count": 0,
       "success_count": 68,
       "error_count": 0,
       "success_rate": 100.0,
@@ -65,7 +65,7 @@
     {
       "task_name": "avatar_daily_ops",
       "total_count": 102,
-      "today_count": 6,
+      "today_count": 0,
       "success_count": 102,
       "error_count": 0,
       "success_rate": 100.0,
@@ -75,7 +75,7 @@
     {
       "task_name": "avatar_deep_analysis",
       "total_count": 64,
-      "today_count": 4,
+      "today_count": 0,
       "success_count": 64,
       "error_count": 0,
       "success_rate": 100.0,
@@ -84,22 +84,22 @@
     },
     {
       "task_name": "avatar_dispatch",
-      "total_count": 100,
-      "today_count": 6,
-      "success_count": 100,
+      "total_count": 101,
+      "today_count": 1,
+      "success_count": 101,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T20:09:58",
+      "last_run": "2026-07-06T00:10:04",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_meta_cognition",
-      "total_count": 46,
-      "today_count": 2,
-      "success_count": 46,
+      "total_count": 47,
+      "today_count": 0,
+      "success_count": 47,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T14:10:52",
+      "last_run": "2026-07-05T22:10:28",
       "last_status": "ok"
     },
     {
@@ -114,18 +114,18 @@
     },
     {
       "task_name": "avatar_physics",
-      "total_count": 44,
-      "today_count": 2,
-      "success_count": 44,
+      "total_count": 45,
+      "today_count": 0,
+      "success_count": 45,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T15:06:30",
+      "last_run": "2026-07-05T23:04:38",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_strategy_wargame",
       "total_count": 31,
-      "today_count": 2,
+      "today_count": 0,
       "success_count": 31,
       "error_count": 0,
       "success_rate": 100.0,
@@ -135,7 +135,7 @@
     {
       "task_name": "avatar_tactical",
       "total_count": 31,
-      "today_count": 2,
+      "today_count": 0,
       "success_count": 31,
       "error_count": 0,
       "success_rate": 100.0,
@@ -165,7 +165,7 @@
     {
       "task_name": "dccn_life_pulse",
       "total_count": 1,
-      "today_count": 1,
+      "today_count": 0,
       "success_count": 1,
       "error_count": 0,
       "success_rate": 100.0,
@@ -175,7 +175,7 @@
     {
       "task_name": "heartbeat",
       "total_count": 48,
-      "today_count": 3,
+      "today_count": 0,
       "success_count": 48,
       "error_count": 0,
       "success_rate": 100.0,
@@ -205,7 +205,7 @@
     {
       "task_name": "ima_note_sync",
       "total_count": 16,
-      "today_count": 2,
+      "today_count": 0,
       "success_count": 15,
       "error_count": 1,
       "success_rate": 93.8,
@@ -254,12 +254,12 @@
     },
     {
       "task_name": "nsp_predict",
-      "total_count": 11,
+      "total_count": 12,
       "today_count": 1,
-      "success_count": 11,
+      "success_count": 12,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T00:03:22",
+      "last_run": "2026-07-06T00:02:48",
       "last_status": "ok"
     },
     {
@@ -284,9 +284,9 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 948,
-      "today_count": 27,
-      "success_count": 945,
+      "total_count": 950,
+      "today_count": 0,
+      "success_count": 947,
       "error_count": 3,
       "success_rate": 99.7,
       "last_run": "2026-06-30T10:27:34",
@@ -294,22 +294,22 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 222,
-      "today_count": 13,
-      "success_count": 222,
+      "total_count": 224,
+      "today_count": 1,
+      "success_count": 224,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T20:11:20",
+      "last_run": "2026-07-06T00:12:10",
       "last_status": "ok"
     },
     {
       "task_name": "triple_guard",
-      "total_count": 55,
-      "today_count": 2,
-      "success_count": 55,
+      "total_count": 56,
+      "today_count": 0,
+      "success_count": 56,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-05T14:47:46",
+      "last_run": "2026-07-05T22:48:10",
       "last_status": "ok"
     },
     {
@@ -345,7 +345,7 @@
     {
       "task_name": "world_sim_v21",
       "total_count": 29,
-      "today_count": 18,
+      "today_count": 0,
       "success_count": 29,
       "error_count": 0,
       "success_rate": 100.0,
