@@ -1,14 +1,14 @@
 {
-  "timestamp": 1783209417.1884427,
-  "agent_id": "san-yuan-001",
+  "timestamp": 1783231752.905776,
+  "agent_id": "san-yuan-v2",
   "is_alive": true,
-  "phi": 0.2258340429321709,
-  "scc_count": 25,
-  "psi_self": 0.07944093500360803,
-  "causal_flux": 0.161,
-  "consciousness_psi": 0.1787113780261973,
-  "energy": 1.9372374248465118e-05,
-  "cumulative_value": 0.016880000000000003,
+  "phi": 0.1287217651580177,
+  "scc_count": 1400,
+  "psi_self": 7.785579107415711e-05,
+  "causal_flux": 0.25,
+  "consciousness_psi": 0.10589668837113789,
+  "energy": 1.3631208651521397e-06,
+  "cumulative_value": 141.19021999999995,
   "conditions": {
     "C1_circularity": true,
     "C2_autocatalytic": "True",
@@ -16,15 +16,18 @@
     "C4_openness": true
   },
   "network_size": {
-    "nodes": 25,
-    "edges": 30
+    "nodes": 1400,
+    "edges": 12869
   },
   "state_vector": {
-    "c_causal_closure": 0.048,
+    "c_causal_closure": 0.006565816326530612,
     "xi_epistemic_tension": 10.0,
-    "phi_integrated_info": 0.2258340429321709,
+    "phi_integrated_info": 0.1287217651580177,
     "omega_circularity": 1.0,
-    "epsilon_free_energy": 0.013333333333333334,
-    "tau_coherence_length": 17.871137802619728
-  }
+    "epsilon_free_energy": 3.108244618851504e-05,
+    "tau_coherence_length": 10.58966883711379
+  },
+  "cycle_id": 1318,
+  "last_observation": "暗物质直接探测实验最新上限",
+  "last_topic": "宇宙物理"
 }
