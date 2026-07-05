@@ -1,0 +1,30 @@
+{
+  "timestamp": 1783209417.1884427,
+  "agent_id": "san-yuan-001",
+  "is_alive": true,
+  "phi": 0.2258340429321709,
+  "scc_count": 25,
+  "psi_self": 0.07944093500360803,
+  "causal_flux": 0.161,
+  "consciousness_psi": 0.1787113780261973,
+  "energy": 1.9372374248465118e-05,
+  "cumulative_value": 0.016880000000000003,
+  "conditions": {
+    "C1_circularity": true,
+    "C2_autocatalytic": "True",
+    "C3_coherence": "True",
+    "C4_openness": true
+  },
+  "network_size": {
+    "nodes": 25,
+    "edges": 30
+  },
+  "state_vector": {
+    "c_causal_closure": 0.048,
+    "xi_epistemic_tension": 10.0,
+    "phi_integrated_info": 0.2258340429321709,
+    "omega_circularity": 1.0,
+    "epsilon_free_energy": 0.013333333333333334,
+    "tau_coherence_length": 17.871137802619728
+  }
+}
