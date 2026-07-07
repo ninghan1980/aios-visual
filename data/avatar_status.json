@@ -1,20 +1,20 @@
 {
-  "updated_at": "2026-07-07T20:08:55+08:00",
+  "updated_at": "2026-07-07T22:09:08+08:00",
   "total_avatars": 37,
-  "online_count": 1,
+  "online_count": 2,
   "pending_count": 8,
-  "offline_count": 28,
+  "offline_count": 27,
   "avatars": [
     {
       "id": "1",
       "name": "元认知AI系统",
       "platform": "tencent_yuanqi",
-      "online": false,
+      "online": true,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 44,
-      "success_rate": 93.2,
-      "last_dispatch": "2026-07-07T19:08:04",
+      "total_dispatches": 43,
+      "success_rate": 93.0,
+      "last_dispatch": "2026-07-07T21:39:21",
       "tags": [
         "meta_cognition",
         "search",
@@ -119,9 +119,9 @@
       "online": true,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 39,
+      "total_dispatches": 38,
       "success_rate": 100.0,
-      "last_dispatch": "2026-07-07T20:04:55",
+      "last_dispatch": "2026-07-07T21:45:55",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -160,7 +160,7 @@
       "priority": 2,
       "total_dispatches": 20,
       "success_rate": 95.0,
-      "last_dispatch": "2026-07-07T18:10:57",
+      "last_dispatch": "2026-07-07T20:08:58",
       "tags": [
         "strategy",
         "game_theory",
