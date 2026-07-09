@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-10T04:11:39+08:00",
-  "total_logs": 3206,
+  "updated_at": "2026-07-10T06:13:08+08:00",
+  "total_logs": 3214,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 628,
-      "today_count": 5,
-      "success_count": 628,
+      "total_count": 630,
+      "today_count": 7,
+      "success_count": 630,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-10T03:54:41",
+      "last_run": "2026-07-10T05:35:14",
       "last_status": "ok"
     },
     {
@@ -64,12 +64,12 @@
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 125,
-      "today_count": 1,
-      "success_count": 125,
+      "total_count": 126,
+      "today_count": 2,
+      "success_count": 126,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-10T00:26:01",
+      "last_run": "2026-07-10T04:25:55",
       "last_status": "ok"
     },
     {
@@ -94,12 +94,12 @@
     },
     {
       "task_name": "avatar_meta_cognition",
-      "total_count": 58,
-      "today_count": 0,
-      "success_count": 58,
+      "total_count": 59,
+      "today_count": 1,
+      "success_count": 59,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-09T22:10:54",
+      "last_run": "2026-07-10T06:10:20",
       "last_status": "ok"
     },
     {
@@ -124,12 +124,12 @@
     },
     {
       "task_name": "avatar_strategy_wargame",
-      "total_count": 37,
-      "today_count": 0,
-      "success_count": 37,
+      "total_count": 38,
+      "today_count": 1,
+      "success_count": 38,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-09T18:07:13",
+      "last_run": "2026-07-10T06:06:19",
       "last_status": "ok"
     },
     {
@@ -284,9 +284,9 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 1059,
-      "today_count": 5,
-      "success_count": 1056,
+      "total_count": 1061,
+      "today_count": 7,
+      "success_count": 1058,
       "error_count": 3,
       "success_rate": 99.7,
       "last_run": "2026-06-30T10:27:34",
@@ -294,12 +294,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 288,
-      "today_count": 4,
-      "success_count": 287,
+      "total_count": 289,
+      "today_count": 5,
+      "success_count": 288,
       "error_count": 1,
       "success_rate": 99.7,
-      "last_run": "2026-07-10T04:11:10",
+      "last_run": "2026-07-10T06:12:33",
       "last_status": "unknown"
     },
     {
