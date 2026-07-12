@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-12T06:11:36+08:00",
-  "total_logs": 3466,
+  "updated_at": "2026-07-12T08:09:35+08:00",
+  "total_logs": 3472,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,22 +24,22 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 685,
-      "today_count": 7,
-      "success_count": 685,
+      "total_count": 687,
+      "today_count": 9,
+      "success_count": 687,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-12T05:55:10",
+      "last_run": "2026-07-12T07:38:44",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_behavior",
-      "total_count": 64,
-      "today_count": 0,
-      "success_count": 64,
+      "total_count": 65,
+      "today_count": 1,
+      "success_count": 65,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-11T22:48:21",
+      "last_run": "2026-07-12T06:31:12",
       "last_status": "ok"
     },
     {
@@ -94,12 +94,12 @@
     },
     {
       "task_name": "avatar_meta_cognition",
-      "total_count": 64,
-      "today_count": 0,
-      "success_count": 64,
+      "total_count": 65,
+      "today_count": 1,
+      "success_count": 65,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-11T22:11:24",
+      "last_run": "2026-07-12T06:15:34",
       "last_status": "ok"
     },
     {
@@ -294,9 +294,9 @@
     },
     {
       "task_name": "rsi_autotrain",
-      "total_count": 1115,
-      "today_count": 6,
-      "success_count": 1112,
+      "total_count": 1116,
+      "today_count": 7,
+      "success_count": 1113,
       "error_count": 3,
       "success_rate": 99.7,
       "last_run": "2026-06-30T10:27:34",
@@ -314,12 +314,12 @@
     },
     {
       "task_name": "triple_guard",
-      "total_count": 73,
-      "today_count": 0,
-      "success_count": 73,
+      "total_count": 74,
+      "today_count": 1,
+      "success_count": 74,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-11T22:48:24",
+      "last_run": "2026-07-12T06:47:57",
       "last_status": "ok"
     },
     {
