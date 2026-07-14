@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-15T02:11:12+08:00",
+  "updated_at": "2026-07-15T02:11:50+08:00",
   "total_avatars": 37,
   "online_count": 2,
   "pending_count": 8,
@@ -158,9 +158,9 @@
       "online": true,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 17,
-      "success_rate": 94.1,
-      "last_dispatch": "2026-07-15T02:10:34",
+      "total_dispatches": 18,
+      "success_rate": 94.4,
+      "last_dispatch": "2026-07-15T02:11:15",
       "tags": [
         "strategy",
         "game_theory",
