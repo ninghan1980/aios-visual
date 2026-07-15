@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-07-15T08:09:04+08:00",
+  "updated_at": "2026-07-15T10:09:31+08:00",
   "total_avatars": 37,
-  "online_count": 1,
+  "online_count": 0,
   "pending_count": 8,
-  "offline_count": 28,
+  "offline_count": 29,
   "avatars": [
     {
       "id": "1",
@@ -12,8 +12,8 @@
       "online": false,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 40,
-      "success_rate": 92.5,
+      "total_dispatches": 39,
+      "success_rate": 92.3,
       "last_dispatch": "2026-07-15T07:07:47",
       "tags": [
         "meta_cognition",
@@ -116,12 +116,12 @@
       "id": "7",
       "name": "心",
       "platform": "tencent_cloud_agent",
-      "online": true,
+      "online": false,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 36,
+      "total_dispatches": 35,
       "success_rate": 100.0,
-      "last_dispatch": "2026-07-15T08:06:28",
+      "last_dispatch": "2026-07-15T08:54:49",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -158,9 +158,9 @@
       "online": false,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 18,
-      "success_rate": 94.4,
-      "last_dispatch": "2026-07-15T06:12:19",
+      "total_dispatches": 17,
+      "success_rate": 94.1,
+      "last_dispatch": "2026-07-15T08:09:07",
       "tags": [
         "strategy",
         "game_theory",
