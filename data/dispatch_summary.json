@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-16T04:12:18+08:00",
-  "total_logs": 3876,
+  "updated_at": "2026-07-16T06:11:57+08:00",
+  "total_logs": 3883,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,12 +24,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 780,
-      "today_count": 5,
-      "success_count": 780,
+      "total_count": 782,
+      "today_count": 7,
+      "success_count": 782,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-16T04:04:06",
+      "last_run": "2026-07-16T05:44:08",
       "last_status": "ok"
     },
     {
@@ -64,12 +64,12 @@
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 151,
-      "today_count": 1,
-      "success_count": 151,
+      "total_count": 152,
+      "today_count": 2,
+      "success_count": 152,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-16T00:24:58",
+      "last_run": "2026-07-16T04:25:33",
       "last_status": "ok"
     },
     {
@@ -124,12 +124,12 @@
     },
     {
       "task_name": "avatar_strategy_wargame",
-      "total_count": 47,
-      "today_count": 0,
-      "success_count": 47,
+      "total_count": 48,
+      "today_count": 1,
+      "success_count": 48,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-15T18:05:09",
+      "last_run": "2026-07-16T06:05:21",
       "last_status": "ok"
     },
     {
@@ -304,12 +304,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 360,
-      "today_count": 3,
-      "success_count": 359,
+      "total_count": 361,
+      "today_count": 4,
+      "success_count": 360,
       "error_count": 1,
       "success_rate": 99.7,
-      "last_run": "2026-07-16T04:11:19",
+      "last_run": "2026-07-16T06:11:21",
       "last_status": "unknown"
     },
     {
@@ -354,12 +354,12 @@
     },
     {
       "task_name": "world_sim_v21",
-      "total_count": 196,
-      "today_count": 7,
-      "success_count": 196,
+      "total_count": 198,
+      "today_count": 9,
+      "success_count": 198,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-16T03:58:24",
+      "last_run": "2026-07-16T05:04:56",
       "last_status": "ok"
     },
     {
