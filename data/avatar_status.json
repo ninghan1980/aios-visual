@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-16T22:09:20+08:00",
+  "updated_at": "2026-07-17T00:10:05+08:00",
   "total_avatars": 37,
   "online_count": 1,
   "pending_count": 8,
@@ -12,8 +12,8 @@
       "online": false,
       "pending": false,
       "priority": 1,
-      "total_dispatches": 17,
-      "success_rate": 82.4,
+      "total_dispatches": 16,
+      "success_rate": 81.2,
       "last_dispatch": "2026-07-16T15:31:08",
       "tags": [
         "meta_cognition",
@@ -104,7 +104,7 @@
       "priority": 4,
       "total_dispatches": 6,
       "success_rate": 100.0,
-      "last_dispatch": "2026-07-16T14:52:57",
+      "last_dispatch": "2026-07-16T22:47:57",
       "tags": [
         "data_fusion",
         "quality_audit",
@@ -121,7 +121,7 @@
       "priority": 1,
       "total_dispatches": 43,
       "success_rate": 100.0,
-      "last_dispatch": "2026-07-16T21:34:59",
+      "last_dispatch": "2026-07-17T00:04:48",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -160,7 +160,7 @@
       "priority": 2,
       "total_dispatches": 18,
       "success_rate": 94.4,
-      "last_dispatch": "2026-07-16T20:12:02",
+      "last_dispatch": "2026-07-16T22:09:25",
       "tags": [
         "strategy",
         "game_theory",
