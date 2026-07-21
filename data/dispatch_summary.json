@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-21T18:11:30+08:00",
-  "total_logs": 4279,
+  "updated_at": "2026-07-21T20:11:25+08:00",
+  "total_logs": 4288,
   "summary": [
     {
       "task_name": "abyss_analyze",
@@ -24,19 +24,19 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 898,
-      "today_count": 21,
-      "success_count": 898,
+      "total_count": 901,
+      "today_count": 23,
+      "success_count": 901,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-21T17:25:47",
+      "last_run": "2026-07-21T19:54:30",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_behavior",
-      "total_count": 90,
-      "today_count": 4,
-      "success_count": 90,
+      "total_count": 89,
+      "today_count": 3,
+      "success_count": 89,
       "error_count": 0,
       "success_rate": 100.0,
       "last_run": "2026-07-21T14:34:56",
@@ -44,9 +44,9 @@
     },
     {
       "task_name": "avatar_creative",
-      "total_count": 122,
+      "total_count": 123,
       "today_count": 3,
-      "success_count": 122,
+      "success_count": 123,
       "error_count": 0,
       "success_rate": 100.0,
       "last_run": "2026-07-21T15:39:49",
@@ -54,9 +54,9 @@
     },
     {
       "task_name": "avatar_cross_validation",
-      "total_count": 120,
+      "total_count": 121,
       "today_count": 3,
-      "success_count": 120,
+      "success_count": 121,
       "error_count": 0,
       "success_rate": 100.0,
       "last_run": "2026-07-21T15:24:39",
@@ -304,12 +304,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 422,
-      "today_count": 11,
-      "success_count": 421,
+      "total_count": 425,
+      "today_count": 13,
+      "success_count": 424,
       "error_count": 1,
       "success_rate": 99.8,
-      "last_run": "2026-07-21T18:10:46",
+      "last_run": "2026-07-21T20:10:47",
       "last_status": "unknown"
     },
     {
@@ -354,12 +354,12 @@
     },
     {
       "task_name": "world_sim_v21",
-      "total_count": 229,
-      "today_count": 6,
-      "success_count": 229,
+      "total_count": 231,
+      "today_count": 8,
+      "success_count": 231,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-21T12:50:22",
+      "last_run": "2026-07-21T18:20:31",
       "last_status": "ok"
     },
     {
