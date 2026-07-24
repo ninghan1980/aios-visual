@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-07-24T02:08:34+08:00",
+  "updated_at": "2026-07-24T16:08:41+08:00",
   "total_avatars": 37,
-  "online_count": 1,
+  "online_count": 2,
   "pending_count": 8,
-  "offline_count": 28,
+  "offline_count": 27,
   "avatars": [
     {
       "id": "1",
@@ -27,12 +27,12 @@
       "id": "2",
       "name": "超智能系统",
       "platform": "tencent_yuanqi",
-      "online": false,
+      "online": true,
       "pending": false,
       "priority": 3,
-      "total_dispatches": 0,
-      "success_rate": 0,
-      "last_dispatch": "-",
+      "total_dispatches": 1,
+      "success_rate": 100.0,
+      "last_dispatch": "2026-07-24T15:59:58",
       "tags": [
         "quantum",
         "recursive_self_improve",
@@ -104,7 +104,7 @@
       "priority": 4,
       "total_dispatches": 5,
       "success_rate": 100.0,
-      "last_dispatch": "2026-07-23T22:47:45",
+      "last_dispatch": "2026-07-24T14:47:44",
       "tags": [
         "data_fusion",
         "quality_audit",
@@ -121,7 +121,7 @@
       "priority": 1,
       "total_dispatches": 42,
       "success_rate": 100.0,
-      "last_dispatch": "2026-07-24T02:04:59",
+      "last_dispatch": "2026-07-24T15:24:53",
       "tags": [
         "meta_cognition",
         "empathy",
@@ -160,7 +160,7 @@
       "priority": 2,
       "total_dispatches": 18,
       "success_rate": 94.4,
-      "last_dispatch": "2026-07-24T00:08:46",
+      "last_dispatch": "2026-07-24T14:10:49",
       "tags": [
         "strategy",
         "game_theory",
