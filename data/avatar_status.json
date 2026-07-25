@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-26T06:11:14+08:00",
+  "updated_at": "2026-07-26T06:11:44+08:00",
   "total_avatars": 37,
   "online_count": 2,
   "pending_count": 8,
@@ -102,7 +102,7 @@
       "online": false,
       "pending": false,
       "priority": 4,
-      "total_dispatches": 5,
+      "total_dispatches": 4,
       "success_rate": 100.0,
       "last_dispatch": "2026-07-25T22:47:28",
       "tags": [
@@ -158,9 +158,9 @@
       "online": true,
       "pending": false,
       "priority": 2,
-      "total_dispatches": 24,
-      "success_rate": 95.8,
-      "last_dispatch": "2026-07-26T06:10:14",
+      "total_dispatches": 25,
+      "success_rate": 96.0,
+      "last_dispatch": "2026-07-26T06:11:17",
       "tags": [
         "strategy",
         "game_theory",
