@@ -1,6 +1,14 @@
 {
-  "generated_at": "2026-07-30T04:12:19+08:00",
-  "phase_transitions": [],
+  "generated_at": "2026-07-30T14:09:13+08:00",
+  "phase_transitions": [
+    {
+      "task_name": "abyss_analyze",
+      "timestamp": "2026-07-30T09:16:09.467982",
+      "alert": true,
+      "baseline_deviation": 0.33,
+      "consecutive": 8
+    }
+  ],
   "geju_history": [
     {
       "timestamp": "2026-07-30T02:08:28.144840",
