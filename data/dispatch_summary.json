@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-31T00:12:12+08:00",
-  "total_logs": 5319,
+  "updated_at": "2026-07-31T02:08:44+08:00",
+  "total_logs": 5323,
   "summary": [
     {
       "task_name": "aas_autonomous_run",
@@ -34,12 +34,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 1168,
-      "today_count": 0,
-      "success_count": 1168,
+      "total_count": 1170,
+      "today_count": 2,
+      "success_count": 1170,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-30T23:54:15",
+      "last_run": "2026-07-31T01:33:53",
       "last_status": "ok"
     },
     {
@@ -74,12 +74,12 @@
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 234,
-      "today_count": 0,
-      "success_count": 234,
+      "total_count": 235,
+      "today_count": 1,
+      "success_count": 235,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-30T20:25:25",
+      "last_run": "2026-07-31T00:25:15",
       "last_status": "ok"
     },
     {
@@ -144,12 +144,12 @@
     },
     {
       "task_name": "avatar_tactical",
-      "total_count": 78,
-      "today_count": 0,
-      "success_count": 78,
+      "total_count": 79,
+      "today_count": 1,
+      "success_count": 79,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-30T13:10:46",
+      "last_run": "2026-07-31T01:10:54",
       "last_status": "ok"
     },
     {
