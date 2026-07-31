@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-07-31T08:12:09+08:00",
-  "total_logs": 5355,
+  "updated_at": "2026-07-31T10:12:48+08:00",
+  "total_logs": 5371,
   "summary": [
     {
       "task_name": "aas_autonomous_run",
@@ -14,12 +14,12 @@
     },
     {
       "task_name": "abyss_analyze",
-      "total_count": 30,
-      "today_count": 0,
+      "total_count": 31,
+      "today_count": 1,
       "success_count": 25,
-      "error_count": 5,
-      "success_rate": 83.3,
-      "last_run": "2026-07-30T09:16:09",
+      "error_count": 6,
+      "success_rate": 80.6,
+      "last_run": "2026-07-31T09:12:30",
       "last_status": "error"
     },
     {
@@ -34,12 +34,12 @@
     },
     {
       "task_name": "aether_collect",
-      "total_count": 1177,
-      "today_count": 9,
-      "success_count": 1177,
+      "total_count": 1180,
+      "today_count": 12,
+      "success_count": 1180,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T07:24:29",
+      "last_run": "2026-07-31T09:54:12",
       "last_status": "ok"
     },
     {
@@ -54,52 +54,52 @@
     },
     {
       "task_name": "avatar_creative",
-      "total_count": 162,
-      "today_count": 1,
-      "success_count": 162,
+      "total_count": 163,
+      "today_count": 2,
+      "success_count": 163,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T03:39:39",
+      "last_run": "2026-07-31T09:41:50",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_cross_validation",
-      "total_count": 160,
-      "today_count": 1,
-      "success_count": 160,
+      "total_count": 161,
+      "today_count": 2,
+      "success_count": 161,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T03:23:56",
+      "last_run": "2026-07-31T09:24:20",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_daily_ops",
-      "total_count": 236,
-      "today_count": 2,
-      "success_count": 236,
+      "total_count": 237,
+      "today_count": 3,
+      "success_count": 237,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T04:25:07",
+      "last_run": "2026-07-31T08:25:34",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_deep_analysis",
-      "total_count": 152,
-      "today_count": 1,
-      "success_count": 152,
+      "total_count": 153,
+      "today_count": 2,
+      "success_count": 153,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T03:09:45",
+      "last_run": "2026-07-31T09:11:30",
       "last_status": "ok"
     },
     {
       "task_name": "avatar_dispatch",
-      "total_count": 239,
-      "today_count": 2,
-      "success_count": 239,
+      "total_count": 241,
+      "today_count": 4,
+      "success_count": 241,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T04:10:15",
+      "last_run": "2026-07-31T08:11:56",
       "last_status": "ok"
     },
     {
@@ -194,12 +194,12 @@
     },
     {
       "task_name": "heartbeat",
-      "total_count": 112,
-      "today_count": 1,
-      "success_count": 112,
+      "total_count": 113,
+      "today_count": 2,
+      "success_count": 113,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T02:08:27",
+      "last_run": "2026-07-31T10:09:31",
       "last_status": "ok"
     },
     {
@@ -314,12 +314,12 @@
     },
     {
       "task_name": "state_export",
-      "total_count": 556,
-      "today_count": 6,
-      "success_count": 555,
+      "total_count": 559,
+      "today_count": 9,
+      "success_count": 558,
       "error_count": 1,
       "success_rate": 99.8,
-      "last_run": "2026-07-31T08:10:36",
+      "last_run": "2026-07-31T10:12:03",
       "last_status": "unknown"
     },
     {
@@ -364,12 +364,12 @@
     },
     {
       "task_name": "world_sim_v21",
-      "total_count": 427,
-      "today_count": 8,
-      "success_count": 427,
+      "total_count": 429,
+      "today_count": 10,
+      "success_count": 429,
       "error_count": 0,
       "success_rate": 100.0,
-      "last_run": "2026-07-31T07:56:52",
+      "last_run": "2026-07-31T09:04:47",
       "last_status": "ok"
     },
     {
