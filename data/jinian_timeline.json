@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31T10:12:50+08:00",
+  "generated_at": "2026-08-01T10:15:47+08:00",
   "phase_transitions": [
     {
       "task_name": "abyss_analyze",
@@ -19,9 +19,9 @@
   ],
   "accuracy": {
     "24h": {
-      "total": 1,
-      "hit": 1,
-      "rate": 1.0
+      "total": 0,
+      "hit": 0,
+      "rate": 0.0
     },
     "7d": {
       "total": 1,
