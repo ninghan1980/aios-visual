@@ -1,20 +1,126 @@
 {
-  "generated_at": "2026-08-01T10:15:47+08:00",
-  "phase_transitions": [
-    {
-      "task_name": "abyss_analyze",
-      "timestamp": "2026-07-31T09:12:31.046099",
-      "alert": true,
-      "baseline_deviation": 0.5,
-      "consecutive": 9
-    }
-  ],
+  "generated_at": "2026-09-10T08:53:42+08:00",
+  "phase_transitions": [],
   "geju_history": [
     {
-      "timestamp": "2026-07-30T02:08:28.144840",
-      "from": "stable",
+      "timestamp": "2026-09-08T00:03:35.354672",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.4
+    },
+    {
+      "timestamp": "2026-09-08T02:08:26.539533",
+      "from": "tech_breakthrough",
       "to": "market_window",
-      "confidence": 1.0
+      "confidence": 0.3
+    },
+    {
+      "timestamp": "2026-09-08T08:16:21.007168",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.4
+    },
+    {
+      "timestamp": "2026-09-08T09:12:01.087957",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.6
+    },
+    {
+      "timestamp": "2026-09-08T12:24:34.942386",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.3
+    },
+    {
+      "timestamp": "2026-09-08T13:10:59.165406",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.8
+    },
+    {
+      "timestamp": "2026-09-08T19:44:47.417423",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.4
+    },
+    {
+      "timestamp": "2026-09-08T21:39:08.750371",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.8
+    },
+    {
+      "timestamp": "2026-09-09T05:43:48.134527",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.4
+    },
+    {
+      "timestamp": "2026-09-09T06:47:55.897719",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.3
+    },
+    {
+      "timestamp": "2026-09-09T10:12:10.125520",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.6
+    },
+    {
+      "timestamp": "2026-09-09T13:11:04.706118",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.8
+    },
+    {
+      "timestamp": "2026-09-09T15:04:56.577897",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.5
+    },
+    {
+      "timestamp": "2026-09-09T18:04:39.603180",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.2
+    },
+    {
+      "timestamp": "2026-09-09T19:59:58.993216",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.4
+    },
+    {
+      "timestamp": "2026-09-09T21:08:58.661155",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.3
+    },
+    {
+      "timestamp": "2026-09-10T01:11:01.782397",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.4
+    },
+    {
+      "timestamp": "2026-09-10T02:08:37.811237",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.3
+    },
+    {
+      "timestamp": "2026-09-10T03:09:32.007621",
+      "from": "market_window",
+      "to": "tech_breakthrough",
+      "confidence": 0.3
+    },
+    {
+      "timestamp": "2026-09-10T03:39:05.910147",
+      "from": "tech_breakthrough",
+      "to": "market_window",
+      "confidence": 0.2
     }
   ],
   "accuracy": {
@@ -24,9 +130,9 @@
       "rate": 0.0
     },
     "7d": {
-      "total": 1,
-      "hit": 1,
-      "rate": 1.0
+      "total": 0,
+      "hit": 0,
+      "rate": 0.0
     }
   }
 }

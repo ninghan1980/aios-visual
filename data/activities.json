@@ -1,80 +1,25 @@
 {
-  "updated_at": "2026-08-01T10:14:17+08:00",
+  "updated_at": "2026-09-10T08:47:29+08:00",
   "activities": [
     {
-      "time": "weibo hot 20260617 ",
-      "task": "weibo",
-      "status": "completed"
+      "time": "2026-09-10T08:47:29",
+      "task": "state_export",
+      "status": "ok"
     },
     {
-      "time": "weibo hot 20260617 ",
-      "task": "weibo",
-      "status": "completed"
-    },
-    {
-      "time": "weibo hot 20260617 ",
-      "task": "weibo",
-      "status": "completed"
-    },
-    {
-      "time": "weibo hot 20260617 ",
-      "task": "weibo",
-      "status": "completed"
-    },
-    {
-      "time": "weibo hot 20260617 ",
-      "task": "weibo",
-      "status": "completed"
-    },
-    {
-      "time": "weibo hot 20260616 ",
-      "task": "weibo",
-      "status": "completed"
-    },
-    {
-      "time": "weibo hot 20260616 ",
+      "time": "2026-06-15T13:55:00",
       "task": "weibo_hot",
-      "status": "unknown"
+      "status": "ok"
     },
     {
-      "time": "weibo hot 20260616 ",
-      "task": "weibo_hot",
-      "status": "unknown"
+      "time": "2026-06-15T13:52:00",
+      "task": "aether_collect",
+      "status": "ok"
     },
     {
-      "time": "weibo hot 20260616 ",
-      "task": "weibo_hot",
-      "status": "unknown"
-    },
-    {
-      "time": "weibo hot 20260615 ",
-      "task": "weibo_hot",
-      "status": "unknown"
-    },
-    {
-      "time": "weibo hot 20260615 ",
-      "task": "weibo_hot",
-      "status": "unknown"
-    },
-    {
-      "time": "weibo hot 20260615 ",
-      "task": "weibo_hot",
-      "status": "unknown"
-    },
-    {
-      "time": "weibo hot 20260615 ",
-      "task": "weibo_hot",
-      "status": "unknown"
-    },
-    {
-      "time": "weibo hot 20260615 ",
-      "task": "weibo_hot",
-      "status": "unknown"
-    },
-    {
-      "time": "weibo hot 20260615 ",
-      "task": "weibo_hot",
-      "status": "unknown"
+      "time": "2026-06-15T13:51:00",
+      "task": "rsi_autotrain",
+      "status": "ok"
     }
   ]
 }
